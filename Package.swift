@@ -9,15 +9,15 @@ let package = Package(
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "RAW",
-            targets: ["rawdog"]),
+            targets: ["RAW"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "rawdog",
-			dependencies: ["Crawdog"]),
+            name: "RAW",
+			dependencies: ["CRAW"]),
 		.target(
-			name: "Crawdog")
+			name: "CRAW")
     ]
 )

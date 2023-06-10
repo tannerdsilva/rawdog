@@ -1,10 +1,10 @@
 // written by tanner silva in 2023.
 // rawdog is a swift library that makes it easy to encode and decode programming objects from C-like memory representations.
 
-import Crawdog
+import CRAW
 
 /// buffer representation struct
-public typealias RAW_val = Crawdog.RAW_val
+public typealias RAW_val = CRAW.RAW_val
 
 /// convertible protocol that encapsulates encodable and decodable protocols
 public typealias RAW_convertible = RAW_encodable & RAW_decodable
