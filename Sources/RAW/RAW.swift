@@ -49,11 +49,18 @@ extension RAW_val:Hashable, Equatable {
 
 extension Array:RAW_encodable where Element == UInt8 {
 	public func asRAW_val<R>(_ valFunc:(inout RAW_val) throws -> R) rethrows -> R {
-		let getThing = try self.withContiguousStorageIfAvailable { someBytes in
+		if let getThing = try self.withContiguousStorageIfAvailable({ someBytes in
 			var val = RAW_val(mv_size:someBytes.count, mv_data:UnsafeMutableRawPointer(mutating:someBytes.baseAddress))
 			return try valFunc(&val)
+		}) {
+			return getThing
+		} else {
+			let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: self.count)
+			defer { buffer.deallocate() }
+			_ = buffer.initialize(from: self)
+			var val = RAW_val(mv_size:self.count, mv_data:buffer.baseAddress)
+			return try valFunc(&val)
 		}
-		return getThing!
 	}
 }
 
