@@ -25,7 +25,7 @@ public protocol RAW_comparable {
 	static var rawCompareFunction:RAW_compare_function { get }
 }
 
-
+// convenience static functions.
 extension RAW_val {
 	/// returns a ``RAW_val`` that represents a "null value". the returned data size is zero, and the data pointer is nil.
 	public static func nullValue() -> RAW_val {
@@ -33,11 +33,14 @@ extension RAW_val {
 	}
 }
 
+// implement equatable and hashable.
 extension RAW_val:Hashable, Equatable {
+	/// hashable implementation based on the byte contents of the ``RAW_val``.
 	public func hash(into hasher:inout Hasher) {
 		hasher.combine(bytes:UnsafeRawBufferPointer(start:self.mv_data, count:self.mv_size))
 	}
 	
+	/// comparison implementation between two ``RAW_val``s. compares the ``RAW_val``s based on their byte contents.
 	public static func == (lhs: RAW_val, rhs: RAW_val) -> Bool {
 		if (lhs.mv_size == rhs.mv_size) {
 			return memcmp(lhs.mv_data, rhs.mv_data, lhs.mv_size) == 0
@@ -47,7 +50,9 @@ extension RAW_val:Hashable, Equatable {
 	}
 }
 
+// array's that are storing UInt8's can be raw encoded.
 extension Array:RAW_encodable where Element == UInt8 {
+	/// retrieve the byte contents of the array as a ``RAW_val``.
 	public func asRAW_val<R>(_ valFunc:(inout RAW_val) throws -> R) rethrows -> R {
 		if let getThing = try self.withContiguousStorageIfAvailable({ someBytes in
 			var val = RAW_val(mv_size:someBytes.count, mv_data:UnsafeMutableRawPointer(mutating:someBytes.baseAddress))
@@ -64,13 +69,16 @@ extension Array:RAW_encodable where Element == UInt8 {
 	}
 }
 
+// Sequence conformance
 extension RAW_val:Sequence {
+
+	/// an object that strides through the contents of a RAW_val.
 	public struct Iterator:IteratorProtocol {
 		public typealias Element = UInt8
 		private let memory:UnsafeMutablePointer<UInt8>
 		private var size:size_t
 		private var i:size_t = 0
-		init(_ val:RAW_val) {
+		internal init(_ val:RAW_val) {
 			self.memory = val.mv_data.assumingMemoryBound(to:UInt8.self)
 			self.size = val.mv_size
 		}
@@ -85,7 +93,10 @@ extension RAW_val:Sequence {
 			}
 		}
 	}
+	/// the individual element that this ``RAW_val`` sequence is composed of.
 	public typealias Element = UInt8
+
+	/// returns a new iterator that will stride the contents of the RAW_val.
 	public func makeIterator() -> Iterator {
 		return Iterator(self)
 	}
