@@ -1,4 +1,5 @@
 #include <sys/types.h>
+#include <string.h>
 
 /* a structure that represents a raw byte representation */
 typedef struct RAW_val {
