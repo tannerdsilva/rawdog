@@ -1,6 +1,5 @@
-// written by tanner silva in 2023.
+// written by tanner silva in 2023 (c).
 // rawdog is a swift library that makes it easy to encode and decode programming objects from C-like memory representations.
-
 import CRAW
 
 /// buffer representation struct
