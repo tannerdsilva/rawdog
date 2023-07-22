@@ -1,6 +1,9 @@
 // written by tanner silva in 2023 (c).
 // rawdog is a swift library that makes it easy to encode and decode programming objects from C-like memory representations.
-import CRAW
+
+import struct CRAW.size_t
+import func CRAW.memcmp
+import struct CRAW.RAW_val
 
 /// byte buffer representation struct.
 public typealias RAW_val = CRAW.RAW_val
@@ -60,6 +63,7 @@ extension RAW_val:Hashable, Equatable {
 
 // array's that are storing UInt8's can be raw encoded.
 extension Array:RAW_encodable where Element == UInt8 {
+
 	/// retrieve the byte contents of the array as a ``RAW_val``.
 	public func asRAW_val<R>(_ valFunc:(RAW_val) throws -> R) rethrows -> R {
 		if let getThing = try self.withContiguousStorageIfAvailable({ someBytes in
@@ -75,19 +79,28 @@ extension Array:RAW_encodable where Element == UInt8 {
 	}
 }
 
-// Sequence conformance
+// sequence conformance for RAW_val. allows for convenient iteration.
 extension RAW_val:Sequence {
 
 	/// an object that strides through the contents of a RAW_val.
 	public struct Iterator:IteratorProtocol {
+
+		/// the sequence element for this iterator is UInt8
 		public typealias Element = UInt8
+
+		// represents the memory (byte buffer) that this iterator is striding through.
 		private let memory:UnsafeMutablePointer<UInt8>
+		// the size of the data that this iterator is striding through.
 		private var size:size_t
+		// the current index of the iterator.
 		private var i:size_t = 0
+		// creates a new iterator based on the memory contents of a given ``RAW_val``.
 		internal init(_ val:RAW_val) {
 			self.memory = val.mv_data.assumingMemoryBound(to:UInt8.self)
 			self.size = val.mv_size
 		}
+
+		/// returns the next element in the sequence, or nil if there are no more elements.
 		public mutating func next() -> Self.Element? {
 			if (i >= size) {
 				return nil
@@ -99,11 +112,39 @@ extension RAW_val:Sequence {
 			}
 		}
 	}
+
 	/// the individual element that this ``RAW_val`` sequence is composed of.
 	public typealias Element = UInt8
 
 	/// returns a new iterator that will stride the contents of the RAW_val.
 	public func makeIterator() -> Iterator {
 		return Iterator(self)
+	}
+}
+
+// collection conformances for RAW_val, allows for convenient random access.
+extension RAW_val:Collection {
+	
+	/// the index type for this collection is ``size_t``.
+	public typealias Index = size_t
+
+	/// the start index for this collection is zero.
+	public var startIndex:Index {
+		return 0
+	}
+
+	/// the end index for this collection is the size of the ``RAW_val``.
+	public var endIndex:Index {
+		return self.mv_size
+	}
+
+	/// returns the element at the given index.
+	public subscript(position:Index) -> UInt8 {
+		return self.mv_data.assumingMemoryBound(to:UInt8.self)[position]
+	}
+
+	/// returns the index after the given index.
+	public func index(after i:Index) -> Index {
+		return i + 1
 	}
 }
