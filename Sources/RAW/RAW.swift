@@ -1,5 +1,7 @@
-// written by tanner silva in 2023 (c).
+// written by tanner silva in 2023 (c) all rights reserved.
 // rawdog is a swift library that makes it easy to encode and decode programming objects from C-like memory representations.
+
+// the paradigms and ideas behind this library are deply inspired by development of QuickLMDB.
 
 import struct CRAW.size_t
 import func CRAW.memcmp
@@ -12,27 +14,25 @@ public typealias RAW_val = CRAW.RAW_val
 public typealias RAW_convertible = RAW_encodable & RAW_decodable
 
 /// the protocol that enables initialization of programming objects from raw memory.
+/// - initializers may return nil if the memory is not valid for the given type.
 public protocol RAW_decodable {
 
-	/// initializes a programming object from an existing ``RAW_val`` representation.
-	init?(_ value:RAW_val)
+	/// required implementation.
+	init?(mv_size:size_t, mv_data:UnsafeMutableRawPointer)
 }
 
 /// the protocol that enables encoding of programming objects to raw memory.
 public protocol RAW_encodable {
 
 	/// encodes a programming object to a ``RAW_val`` representation. the ``RAW_val`` is passed to the ``valFunc`` closure, and the represented memory is only valid for the duration of the closure.
-	func asRAW_val<R>(_ valFunc:(RAW_val) throws -> R) rethrows -> R
+	func asRAW_val<R>(_ valFunc:(size_t, UnsafeMutableRawPointer) throws -> R) rethrows -> R
 }
 
 /// the protocol that enables comparison of programming objects from raw memory representations.
 public protocol RAW_comparable {
-
-	/// the compare function typealias that is used to compare two ``RAW_val``s of this type.
-	typealias RAW_comparable_func_TYPE = @convention(c)(UnsafePointer<RAW_val>?, UnsafePointer<RAW_val>?) -> Int32 
 	
 	/// the static comparable function for this type
-	static var RAW_comparable_func:RAW_comparable_func_TYPE { get }
+	static func RAW_compare(_ lhs:UnsafePointer<RAW_val>?, _ rhs:UnsafePointer<RAW_val>?) -> Int32
 }
 
 // convenience static functions.
@@ -65,16 +65,16 @@ extension RAW_val:Hashable, Equatable {
 extension Array:RAW_encodable where Element == UInt8 {
 
 	/// retrieve the byte contents of the array as a ``RAW_val``.
-	public func asRAW_val<R>(_ valFunc:(RAW_val) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(size_t, UnsafeMutableRawPointer) throws -> R) rethrows -> R {
 		if let getThing = try self.withContiguousStorageIfAvailable({ someBytes in
-			return try valFunc(RAW_val(mv_size:someBytes.count, mv_data:UnsafeMutableRawPointer(mutating:someBytes.baseAddress)))
+			return try valFunc(someBytes.count, UnsafeMutableRawPointer(mutating:someBytes.baseAddress!))
 		}) {
 			return getThing
 		} else {
 			let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: self.count)
 			defer { buffer.deallocate() }
 			_ = buffer.initialize(from: self)
-			return try valFunc(RAW_val(mv_size:self.count, mv_data:buffer.baseAddress))
+			return try valFunc(self.count, buffer.baseAddress!)
 		}
 	}
 }

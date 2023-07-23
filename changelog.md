@@ -1,3 +1,9 @@
+# v2.0.0
+
+- Changed encoding and decoding protocols to be based on `(size_t, UnsafeMutableRawPointer)` signatures instead of `(RAW_val)`.
+
+- Made `RAW_comparable` more Swift friendly.
+
 ## v1.1.0
 
 - Added additional comments to various protocol implementations to `RAW_val`.
