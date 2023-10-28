@@ -11,17 +11,11 @@ import func CRAW.memcmp
 	
 	/// the size of the data that the structure instance represents.
 	public let RAW_size:UInt64
-}
 
-// convenience initializers for RAW.
-extension RAW {
-	public init<I>(_ data:UnsafeRawPointer?, _ size:I) where I:BinaryInteger {
-		self.RAW_data = data
-		self.RAW_size = UInt64(size)
-	}
-	public init<I>(_ size:I, _ data:UnsafeRawPointer?) where I:BinaryInteger {
-		self.RAW_data = data
-		self.RAW_size = UInt64(size)
+	/// creates a new RAW object from a given size and pointer.
+	public init(RAW_data:UnsafeRawPointer?, RAW_size:UInt64) {
+		self.RAW_data = RAW_data
+		self.RAW_size = RAW_size
 	}
 }
 

@@ -8,9 +8,11 @@ extension UnsafeRawBufferPointer:RAW_val {
 	public var RAW_size:UInt64 {
 		return UInt64(self.count)
 	}
-	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided RAW_val
-	init<R>(_ val:R) where R:RAW_val {
-		self.init(start:val.RAW_data, count:Int(val.RAW_size))
+	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided arguments
+	/// - parameter RAW_data: the data pointer
+	/// - parameter RAW_size: the length of the data
+	public init(RAW_data:UnsafeRawPointer?, RAW_size:UInt64) {
+		self.init(start:UnsafeRawPointer(RAW_data), count:Int(RAW_size))
 	}
 }
 
@@ -25,7 +27,7 @@ extension UnsafeMutableRawBufferPointer:RAW_val {
 		return UInt64(self.count)
 	}
 	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided RAW_val
-	init<R>(_ val:R) where R:RAW_val {
-		self.init(start:UnsafeMutableRawPointer(mutating:val.RAW_data), count:Int(val.RAW_size))
+	public init(RAW_data:UnsafeRawPointer?, RAW_size:UInt64) {
+		self.init(start:UnsafeMutableRawPointer(mutating:RAW_data), count:Int(RAW_size))
 	}
 }

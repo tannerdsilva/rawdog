@@ -20,13 +20,35 @@ public protocol RAW_val:RAW_comparable, Hashable {
 	var RAW_data:UnsafeRawPointer? { get }
 	/// the length of the data value
 	var RAW_size:UInt64 { get }
+	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided RAW_val
+	init(RAW_data:UnsafeRawPointer?, RAW_size:UInt64)
+}
+
+// convenience initializers for RAW.
+extension RAW_val {
+	/// convenience initializer that initializes a new RAW_val with the given data pointer and size.
+	public init<I>(_ data:UnsafeRawPointer?, _ size:I) where I:BinaryInteger {
+		self.init(RAW_data:data, RAW_size:UInt64(size))
+	}
+	/// convenience initializer that initializes a new RAW_val with the given data pointer and size.
+	public init<I>(_ size:I, _ data:UnsafeRawPointer?) where I:BinaryInteger {
+		self.init(RAW_data:data, RAW_size:UInt64(size))
+	}
+}
+
+extension RAW_val {
+	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided RAW_val
+	/// - parameter RAW_val: the RAW_val that describes the memory region
+	public init<R>(_ RAW_val:R) where R:RAW_val {
+		self.init(RAW_data:RAW_val.RAW_data, RAW_size:RAW_val.RAW_size)
+	}
 }
 
 // convenience static functions.
 extension RAW_val {
 	/// returns a ``RAW_val`` conformant object that represents a "null value". the returned data size is zero, and the data pointer is nil.
-	public static func nullValue() -> any RAW_val {
-		return RAW(0, nil)
+	public static func nullValue() -> Self {
+		return Self(0, nil)
 	}
 	/// loads a RAW_decodable type from the given ``RAW_val``. the ``RAW_val`` is consumed, and the returned value is the loaded value and the remaining ``RAW_val`` data.
 	public func load<T>(_ type:T.Type) -> (T, RAW)? where T:RAW_decodable {
