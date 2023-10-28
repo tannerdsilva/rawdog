@@ -18,6 +18,7 @@ let package = Package(
             name: "RAW",
 			dependencies: ["CRAW"]),
 		.target(
-			name: "CRAW")
+			name: "CRAW"),
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW"]),
     ]
 )
