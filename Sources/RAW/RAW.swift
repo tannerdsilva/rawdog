@@ -3,6 +3,7 @@
 // rawdog is a swift library that makes it easy to encode and decode programming objects from C-like memory representations.
 
 import func CRAW.memcmp
+import struct CRAW.size_t
 
 /// a default implementation of the ``RAW_val`` protocol.
 @frozen public struct RAW:RAW_val {
@@ -10,10 +11,10 @@ import func CRAW.memcmp
 	public let RAW_data:UnsafeRawPointer?
 	
 	/// the size of the data that the structure instance represents.
-	public let RAW_size:UInt64
+	public let RAW_size:size_t
 
 	/// creates a new RAW object from a given size and pointer.
-	public init(RAW_data:UnsafeRawPointer?, RAW_size:UInt64) {
+	public init(RAW_data:UnsafeRawPointer?, RAW_size:size_t) {
 		self.RAW_data = RAW_data
 		self.RAW_size = RAW_size
 	}
@@ -28,7 +29,7 @@ extension RAW:RAW_encodable {
 
 extension RAW:RAW_decodable {
 	/// creates a new RAW object from a given size and pointer.
-	public init(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
+	public init(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
 		self.RAW_data = RAW_data
 		self.RAW_size = RAW_size
 	}
@@ -41,7 +42,7 @@ public typealias RAW_convertible = RAW_encodable & RAW_decodable
 /// - initializers may return nil if the memory is not valid for the given type.
 public protocol RAW_decodable {
 	/// required implementation.
-	init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?)
+	init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?)
 }
 
 /// the protocol that enables encoding of programming objects to raw memory.
@@ -66,9 +67,9 @@ extension RAW:Sequence {
 		// represents the memory (byte buffer) that this iterator is striding through.
 		private let memory:UnsafeRawBufferPointer
 		// the size of the data that this iterator is striding through.
-		private var size:UInt64
+		private var size:size_t
 		// the current index of the iterator.
-		private var i:UInt64 = 0
+		private var i:size_t = 0
 		// creates a new iterator based on the memory contents of a given ``RAW_val``.
 		internal init<R>(_ val:R) where R:RAW_val {
 			self.memory = UnsafeRawBufferPointer(val)
@@ -83,7 +84,7 @@ extension RAW:Sequence {
 				defer {
 					i += 1;
 				}
-				return self.memory[Int(i)]
+				return self.memory[i]
 			}
 		}
 	}

@@ -3,18 +3,19 @@ import XCTest
 
 final class NumberTests: XCTestCase {
 	func testArrayEncodingAndDecoding() throws {
-		var encodeNumbers:[any RAW_encodable] = [
+		let encodeNumbers:[Double] = [
+			3.14159,
+			3.0,
+			3.141,
+		]
+		let decoded = encodeNumbers.asRAW_val { rawVal in
+			return Array<Double>(RAW_size:rawVal.RAW_size, RAW_data:rawVal.RAW_data)
+		}
+		XCTAssertEqual(decoded, [
 			3.14159,
 			3,
-			3.141,
-			5 as UInt8,
-			99 as UInt64
-		]
-		let encoded = encodeNumbers.asRAW_val { rawVal in
-			return Array<UInt8>(rawVal)
-		}
-		let decoded = Array<Double>(RAW_size:UInt64(encoded.count), RAW_data:encoded)
-		XCTAssertEqual(decoded, encodeNumbers)
+			3.141
+		])
 	}
     func testEncodingAndDecodingDouble() throws {
         let value: Double = 3.14159
@@ -25,9 +26,9 @@ final class NumberTests: XCTestCase {
     }
 
 	func testEncodingAndDecodingFloat16() throws {
-		let value: Float16 = 3.14159
+		let value: Float = 3.14159
 		let newVal = value.asRAW_val {
-			return Float16(RAW_size: $0.RAW_size, RAW_data:$0.RAW_data)
+			return Float(RAW_size: $0.RAW_size, RAW_data:$0.RAW_data)
 		}
 		XCTAssertEqual(newVal, value)
 	}

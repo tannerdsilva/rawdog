@@ -1,3 +1,5 @@
+import struct CRAW.size_t;
+
 extension Double:RAW_encodable, RAW_decodable {
 	/// retrieves the raw IEEE 754 representation of the double.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
@@ -9,8 +11,8 @@ extension Double:RAW_encodable, RAW_decodable {
 	}
 	
 	/// initialize a double from a raw IEEE 754 representation in memory.
-	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == UInt64(MemoryLayout<UInt64>.size)) else {
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+		guard (RAW_size == MemoryLayout<UInt64>.size) else {
 			return nil
 		}
 		guard (RAW_data != nil) else {
@@ -31,8 +33,8 @@ extension Float:RAW_encodable, RAW_decodable {
 	}
 	
 	/// initializes a float32 from a raw IEEE 754 representation in memory.
-	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == UInt64(MemoryLayout<UInt32>.size)) else {
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+		guard (RAW_size == MemoryLayout<UInt32>.size) else {
 			return nil
 		}
 		guard (RAW_data != nil) else {

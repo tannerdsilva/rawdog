@@ -1,3 +1,5 @@
+import struct CRAW.size_t;
+
 // raw buffers essentially the same thing as a RAW_val because they contain a buffer of data and a length. so we can implement this protocol directly.
 extension UnsafeRawBufferPointer:RAW_val {
 	/// the data value
@@ -5,14 +7,14 @@ extension UnsafeRawBufferPointer:RAW_val {
 		return UnsafeRawPointer(self.baseAddress)
 	}
 	/// the length of the data value
-	public var RAW_size:UInt64 {
-		return UInt64(self.count)
+	public var RAW_size:size_t {
+		return self.count
 	}
 	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided arguments
 	/// - parameter RAW_data: the data pointer
 	/// - parameter RAW_size: the length of the data
-	public init(RAW_data:UnsafeRawPointer?, RAW_size:UInt64) {
-		self.init(start:UnsafeRawPointer(RAW_data), count:Int(RAW_size))
+	public init(RAW_data:UnsafeRawPointer?, RAW_size:size_t) {
+		self.init(start:UnsafeRawPointer(RAW_data), count:RAW_size)
 	}
 }
 
@@ -24,14 +26,14 @@ extension UnsafeBufferPointer:RAW_val where Element == UInt8 {
 		return UnsafeRawPointer(self.baseAddress)
 	}
 	/// the length of the data value
-	public var RAW_size:UInt64 {
-		return UInt64(self.count)
+	public var RAW_size:size_t {
+		return self.count
 	}
 	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided arguments
 	/// - parameter RAW_data: the data pointer
 	/// - parameter RAW_size: the length of the data
-	public init(RAW_data:UnsafeRawPointer?, RAW_size:UInt64) {
-		self.init(start:UnsafePointer(RAW_data?.assumingMemoryBound(to: UInt8.self)), count:Int(RAW_size))
+	public init(RAW_data:UnsafeRawPointer?, RAW_size:size_t) {
+		self.init(start:UnsafePointer(RAW_data?.assumingMemoryBound(to: UInt8.self)), count:RAW_size)
 	}
 }
 
@@ -42,13 +44,13 @@ extension UnsafeMutableRawBufferPointer:RAW_val {
 		return UnsafeRawPointer(self.baseAddress)
 	}
 	/// the length of the data value
-	public var RAW_size:UInt64 {
-		return UInt64(self.count)
+	public var RAW_size:size_t {
+		return self.count
 	}
 	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided arguments
 	/// - parameter RAW_data: the data pointer
 	/// - parameter RAW_size: the length of the data
-	public init(RAW_data:UnsafeRawPointer?, RAW_size:UInt64) {
+	public init(RAW_data:UnsafeRawPointer?, RAW_size:size_t) {
 		self.init(start:UnsafeMutableRawPointer(mutating:RAW_data), count:Int(RAW_size))
 	}
 }

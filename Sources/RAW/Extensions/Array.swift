@@ -1,3 +1,5 @@
+import struct CRAW.size_t;
+
 extension Array:RAW_encodable where Element:RAW_encodable {
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		var buildBytes = [UInt8]()
@@ -31,21 +33,21 @@ extension Array where Element == UInt8 {
 }
 
 extension Array:RAW_decodable where Element:RAW_decodable {
-	public init(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
-		self.init()
-		guard (RAW_size > 0) else {
-			return
-		}
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
 		guard (RAW_data != nil) else {
-			return
+			return nil
 		}
-		var existingVal = RAW(RAW_size, RAW_data)
-		var buildElements = [Element]()
-		while let (element, newVal) = existingVal.consume(Element.self) {
-			existingVal = newVal
-			buildElements.append(element)
+		if RAW_size > 0 {
+			var existingVal = RAW(RAW_size, RAW_data)
+			var buildElements = [Element]()
+			while let (element, newVal) = existingVal.consume(Element.self) {
+				existingVal = newVal
+				buildElements.append(element)
+			}
+			self = buildElements
+		} else {
+			self = []
 		}
-		self = buildElements
 	}
 }
 

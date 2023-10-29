@@ -1,15 +1,16 @@
 import func CRAW.memcmp;
+import struct CRAW.size_t;
 
 /// represents a raw binary value of a statically fixed length
 public protocol RAW_val_fixedsize:RAW_val {
 	/// the fixed length of the values this type will produce
-	static var RAW_size_fixed:UInt64 { get }
+	static var RAW_size_fixed:size_t { get }
 }
 
 // default implementation for RAW_val_fixedsize.
 extension RAW_val_fixedsize {
 	// we map the static length to any given instance's length
-	var RAW_size:UInt64 {
+	var RAW_size:size_t {
 		return Self.RAW_size_fixed
 	}
 }
@@ -19,9 +20,9 @@ public protocol RAW_val:Hashable, Collection, Sequence {
 	/// pointer to the raw data representation.
 	var RAW_data:UnsafeRawPointer? { get }
 	/// the length of the data value.
-	var RAW_size:UInt64 { get }
+	var RAW_size:size_t { get }
 	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided RAW_val
-	init(RAW_data:UnsafeRawPointer?, RAW_size:UInt64)
+	init(RAW_data:UnsafeRawPointer?, RAW_size:size_t)
 	/// loads the value of the given type from the ``RAW_val``. the ``RAW_val`` is consumed, and the returned value is the loaded value and the remaining ``RAW_val`` data.
 	func consume<T>(_ type:T.Type) -> (T, RAW)? where T:RAW_decodable
 }
@@ -30,11 +31,11 @@ public protocol RAW_val:Hashable, Collection, Sequence {
 extension RAW_val {
 	/// convenience initializer that initializes a new RAW_val with the given data pointer and size.
 	public init<I>(_ data:UnsafeRawPointer?, _ size:I) where I:BinaryInteger {
-		self.init(RAW_data:data, RAW_size:UInt64(size))
+		self.init(RAW_data:data, RAW_size:size_t(size))
 	}
 	/// convenience initializer that initializes a new RAW_val with the given data pointer and size.
 	public init<I>(_ size:I, _ data:UnsafeRawPointer?) where I:BinaryInteger {
-		self.init(RAW_data:data, RAW_size:UInt64(size))
+		self.init(RAW_data:data, RAW_size:size_t(size))
 	}
 }
 
@@ -57,7 +58,7 @@ extension RAW_val {
 extension RAW_val {
 	/// loads a RAW_decodable type from the given ``RAW_val``. the ``RAW_val`` is consumed, and the returned value is the loaded value and the remaining ``RAW_val`` data.
 	public func consume<T>(_ type:T.Type) -> (T, RAW)? where T:RAW_decodable {
-		let size = UInt64(MemoryLayout<T>.size)
+		let size = MemoryLayout<T>.size
 		guard self.RAW_size >= size else {
 			return nil
 		}

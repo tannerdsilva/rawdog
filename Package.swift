@@ -12,11 +12,12 @@ let package = Package(
 			targets: ["RAW"]),
 	],
 	targets: [
+		.target(name:"RAW_base64", dependencies:["CRAW", "RAW"]),
 		.target(
 			name: "RAW",
 			dependencies: ["CRAW"]),
 		.target(
 			name: "CRAW"),
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW"]),
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64"]),
 	]
 )

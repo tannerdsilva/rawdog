@@ -1,3 +1,5 @@
+import struct CRAW.size_t;
+
 extension Int64:RAW_decodable, RAW_encodable {
 	/// retrieves the big endian representation of the int64.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
@@ -9,8 +11,8 @@ extension Int64:RAW_decodable, RAW_encodable {
 	}
 	
 	/// load a big endian int64 from a raw representation in memory.
-	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == UInt64(MemoryLayout<Int64>.size)) else {
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+		guard (RAW_size == MemoryLayout<Int64>.size) else {
 			return nil
 		}
 		guard (RAW_data != nil) else {
@@ -31,8 +33,8 @@ extension Int32:RAW_decodable, RAW_encodable {
 	}
 	
 	/// load a big endian int32 from a raw representation in memory.
-	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == UInt64(MemoryLayout<Int32>.size)) else {
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+		guard (RAW_size == MemoryLayout<Int32>.size) else {
 			return nil
 		}
 		guard (RAW_data != nil) else {
@@ -53,8 +55,8 @@ extension Int16:RAW_decodable, RAW_encodable {
 	}
 	
 	/// load a big endian int16 from a raw representation in memory.
-	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == UInt64(MemoryLayout<Int16>.size)) else {
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+		guard (RAW_size == MemoryLayout<Int16>.size) else {
 			return nil
 		}
 		guard (RAW_data != nil) else {
@@ -75,8 +77,8 @@ extension Int8:RAW_decodable, RAW_encodable {
 	}
 	
 	/// load a big endian int8 from a raw representation in memory.
-	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == UInt64(MemoryLayout<Int8>.size)) else {
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+		guard (RAW_size == MemoryLayout<Int8>.size) else {
 			return nil
 		}
 		guard (RAW_data != nil) else {
@@ -97,8 +99,8 @@ extension Int:RAW_decodable, RAW_encodable {
 	}
 	
 	/// load a big endian int from a raw representation in memory.
-	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == UInt64(MemoryLayout<Int>.size)) else {
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+		guard (RAW_size == MemoryLayout<Int>.size) else {
 			return nil
 		}
 		guard (RAW_data != nil) else {
