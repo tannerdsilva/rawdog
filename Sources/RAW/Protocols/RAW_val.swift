@@ -15,13 +15,15 @@ extension RAW_val_fixedsize {
 }
 
 /// represents a raw binary value of a specified length
-public protocol RAW_val:RAW_comparable, Hashable {
-	/// the data value
+public protocol RAW_val:RAW_comparable, Hashable, Collection, Sequence {
+	/// pointer to the raw data representation.
 	var RAW_data:UnsafeRawPointer? { get }
-	/// the length of the data value
+	/// the length of the data value.
 	var RAW_size:UInt64 { get }
 	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided RAW_val
 	init(RAW_data:UnsafeRawPointer?, RAW_size:UInt64)
+	/// loads the value of the given type from the ``RAW_val``. the ``RAW_val`` is consumed, and the returned value is the loaded value and the remaining ``RAW_val`` data.
+	func consume<T>(_ type:T.Type) -> (T, RAW)? where T:RAW_decodable
 }
 
 // convenience initializers for RAW.
@@ -50,13 +52,16 @@ extension RAW_val {
 	public static func nullValue() -> Self {
 		return Self(0, nil)
 	}
+}
+
+extension RAW_val {
 	/// loads a RAW_decodable type from the given ``RAW_val``. the ``RAW_val`` is consumed, and the returned value is the loaded value and the remaining ``RAW_val`` data.
-	public func load<T>(_ type:T.Type) -> (T, RAW)? where T:RAW_decodable {
+	public func consume<T>(_ type:T.Type) -> (T, RAW)? where T:RAW_decodable {
 		let size = UInt64(MemoryLayout<T>.size)
-		guard (self.RAW_size >= size) else {
+		guard self.RAW_size >= size else {
 			return nil
 		}
-		guard (self.RAW_data != nil) else {
+		guard self.RAW_data != nil else {
 			return nil
 		}
 		let value = T(RAW_size:size, RAW_data:self.RAW_data)

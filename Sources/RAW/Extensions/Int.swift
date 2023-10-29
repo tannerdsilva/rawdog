@@ -1,5 +1,5 @@
 extension Int64:RAW_decodable, RAW_encodable {
-	/// encodes a programming object to a ``RAW_val`` representation. the ``RAW_val`` is passed to the ``valFunc`` closure, and the represented memory is only valid for the duration of the closure.
+	/// retrieves the big endian representation of the int64.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
 			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<Int64>.size) { bytePtr in
@@ -8,7 +8,7 @@ extension Int64:RAW_decodable, RAW_encodable {
 		}
 	}
 	
-	/// required implementation.
+	/// load a big endian int64 from a raw representation in memory.
 	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
 		guard (RAW_size == UInt64(MemoryLayout<Int64>.size)) else {
 			return nil
@@ -21,7 +21,7 @@ extension Int64:RAW_decodable, RAW_encodable {
 }
 
 extension Int32:RAW_decodable, RAW_encodable {
-	/// encodes a programming object to a ``RAW_val`` representation. the ``RAW_val`` is passed to the ``valFunc`` closure, and the represented memory is only valid for the duration of the closure.
+	/// retrieves the big endian representation of the int32.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
 			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<Int32>.size) { bytePtr in
@@ -30,7 +30,7 @@ extension Int32:RAW_decodable, RAW_encodable {
 		}
 	}
 	
-	/// required implementation.
+	/// load a big endian int32 from a raw representation in memory.
 	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
 		guard (RAW_size == UInt64(MemoryLayout<Int32>.size)) else {
 			return nil
@@ -43,7 +43,7 @@ extension Int32:RAW_decodable, RAW_encodable {
 }
 
 extension Int16:RAW_decodable, RAW_encodable {
-	/// encodes a programming object to a ``RAW_val`` representation. the ``RAW_val`` is passed to the ``valFunc`` closure, and the represented memory is only valid for the duration of the closure.
+	/// retrieves the big endian representation of the int16.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
 			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<Int16>.size) { bytePtr in
@@ -52,7 +52,7 @@ extension Int16:RAW_decodable, RAW_encodable {
 		}
 	}
 	
-	/// required implementation.
+	/// load a big endian int16 from a raw representation in memory.
 	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
 		guard (RAW_size == UInt64(MemoryLayout<Int16>.size)) else {
 			return nil
@@ -65,7 +65,7 @@ extension Int16:RAW_decodable, RAW_encodable {
 }
 
 extension Int8:RAW_decodable, RAW_encodable {
-	/// encodes a programming object to a ``RAW_val`` representation. the ``RAW_val`` is passed to the ``valFunc`` closure, and the represented memory is only valid for the duration of the closure.
+	/// retrieves the big endian representation of the int8.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
 			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<Int8>.size) { bytePtr in
@@ -74,7 +74,7 @@ extension Int8:RAW_decodable, RAW_encodable {
 		}
 	}
 	
-	/// required implementation.
+	/// load a big endian int8 from a raw representation in memory.
 	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
 		guard (RAW_size == UInt64(MemoryLayout<Int8>.size)) else {
 			return nil
@@ -87,7 +87,7 @@ extension Int8:RAW_decodable, RAW_encodable {
 }
 
 extension Int:RAW_decodable, RAW_encodable {
-	/// encodes a programming object to a ``RAW_val`` representation. the ``RAW_val`` is passed to the ``valFunc`` closure, and the represented memory is only valid for the duration of the closure.
+	/// retrieves the big endian representation of the int.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
 			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<Int>.size) { bytePtr in
@@ -96,7 +96,7 @@ extension Int:RAW_decodable, RAW_encodable {
 		}
 	}
 	
-	/// required implementation.
+	/// load a big endian int from a raw representation in memory.
 	public init?(RAW_size:UInt64, RAW_data:UnsafeRawPointer?) {
 		guard (RAW_size == UInt64(MemoryLayout<Int>.size)) else {
 			return nil
