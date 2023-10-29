@@ -15,7 +15,7 @@ extension RAW_val_fixedsize {
 }
 
 /// represents a raw binary value of a specified length
-public protocol RAW_val:RAW_comparable, Hashable, Collection, Sequence {
+public protocol RAW_val:Hashable, Collection, Sequence {
 	/// pointer to the raw data representation.
 	var RAW_data:UnsafeRawPointer? { get }
 	/// the length of the data value.
@@ -65,7 +65,7 @@ extension RAW_val {
 			return nil
 		}
 		let value = T(RAW_size:size, RAW_data:self.RAW_data)
-		guard (value != nil) else {
+		guard value != nil else {
 			return nil
 		}
 		return (value!, RAW(self.RAW_size - size, self.RAW_data!.advanced(by:Int(size))))
