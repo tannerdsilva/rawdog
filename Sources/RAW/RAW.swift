@@ -5,6 +5,42 @@
 import func CRAW.memcmp
 import struct CRAW.size_t
 
+/// represents a raw binary value of a specified, fixed length
+public protocol RAW_staticbuff:RAW_encodable, RAW_decodable {
+	/// the type that will be used to represent the raw data.
+	/// - note: the size of this type is what will be used to determine the size of the raw data.
+	associatedtype RAW_staticbuff_storetype
+	/// initializes a new RAW_staticbuff from a given pointer. the length of the data is determined by the memory size of the ``RAW_staticbuff_storetype``.
+	init?(RAW_data:UnsafeRawPointer?)
+}
+
+extension RAW_staticbuff {
+	/// creates a new RAW_fixedlength object from a given size and pointer.
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+		guard RAW_size == MemoryLayout<RAW_staticbuff_storetype>.size else {
+			return nil
+		}
+		self.init(RAW_data:RAW_data)
+	}
+}
+
+
+struct MyFixed:RAW_staticbuff {
+    init?(RAW_data: UnsafeRawPointer?) {
+        fixedBuffer = RAW_data!.assumingMemoryBound(to: RAW_staticbuff_storetype.self).pointee
+    }
+
+    typealias RAW_staticbuff_storetype = (UInt8, UInt8)
+
+	func asRAW_val<R>(_ valFunc: (RAW) throws -> R) rethrows -> R {
+		try withUnsafePointer(to:fixedBuffer) { ptr in
+			return try valFunc(RAW(RAW_size: MemoryLayout<RAW_staticbuff_storetype>.size, RAW_data: ptr))
+		}
+	}
+
+	private let fixedBuffer:RAW_staticbuff_storetype
+}
+
 /// a default implementation of the ``RAW_val`` protocol.
 @frozen public struct RAW:RAW_val {
 	/// the raw data that the structure instance represents.

@@ -1,20 +1,6 @@
 import func CRAW.memcmp;
 import struct CRAW.size_t;
 
-/// represents a raw binary value of a statically fixed length
-public protocol RAW_val_fixedsize:RAW_val {
-	/// the fixed length of the values this type will produce
-	static var RAW_size_fixed:size_t { get }
-}
-
-// default implementation for RAW_val_fixedsize.
-extension RAW_val_fixedsize {
-	// we map the static length to any given instance's length
-	var RAW_size:size_t {
-		return Self.RAW_size_fixed
-	}
-}
-
 /// represents a raw binary value of a specified length
 public protocol RAW_val:Hashable, Collection, Sequence {
 	/// pointer to the raw data representation.
