@@ -74,7 +74,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		let collectionExtension = try ExtensionDeclSyntax("""
 			extension \(structureName):Collection {}
 		""")
-		return [extensionDecl, arrayLiteralDecl]
+		return [extensionDecl, arrayLiteralDecl, collectionExtension]
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
@@ -149,13 +149,41 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 			""")
 
 		// collection stuff
+		let startIndexDecl = DeclSyntax("""
+			\(structureModifiers) var startIndex: Int {
+				return 0
+			}
+			""")
 
-		var buildDecls = [DeclSyntax]()
-		buildDecls.append(privateFixedBufferVal)
-		buildDecls.append(initializer)
-		buildDecls.append(asRawFunc)
-		buildDecls.append(directTypeInit)
-		return buildDecls
+		let endIndexDecl = DeclSyntax("""
+			\(structureModifiers) var endIndex: Int {
+				return MemoryLayout<RAW_staticbuff_storetype>.size
+			}
+			""")
+		
+		var forContents = ""
+		for i in 0..<newNumber {
+			forContents.append("case \(i): return fixedBuffer.\(i)")
+			if i + 1 < newNumber {
+				forContents.append("\n")
+			}
+		}
+		let subscriptDecl = DeclSyntax("""
+			\(structureModifiers) subscript(position: Int) -> UInt8 {
+				switch position {
+					\(raw:forContents)
+					default: fatalError("invalid index.")
+				}
+			}
+			""")
+		
+		let indexAfterDecl = DeclSyntax("""
+			\(structureModifiers) func index(after i: Int) -> Int {
+				return i + 1
+			}
+			""")
+
+		return [privateFixedBufferVal, initializer, directTypeInit, asRawFunc, startIndexDecl, endIndexDecl, indexAfterDecl, subscriptDecl]
 	}
 
 	public enum Diagnostics:Swift.Error, DiagnosticMessage {

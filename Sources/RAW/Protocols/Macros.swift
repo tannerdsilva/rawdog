@@ -1,6 +1,6 @@
 import RAW_macros
 
-@attached(member, names:named(fixedBuffer), named(init(RAW_data:)), named(init(_:)), named(asRAW_val))
+@attached(member, names:arbitrary)
 @attached(extension, conformances:RAW_staticbuff, Collection, ExpressibleByArrayLiteral, names:named(RAW_staticbuff_storetype), named(init(arrayLiteral:)))
 // @attached(peer)
 // @attached(memberAttribute)
