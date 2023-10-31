@@ -6,57 +6,7 @@ import Logging
 
 let mainLogger = Logger(label:"RAW_macros")
 
-public struct FixedSizeBufferTypeMacro:DeclarationMacro {
-	public static func expansion(of node: some SwiftSyntax.FreestandingMacroExpansionSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-		mainLogger.critical("node \(node)")
-		mainLogger.critical("context \(context)")
-		return []
-	}
-
-	private class VariableDeclRewriter:SyntaxRewriter {
-		private let log:Logger?
-		private static let disableSelfMacroExpression = false
-		private let tt:TupleTypeSyntax
-		fileprivate init(tupleType:TupleTypeSyntax, log:Logger?) {
-			self.log = log
-			self.tt = tupleType
-		}
-
-		override func visit(_ node:PatternBindingSyntax) -> PatternBindingSyntax {
-			var getNode = node
-			getNode.typeAnnotation = TypeAnnotationSyntax(colon:TokenSyntax.colonToken(), type:self.tt)
-			return getNode
-		}
-
-		override func visit(_ node:AttributeListSyntax) -> AttributeListSyntax {
-			if Self.disableSelfMacroExpression {
-				return node
-			}
-			var logger = log
-			logger?[metadataKey: "ntype"] = "attribute"
-			logger?.info("rewriting node.")
-			defer {
-				logger?.info("done rewriting node.")
-			}
-			var newAttributes = AttributeListSyntax()
-			for attributeEl in node {
-				if let attribute = attributeEl.as(AttributeSyntax.self), let identifierSyntax = attribute.attributeName.as(IdentifierTypeSyntax.self) {
-					if identifierSyntax.name.text != "FixedSizeBufferMacro" {
-						newAttributes.append(attributeEl) 
-					} else {
-						mainLogger.trace("found FixedSizeBufferMacro attribute. it will be removed from the syntax.")
-						continue
-					}
-				} else {
-					newAttributes.append(attributeEl)
-				}
-			}
-			return newAttributes
-		}
-	}
-}
-
-public struct FixedBuffer:MemberMacro, ExtensionMacro, MemberAttributeMacro, AccessorMacro, PeerMacro {
+public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttributeMacro, AccessorMacro, PeerMacro {
 	/// parses the static buffer number from the attribute node.
 	fileprivate static func parseNumber(from node:SwiftSyntax.AttributeSyntax) throws -> UInt16 {
 		let attributeNumber = node.arguments?.as(LabeledExprListSyntax.self)?.first?.expression.as(IntegerLiteralExprSyntax.self)?.literal
@@ -100,18 +50,37 @@ public struct FixedBuffer:MemberMacro, ExtensionMacro, MemberAttributeMacro, Acc
 			throw Diagnostics.mustBeIntegerLiteral("\(declaration)")
 		}
 		let structureName = structDecl.name		
-		let modifiers = structDecl.modifiers
-		return [try ExtensionDeclSyntax("""
-			\(raw:modifiers) extension \(raw:structureName):RAW_staticbuff {
+		let extensionDecl = try ExtensionDeclSyntax("""
+			extension \(structureName):RAW_staticbuff {
 				typealias RAW_staticbuff_storetype = \(raw:generateTypeExpression(byteCount:Self.parseNumber(from:node)))
 			}
-			""")]
+			""")
+		let arrayLiteralDecl = try ExtensionDeclSyntax("""
+			extension \(structureName):ExpressibleByArrayLiteral {
+				init(arrayLiteral elements: UInt8...) {
+					guard elements.count == MemoryLayout<Self.RAW_staticbuff_storetype>.size else {
+						fatalError("invalid array literal. the number of elements must match the size of the buffer. expected elements: \\(MemoryLayout<Self.RAW_staticbuff_storetype>.size), found: \\(elements.count)")
+					}
+					let makeSelf = Self.init(RAW_data:elements)
+					if makeSelf != nil {
+						self = makeSelf!
+					} else {
+						fatalError("invalid array literal.")
+					}
+				}
+			}
+		""")
+
+		let collectionExtension = try ExtensionDeclSyntax("""
+			extension \(structureName):Collection {}
+		""")
+		return [extensionDecl, arrayLiteralDecl]
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
 		var logger = mainLogger
 		logger[metadataKey: "mtype"] = "members"
-		logger.info("running macro function on node '\(declaration.description).")
+		logger.info("running macro function on node.")
 		defer {
 			logger.info("macro function finished.")
 		}
@@ -121,6 +90,8 @@ public struct FixedBuffer:MemberMacro, ExtensionMacro, MemberAttributeMacro, Acc
 		}
 		let structureName = structDecl.name
 		logger.info("got structure name.", metadata:["structureName": "\(structureName)"])
+		let structureModifiers = structDecl.modifiers
+		logger.info("got structure modifiers.", metadata:["structureModifiers": "\(structureModifiers)"])
 		let attributeNumber = node.arguments?.as(LabeledExprListSyntax.self)?.first?.expression.as(IntegerLiteralExprSyntax.self)?.literal
 		let getNewNumber:UInt16?
 		switch attributeNumber {
@@ -143,26 +114,47 @@ public struct FixedBuffer:MemberMacro, ExtensionMacro, MemberAttributeMacro, Acc
 		let newList = PatternBindingListSyntax([patternBinding])
 		let privateFixedBufferVal = DeclSyntax(VariableDeclSyntax(modifiers:DeclModifierListSyntax([DeclModifierSyntax(name:TokenSyntax.keyword(.private))]), bindingSpecifier:varSyntax, bindings:newList))
 		
+		// build a tuple initializer that individually references each byte in the input raw pointer.
+		var buildPointerRef = "("
+		for i in 0..<newNumber {
+			buildPointerRef.append("RAW_data!.load(fromByteOffset:\(i), as:UInt8.self)")
+			if i + 1 < newNumber {
+				buildPointerRef.append(",")
+			}
+		}
+		buildPointerRef.append(")")
+
+		// make the initializer that will allow us to initialize from a raw pointer.
 		let initializer = DeclSyntax("""
-			public init?(RAW_data:UnsafeRawPointer?) {
+			\(structureModifiers) init?(RAW_data:UnsafeRawPointer?) {
 				guard RAW_data != nil else {
-					return nil
+					fatalError("invalid pointer.")
 				}
-				self.fixedBuffer = RAW_data!.assumingMemoryBound(to:RAW_staticbuff_storetype.self).pointee
+				self.fixedBuffer = \(raw:buildPointerRef)
 			}
 			""")
 
+		let directTypeInit = DeclSyntax("""
+			\(structureModifiers) init(_ val:RAW_staticbuff_storetype) {
+				self.fixedBuffer = val
+			}
+			""")
+			
 		let asRawFunc = DeclSyntax("""
-			func asRAW_val<R>(_ valFunc: (RAW) throws -> R) rethrows -> R {
+			\(structureModifiers) func asRAW_val<R>(_ valFunc: (RAW) throws -> R) rethrows -> R {
 				try withUnsafePointer(to:fixedBuffer) { ptr in
 					return try valFunc(RAW(RAW_size: MemoryLayout<RAW_staticbuff_storetype>.size, RAW_data: ptr))
 				}
 			}
 			""")
+
+		// collection stuff
+
 		var buildDecls = [DeclSyntax]()
 		buildDecls.append(privateFixedBufferVal)
 		buildDecls.append(initializer)
 		buildDecls.append(asRawFunc)
+		buildDecls.append(directTypeInit)
 		return buildDecls
 	}
 

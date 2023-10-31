@@ -1,18 +1,5 @@
 import struct CRAW.size_t;
 
-extension Array:RAW_encodable where Element:RAW_encodable {
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
-		var buildBytes = [UInt8]()
-		for element in self {
-			let elementBytes = element.asRAW_val { rawVal in
-				return Array<UInt8>(rawVal)
-			}
-			buildBytes.append(contentsOf:elementBytes)
-		}
-		return try buildBytes.asRAW_val(valFunc)
-	}
-}
-
 extension Array where Element == UInt8 {
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		if let hasContiguousBytes = try self.withContiguousStorageIfAvailable({ (bytes) -> R in
