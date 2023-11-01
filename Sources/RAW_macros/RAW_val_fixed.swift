@@ -134,6 +134,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 			}
 			""")
 
+		// make the initializer that will allow us to initialize from a raw value type directly.
 		let directTypeInit = DeclSyntax("""
 			\(structureModifiers) init(_ val:RAW_staticbuff_storetype) {
 				self.fixedBuffer = val
