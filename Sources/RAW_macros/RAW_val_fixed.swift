@@ -2,9 +2,12 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import SwiftDiagnostics
-import Logging
 
+#if RAWDOG_MACRO_LOG
+import Logging
 let mainLogger = Logger(label:"RAW_macros")
+#endif
+
 
 public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttributeMacro, AccessorMacro, PeerMacro {
 	/// parses the static buffer number from the attribute node.
@@ -14,15 +17,21 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		switch attributeNumber {
 			case .some(let number):
 				guard case .integerLiteral(let value) = number.tokenKind else {
+					#if RAWDOG_MACRO_LOG
 					mainLogger.critical("expected integer literal")
+					#endif
 					throw Diagnostics.mustBeIntegerLiteral("\(number)")
 				}
 				getNewNumber = UInt16(value)
 			case .none:
+				#if RAWDOG_MACRO_LOG
 				mainLogger.critical("expected integer literal")
+				#endif
 				throw Diagnostics.mustBeIntegerLiteral("\(String(describing: node.arguments))")
 		}
+		#if RAWDOG_MACRO_LOG
 		mainLogger.info("got attribute number", metadata:["attributeNumber": "\(String(describing: getNewNumber!))"])
+		#endif
 		let newNumber = getNewNumber!
 		return newNumber
 	}
@@ -39,24 +48,31 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
+		#if RAWDOG_MACRO_LOG
 		var logger = mainLogger
 		logger[metadataKey: "mtype"] = "extension"
 		logger.info("running macro function on node '\(declaration.description).")
 		defer {
 			logger.info("macro function finished.")
 		}
+		#endif
 		guard let structDecl = declaration.as(StructDeclSyntax.self) else {
-			mainLogger.critical("expected struct declaration")
+			#if RAWDOG_MACRO_LOG
+			logger.critical("expected struct declaration")
+			#endif
 			throw Diagnostics.mustBeIntegerLiteral("\(declaration)")
 		}
 		let structureName = structDecl.name		
 		let extensionDecl = try ExtensionDeclSyntax("""
+			// declares the type as a static buffer type with the given number of bytes as the storetype.
 			extension \(structureName):RAW_staticbuff {
 				typealias RAW_staticbuff_storetype = \(raw:generateTypeExpression(byteCount:Self.parseNumber(from:node)))
 			}
 			""")
 		let arrayLiteralDecl = try ExtensionDeclSyntax("""
+			// declares array literal conformance on the type.
 			extension \(structureName):ExpressibleByArrayLiteral {
+				/// initializer for array literal expressions of the byte buffer.
 				init(arrayLiteral elements: UInt8...) {
 					guard elements.count == MemoryLayout<Self.RAW_staticbuff_storetype>.size else {
 						fatalError("invalid array literal. the number of elements must match the size of the buffer. expected elements: \\(MemoryLayout<Self.RAW_staticbuff_storetype>.size), found: \\(elements.count)")
@@ -72,39 +88,54 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		""")
 
 		let collectionExtension = try ExtensionDeclSyntax("""
+			// declares collection conformance on the type.
 			extension \(structureName):Collection {}
 		""")
 		return [extensionDecl, arrayLiteralDecl, collectionExtension]
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+		#if RAWDOG_MACRO_LOG
 		var logger = mainLogger
 		logger[metadataKey: "mtype"] = "members"
 		logger.info("running macro function on node.")
 		defer {
 			logger.info("macro function finished.")
 		}
+		#endif
 		guard let structDecl = declaration.as(StructDeclSyntax.self) else {
+			#if RAWDOG_MACRO_LOG
 			logger.critical("expected struct declaration")
+			#endif
 			throw Diagnostics.mustBeIntegerLiteral("\(declaration)")
 		}
 		let structureName = structDecl.name
+		#if RAWDOG_MACRO_LOG
 		logger.info("got structure name.", metadata:["structureName": "\(structureName)"])
+		#endif
 		let structureModifiers = structDecl.modifiers
+		#if RAWDOG_MACRO_LOG
 		logger.info("got structure modifiers.", metadata:["structureModifiers": "\(structureModifiers)"])
+		#endif
 		let attributeNumber = node.arguments?.as(LabeledExprListSyntax.self)?.first?.expression.as(IntegerLiteralExprSyntax.self)?.literal
 		let getNewNumber:UInt16?
 		switch attributeNumber {
 			case .some(let number):
 				guard case .integerLiteral(let value) = number.tokenKind else {
+					#if RAWDOG_MACRO_LOG
 					logger.critical("expected integer literal.")
+					#endif
 					throw Diagnostics.mustBeIntegerLiteral("\(number)")
 				}
 				getNewNumber = UInt16(value)
+				#if RAWDOG_MACRO_LOG
 				logger.info("got attribute number.", metadata:["attributeNumber": "\(getNewNumber!)"])
+				#endif
 			case .none:
+				#if RAWDOG_MACRO_LOG
 				logger.critical("expected integer literal.")
-				throw Diagnostics.mustBeIntegerLiteral("\(node.arguments)")
+				#endif
+				throw Diagnostics.mustBeIntegerLiteral(String(describing:node.arguments))
 		}
 		let newNumber = getNewNumber!
 		let varSyntax = TokenSyntax.keyword(.let)
@@ -151,12 +182,14 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 
 		// collection stuff
 		let startIndexDecl = DeclSyntax("""
+			/// (collection conformance) the starting index of the byte collection.
 			\(structureModifiers) var startIndex: Int {
 				return 0
 			}
 			""")
 
 		let endIndexDecl = DeclSyntax("""
+			/// (collection conformance) the ending index of the byte collection.
 			\(structureModifiers) var endIndex: Int {
 				return MemoryLayout<RAW_staticbuff_storetype>.size
 			}
@@ -170,6 +203,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 			}
 		}
 		let subscriptDecl = DeclSyntax("""
+			/// (collection conformance) access any given byte in the collection by index.
 			\(structureModifiers) subscript(position: Int) -> UInt8 {
 				switch position {
 					\(raw:forContents)
@@ -179,6 +213,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 			""")
 		
 		let indexAfterDecl = DeclSyntax("""
+			/// (collection conformance) returns the index after the given index.
 			\(structureModifiers) func index(after i: Int) -> Int {
 				return i + 1
 			}

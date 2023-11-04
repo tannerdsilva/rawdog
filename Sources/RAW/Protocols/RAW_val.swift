@@ -2,7 +2,7 @@ import func CRAW.memcmp;
 import struct CRAW.size_t;
 
 /// represents a raw binary value of a specified length
-public protocol RAW_val:Hashable, Collection, Sequence {
+public protocol RAW_val:Hashable, Collection, Sequence, RAW_encodable {
 	/// pointer to the raw data representation.
 	var RAW_data:UnsafeRawPointer? { get }
 	/// the length of the data value.
@@ -22,6 +22,13 @@ extension RAW_val {
 	/// convenience initializer that initializes a new RAW_val with the given data pointer and size.
 	public init<I>(_ size:I, _ data:UnsafeRawPointer?) where I:BinaryInteger {
 		self.init(RAW_data:data, RAW_size:size_t(size))
+	}
+}
+
+extension RAW_val {
+	/// RAW_val's can be encoded into themselves.
+	public func asRAW_val<R>(_ valFunc: (RAW) throws -> R) rethrows -> R {
+		try valFunc(RAW(RAW_data, RAW_size))
 	}
 }
 

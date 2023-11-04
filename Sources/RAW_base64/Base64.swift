@@ -4,15 +4,15 @@ import CRAW
 public struct Base64 {
 	/// error thrown by Base64 encoding/decoding functions
 	public enum Error:Swift.Error {
-		/// the provided string could not be decoded
+		/// the provided string could not be decoded.
 		case decodingError(String, Int32)
 
-		/// the provided string could not be encoded
+		/// the provided string could not be encoded.
 		case encodingError([UInt8], Int32)
 	}
 
 	/// encode a byte array to a base64 string
-	/// - parameter bytes: the byte array to encode
+	/// - parameter bytes: the byte array to encode.
 	public static func encode<RE>(bytes rawBytes:RE) -> String where RE:RAW_encodable {
 		return rawBytes.asRAW_val { rawVal in
 			let enclen = base64_encoded_length(rawVal.RAW_size) + 1
@@ -28,8 +28,8 @@ public struct Base64 {
 		}
 	}
 	
-	/// decode a base64 string to a byte array
-	/// - parameter dataEncoding: the base64 string to decode
+	/// decode a base64 string to a byte array.
+	/// - parameter dataEncoding: the base64 string to decode.
 	public static func decode(_ dataEncoding:String) -> [UInt8] {
 		let newBytes = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:base64_decoded_length(dataEncoding.count))
 		defer {

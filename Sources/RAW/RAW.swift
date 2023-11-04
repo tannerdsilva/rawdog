@@ -20,7 +20,6 @@ extension RAW_staticbuff {
 	/// creates a new RAW_fixedlength object from a given size and pointer.
 	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
 		guard RAW_size == MemoryLayout<RAW_staticbuff_storetype>.size else {
-			fatalError("FOO \(RAW_size) \(MemoryLayout<RAW_staticbuff_storetype>.size)")
 			return nil
 		}
 		self.init(RAW_data:RAW_data)
@@ -32,7 +31,7 @@ extension RAW_staticbuff {
 			let newSelf = Self.init(RAW_size:rawValue.RAW_size, RAW_data:rawValue.RAW_data)
 			return newSelf
 		}
-
+		
 		switch result {
 			case .some(let newSelf):
 				self = newSelf
