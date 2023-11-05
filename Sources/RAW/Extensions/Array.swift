@@ -1,10 +1,11 @@
 import struct CRAW.size_t;
+import func CRAW.memcpy;
 
 extension Array where Element == UInt8 {
 	/// converts the byte values of an array into a RAW_val that low level functions can operate within.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		if let hasContiguousBytes = try self.withContiguousStorageIfAvailable({ (bytes) -> R in
-			return try valFunc(RAW(bytes.baseAddress!, UInt64(bytes.count)))
+			return try valFunc(RAW(bytes.baseAddress!, bytes.count))
 		}) {
 			return hasContiguousBytes
 		} else {
@@ -15,7 +16,7 @@ extension Array where Element == UInt8 {
 			for (index, element) in self.enumerated() {
 				newBuffer[index] = element
 			}
-			return try valFunc(RAW(newBuffer.baseAddress!, UInt64(self.count)))
+			return try valFunc(RAW(newBuffer.baseAddress!, self.count))
 		}
 	}
 }
@@ -37,6 +38,15 @@ extension Array:RAW_decodable where Element:RAW_decodable {
 			buildElements.append(element)
 		}
 		self = buildElements
+	}
+}
+
+extension Array where Element == UInt8 {
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+		self = [UInt8](unsafeUninitializedCapacity:RAW_size, initializingWith: { ptr, buffSize in
+			memcpy(ptr.baseAddress!, RAW_data, RAW_size)
+			buffSize = RAW_size
+		})
 	}
 }
 
