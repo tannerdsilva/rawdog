@@ -11,6 +11,9 @@ let package = Package(
 		.library(
 			name: "RAW",
 			targets: ["RAW"]),
+		.library(
+			name: "RAW_base64",
+			targets: ["RAW_base64"])
 	],
 	dependencies: [
 		.package(url:"https://github.com/apple/swift-syntax.git", from:"509.0.1"),
@@ -27,11 +30,8 @@ let package = Package(
 			.product(name: "Logging", package:"swift-log")
 		]),
 		.target(name:"RAW_base64", dependencies:["CRAW", "RAW"]),
-		.target(
-			name: "RAW",
-			dependencies: ["CRAW", "RAW_macros"]),
-		.target(
-			name: "CRAW"),
+		.target(name: "RAW", dependencies: ["CRAW", "RAW_macros"]),
+		.target(name:"CRAW"),
 		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros"]),
 	]
 )
