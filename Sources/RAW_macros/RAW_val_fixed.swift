@@ -162,7 +162,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 				guard RAW_data != nil else {
 					return nil
 				}
-				self.fixedBuffer = \(raw:buildPointerRef)
+				self.fixedBuffer = RAW_data!.load(as:\(typeDecl).self)
 			}
 			""")
 

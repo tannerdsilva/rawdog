@@ -43,6 +43,13 @@ extension Array:RAW_decodable where Element:RAW_decodable {
 
 extension Array where Element == UInt8 {
 	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+		guard (RAW_data != nil) else {
+			return nil
+		}
+		guard RAW_size > 0 else {
+			self = []
+			return
+		}
 		self = [UInt8](unsafeUninitializedCapacity:RAW_size, initializingWith: { ptr, buffSize in
 			memcpy(ptr.baseAddress!, RAW_data, RAW_size)
 			buffSize = RAW_size

@@ -9,6 +9,7 @@ public protocol RAW_staticbuff:RAW_encodable, RAW_decodable {
 
 	/// initializes a new RAW_staticbuff from a given pointer. the length of the data is determined by the memory size of the ``RAW_staticbuff_storetype``.
 	init?(RAW_data:UnsafeRawPointer?)
+	
 	/// directly initialize a new RAW_staticbuff directly from its underlying storage type.
 	init(_:RAW_staticbuff_storetype)
 }
