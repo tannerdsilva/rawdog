@@ -1,8 +1,7 @@
-#include <sys/types.h>
 #include <string.h>
+#include <stdint.h>
+#include "base64.h"
 
-/* a structure that represents a raw byte representation */
-typedef struct RAW_val {
-	size_t		 mv_size;	/**< size of the data item */
-	void		*mv_data;	/**< address of the data item */
-} RAW_val;
+// @brief: returns the current system errno value.
+// @return: the current errno value.
+int geterrno();

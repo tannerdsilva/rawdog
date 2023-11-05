@@ -1,23 +1,37 @@
-// swift-tools-version: 5.8
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
+// swift-tools-version: 5.9
 import PackageDescription
+import CompilerPluginSupport
 
 let package = Package(
-    name: "rawdog",
-    products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
-        .library(
-            name: "RAW",
-            targets: ["RAW"]),
-    ],
-    targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
-        .target(
-            name: "RAW",
-			dependencies: ["CRAW"]),
+	name: "rawdog",
+	platforms:[
+		.macOS(.v11)
+	],
+	products: [
+		.library(
+			name: "RAW",
+			targets: ["RAW"]),
+	],
+	dependencies: [
+		.package(url:"https://github.com/apple/swift-syntax.git", from:"509.0.1"),
+		.package(url:"https://github.com/apple/swift-log.git", from:"1.4.2")
+	],
+	targets: [
+		.macro(name:"RAW_macros", dependencies:[
+			.product(name: "SwiftSyntax", package: "swift-syntax"),
+			.product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+			.product(name: "SwiftOperators", package: "swift-syntax"),
+			.product(name: "SwiftParser", package: "swift-syntax"),
+			.product(name: "SwiftParserDiagnostics", package: "swift-syntax"),
+			.product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+			.product(name: "Logging", package:"swift-log")
+		]),
+		.target(name:"RAW_base64", dependencies:["CRAW", "RAW"]),
 		.target(
-			name: "CRAW")
-    ]
+			name: "RAW",
+			dependencies: ["CRAW", "RAW_macros"]),
+		.target(
+			name: "CRAW"),
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros"]),
+	]
 )

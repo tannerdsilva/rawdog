@@ -8,6 +8,12 @@ The `RAW` target serves as the central feature of this library, encompassing cor
 
 Every aspect of the `RAW` module is thoroughly documented using `swift-docc` for user-friendly accessibility. To offer a quick snapshot, the module's structure is as follows:
 
+## Macros
+
+The `RAW` target exposes macros that make it effortless to code complex or verbose expressions in swift with minimal syntax.
+
+- `StaticBufferType` attach to a struct or class to define it as a type who's primary function is to represent a fixed byte buffer. the macro will implement all of the convenience functions and protocols to make the attached type primarily function as a storage type for an underlying static buffer variable.
+
 ### Inspiration
 
 The fundamental components of the `RAW` module draw their inspiration from the LMDB and its `MDB_val` structure. Over time, I found immense value in this structure and the protocols built around it, initially developed in my [QuickLMDB library](https://github.com/tannerdsilva/QuickLMDB), and implemented them in numerous Swift projects. 

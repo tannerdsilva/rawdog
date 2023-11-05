@@ -1,103 +1,64 @@
 // written by tanner silva in 2023 (c) all rights reserved.
+
 // rawdog is a swift library that makes it easy to encode and decode programming objects from C-like memory representations.
 
-// the paradigms and ideas behind this library are deply inspired by development of QuickLMDB.
-
-import struct CRAW.size_t
 import func CRAW.memcmp
-import struct CRAW.RAW_val
+import struct CRAW.size_t
+public typealias size_t = CRAW.size_t
 
-/// byte buffer representation struct.
-public typealias RAW_val = CRAW.RAW_val
-
-/// convertible (alias) protocol that encapsulates encodable and decodable protocols.
-public typealias RAW_convertible = RAW_encodable & RAW_decodable
-
-/// the protocol that enables initialization of programming objects from raw memory.
-/// - initializers may return nil if the memory is not valid for the given type.
-public protocol RAW_decodable {
-
-	/// required implementation.
-	init?(mv_size:size_t, mv_data:UnsafeMutableRawPointer)
-}
-
-/// the protocol that enables encoding of programming objects to raw memory.
-public protocol RAW_encodable {
-
-	/// encodes a programming object to a ``RAW_val`` representation. the ``RAW_val`` is passed to the ``valFunc`` closure, and the represented memory is only valid for the duration of the closure.
-	func asRAW_val<R>(_ valFunc:(size_t, UnsafeMutableRawPointer) throws -> R) rethrows -> R
-}
-
-/// the protocol that enables comparison of programming objects from raw memory representations.
-public protocol RAW_comparable {
+/// a default implementation of the ``RAW_val`` protocol.
+@frozen public struct RAW:RAW_val {
+	/// the raw data that the structure instance represents.
+	public let RAW_data:UnsafeRawPointer?
 	
-	/// the static comparable function for this type
-	static func RAW_compare(_ lhs:UnsafePointer<RAW_val>?, _ rhs:UnsafePointer<RAW_val>?) -> Int32
-}
+	/// the size of the data that the structure instance represents.
+	public let RAW_size:size_t
 
-// convenience static functions.
-extension RAW_val {
-
-	/// returns a ``RAW_val`` that represents a "null value". the returned data size is zero, and the data pointer is nil.
-	public static func nullValue() -> RAW_val {
-		return RAW_val(mv_size:0, mv_data:nil)
+	/// creates a new RAW object from a given size and pointer.
+	public init(RAW_data:UnsafeRawPointer?, RAW_size:size_t) {
+		self.RAW_data = RAW_data
+		self.RAW_size = RAW_size
 	}
 }
 
-// implement equatable and hashable.
-extension RAW_val:Hashable, Equatable {
-	/// hashable implementation based on the byte contents of the ``RAW_val``.
-	public func hash(into hasher:inout Hasher) {
-		hasher.combine(bytes:UnsafeRawBufferPointer(start:self.mv_data, count:self.mv_size))
-	}
-	
-	/// comparison implementation between two ``RAW_val``s. compares the ``RAW_val``s based on their byte contents.
-	public static func == (lhs: RAW_val, rhs: RAW_val) -> Bool {
-		if (lhs.mv_size == rhs.mv_size) {
-			return memcmp(lhs.mv_data, rhs.mv_data, lhs.mv_size) == 0
-		} else {
-			return false
-		}
+extension RAW:RAW_encodable {
+	/// allow for encodable access to the raw data.
+	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+		return try valFunc(self)
 	}
 }
 
-// array's that are storing UInt8's can be raw encoded.
-extension Array:RAW_encodable where Element == UInt8 {
-
-	/// retrieve the byte contents of the array as a ``RAW_val``.
-	public func asRAW_val<R>(_ valFunc:(size_t, UnsafeMutableRawPointer) throws -> R) rethrows -> R {
-		if let getThing = try self.withContiguousStorageIfAvailable({ someBytes in
-			return try valFunc(someBytes.count, UnsafeMutableRawPointer(mutating:someBytes.baseAddress!))
-		}) {
-			return getThing
-		} else {
-			let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: self.count)
-			defer { buffer.deallocate() }
-			_ = buffer.initialize(from: self)
-			return try valFunc(self.count, buffer.baseAddress!)
-		}
+extension RAW:RAW_decodable {
+	/// creates a new RAW object from a given size and pointer.
+	public init(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+		self.RAW_data = RAW_data
+		self.RAW_size = RAW_size
 	}
 }
 
 // sequence conformance for RAW_val. allows for convenient iteration.
-extension RAW_val:Sequence {
+extension RAW:Sequence {
+
+	/// returns a new iterator that will stride the contents of the RAW_val.
+	public func makeIterator() -> RAW_iterator {
+		return RAW_iterator(self)
+	}
 
 	/// an object that strides through the contents of a RAW_val.
-	public struct Iterator:IteratorProtocol {
-
+	public struct RAW_iterator:IteratorProtocol {
 		/// the sequence element for this iterator is UInt8
 		public typealias Element = UInt8
 
 		// represents the memory (byte buffer) that this iterator is striding through.
-		private let memory:UnsafeMutablePointer<UInt8>
+		private let memory:UnsafeRawBufferPointer
 		// the size of the data that this iterator is striding through.
 		private var size:size_t
 		// the current index of the iterator.
 		private var i:size_t = 0
 		// creates a new iterator based on the memory contents of a given ``RAW_val``.
-		internal init(_ val:RAW_val) {
-			self.memory = val.mv_data.assumingMemoryBound(to:UInt8.self)
-			self.size = val.mv_size
+		internal init<R>(_ val:R) where R:RAW_val {
+			self.memory = UnsafeRawBufferPointer(val)
+			self.size = val.RAW_size
 		}
 
 		/// returns the next element in the sequence, or nil if there are no more elements.
@@ -108,43 +69,57 @@ extension RAW_val:Sequence {
 				defer {
 					i += 1;
 				}
-				return memory[i]
+				return self.memory[i]
 			}
 		}
-	}
-
-	/// the individual element that this ``RAW_val`` sequence is composed of.
-	public typealias Element = UInt8
-
-	/// returns a new iterator that will stride the contents of the RAW_val.
-	public func makeIterator() -> Iterator {
-		return Iterator(self)
 	}
 }
 
 // collection conformances for RAW_val, allows for convenient random access.
-extension RAW_val:Collection {
-	
-	/// the index type for this collection is ``size_t``.
-	public typealias Index = size_t
-
+extension RAW:Collection {
 	/// the start index for this collection is zero.
-	public var startIndex:Index {
+	public var startIndex:Int {
 		return 0
 	}
 
 	/// the end index for this collection is the size of the ``RAW_val``.
-	public var endIndex:Index {
-		return self.mv_size
+	public var endIndex:Int {
+		return Int(self.RAW_size)
 	}
 
 	/// returns the element at the given index.
-	public subscript(position:Index) -> UInt8 {
-		return self.mv_data.assumingMemoryBound(to:UInt8.self)[position]
+	public subscript(position:Int) -> UInt8 {
+		return self.RAW_data!.assumingMemoryBound(to:UInt8.self).advanced(by:position).pointee
 	}
 
 	/// returns the index after the given index.
-	public func index(after i:Index) -> Index {
+	public func index(after i:Int) -> Int {
 		return i + 1
+	}
+}
+
+extension RAW_encodable where Self:RAW_comparable {
+	// default comparison implementation based on the byte contents of the ``RAW_val``.
+	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
+		let leftData = lhs.RAW_data
+		let rightData = rhs.RAW_data
+		switch (leftData, rightData) {
+			case (nil, nil):
+				return 0
+			case (nil, _):
+				return -1
+			case (_, nil):
+				return 1
+			default:
+				let leftSize = lhs.RAW_size
+				let rightSize = rhs.RAW_size
+				if (leftSize < rightSize) {
+					return -1
+				} else if (leftSize > rightSize) {
+					return 1
+				} else {
+					return memcmp(lhs.RAW_data!, rhs.RAW_data!, Int(leftSize))
+				}
+		}
 	}
 }
