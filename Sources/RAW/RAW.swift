@@ -6,6 +6,8 @@ import func CRAW.memcmp
 import struct CRAW.size_t
 public typealias size_t = CRAW.size_t
 
+public let RAW_memcmp = CRAW.memcmp
+
 /// a default implementation of the ``RAW_val`` protocol.
 @frozen public struct RAW:RAW_val {
 	/// the raw data that the structure instance represents.
@@ -95,31 +97,5 @@ extension RAW:Collection {
 	/// returns the index after the given index.
 	public func index(after i:Int) -> Int {
 		return i + 1
-	}
-}
-
-extension RAW_encodable where Self:RAW_comparable {
-	// default comparison implementation based on the byte contents of the ``RAW_val``.
-	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		let leftData = lhs.RAW_data
-		let rightData = rhs.RAW_data
-		switch (leftData, rightData) {
-			case (nil, nil):
-				return 0
-			case (nil, _):
-				return -1
-			case (_, nil):
-				return 1
-			default:
-				let leftSize = lhs.RAW_size
-				let rightSize = rhs.RAW_size
-				if (leftSize < rightSize) {
-					return -1
-				} else if (leftSize > rightSize) {
-					return 1
-				} else {
-					return memcmp(lhs.RAW_data!, rhs.RAW_data!, Int(leftSize))
-				}
-		}
 	}
 }

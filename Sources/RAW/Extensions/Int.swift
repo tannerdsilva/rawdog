@@ -1,13 +1,10 @@
 import struct CRAW.size_t;
-import func CRAW.memcmp;
 
 extension Int64:RAW_decodable, RAW_encodable, RAW_comparable {
 	/// retrieves the big endian representation of the int64.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<Int64>.size) { bytePtr in
-				return try valFunc(RAW(bytePtr, MemoryLayout<Int64>.size))
-			}
+			return try valFunc(RAW(ptr, MemoryLayout<Int64>.size))
 		}
 	}
 	
@@ -22,9 +19,13 @@ extension Int64:RAW_decodable, RAW_encodable, RAW_comparable {
 		self = Int64(bigEndian:RAW_data!.load(as:Int64.self))
 	}
 
-	/// compare two raw values as if they were int64s. since these encode as big endian, we can just compare the raw bytes.
-	public static func RAW_compare(_ lhs: RAW, _ rhs: RAW) -> Int32 {
-		return memcmp(lhs.RAW_data, rhs.RAW_data, MemoryLayout<Int64>.size)
+	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
+	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
+		if (lhs.RAW_size != rhs.RAW_size) {
+			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
+		} else {
+			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
+		}
 	}
 }
 
@@ -32,9 +33,7 @@ extension Int32:RAW_decodable, RAW_encodable, RAW_comparable {
 	/// retrieves the big endian representation of the int32.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<Int32>.size) { bytePtr in
-				return try valFunc(RAW(bytePtr, MemoryLayout<Int32>.size))
-			}
+			return try valFunc(RAW(ptr, MemoryLayout<Int32>.size))
 		}
 	}
 	
@@ -49,9 +48,13 @@ extension Int32:RAW_decodable, RAW_encodable, RAW_comparable {
 		self = Int32(bigEndian:RAW_data!.load(as:Int32.self))
 	}
 
-	/// compares two RAW values as if they were int32s.
-	public static func RAW_compare(_ lhs: RAW, _ rhs: RAW) -> Int32 {
-		return memcmp(lhs.RAW_data, rhs.RAW_data, MemoryLayout<Int32>.size)
+	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
+	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
+		if (lhs.RAW_size != rhs.RAW_size) {
+			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
+		} else {
+			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
+		}
 	}
 }
 
@@ -59,9 +62,7 @@ extension Int16:RAW_decodable, RAW_encodable, RAW_comparable {
 	/// retrieves the big endian representation of the int16.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<Int16>.size) { bytePtr in
-				return try valFunc(RAW(bytePtr, MemoryLayout<Int16>.size))
-			}
+			return try valFunc(RAW(ptr, MemoryLayout<Int16>.size))
 		}
 	}
 	
@@ -76,9 +77,13 @@ extension Int16:RAW_decodable, RAW_encodable, RAW_comparable {
 		self = Int16(bigEndian:RAW_data!.load(as:Int16.self))
 	}
 
-	/// compares two RAW values as if they were int16s.
+	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
 	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		return memcmp(lhs.RAW_data, rhs.RAW_data, MemoryLayout<Int16>.size)
+		if (lhs.RAW_size != rhs.RAW_size) {
+			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
+		} else {
+			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
+		}
 	}
 }
 
@@ -86,9 +91,7 @@ extension Int8:RAW_decodable, RAW_encodable, RAW_comparable {
 	/// retrieves the big endian representation of the int8.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<Int8>.size) { bytePtr in
-				return try valFunc(RAW(bytePtr, MemoryLayout<Int8>.size))
-			}
+			return try valFunc(RAW(ptr, MemoryLayout<Int8>.size))
 		}
 	}
 	
@@ -103,9 +106,13 @@ extension Int8:RAW_decodable, RAW_encodable, RAW_comparable {
 		self = Int8(bigEndian:RAW_data!.load(as:Int8.self))
 	}
 
-	/// compares two RAW values as if they were int8s.
+	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
 	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		return memcmp(lhs.RAW_data, rhs.RAW_data, MemoryLayout<Int8>.size)
+		if (lhs.RAW_size != rhs.RAW_size) {
+			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
+		} else {
+			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
+		}
 	}
 }
 
@@ -113,9 +120,7 @@ extension Int:RAW_decodable, RAW_encodable, RAW_comparable {
 	/// retrieves the big endian representation of the int.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<Int>.size) { bytePtr in
-				return try valFunc(RAW(bytePtr, MemoryLayout<Int>.size))
-			}
+			return try valFunc(RAW(ptr, MemoryLayout<Int>.size))
 		}
 	}
 	
@@ -130,8 +135,12 @@ extension Int:RAW_decodable, RAW_encodable, RAW_comparable {
 		self = Int(bigEndian:RAW_data!.load(as:Int.self))
 	}
 
-	/// compares two RAW values as if they were ints (big endian).
-	public static func RAW_compare(_ lhs: RAW, _ rhs: RAW) -> Int32 {
-		return memcmp(lhs.RAW_data, rhs.RAW_data, MemoryLayout<Int>.size)
+	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
+	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
+		if (lhs.RAW_size != rhs.RAW_size) {
+			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
+		} else {
+			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
+		}
 	}
 }

@@ -61,15 +61,60 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 			#endif
 			throw Diagnostics.mustBeIntegerLiteral("\(declaration)")
 		}
+		let newNumber = try Self.parseNumber(from:node)
+		var buildEqualities = [String]()
+		for i in 0..<newNumber {
+			buildEqualities.append("lhs.fixedBuffer.\(i) == rhs.fixedBuffer.\(i)")
+		}
 		let structureName = structDecl.name
 		let structureModifiers = structDecl.modifiers
-		let extensionDecl = try ExtensionDeclSyntax("""
+
+		var returnResult = [SwiftSyntax.ExtensionDeclSyntax]()
+
+		let rawComparableConformance = try ExtensionDeclSyntax("""
+			extension \(structureName):RAW_comparable {
+				/// default implementation that compares the raw representation of the type.
+				\(structureModifiers) static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
+					return memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
+				}
+			}
+		""")
+		returnResult.append(rawComparableConformance)
+
+		let comparableConformance = try ExtensionDeclSyntax("""
+			// declares comparable conformance on the type.
+			extension \(structureName):Comparable {
+				/// default implementation that compares the raw representation of the type.
+				\(structureModifiers) static func < (lhs:Self, rhs:Self) -> Bool {
+					withUnsafePointer(to:lhs.fixedBuffer) { lhsPtr in
+						withUnsafePointer(to:rhs.fixedBuffer) { rhsPtr in
+							return memcmp(lhsPtr, rhsPtr, MemoryLayout<RAW_staticbuff_storetype>.size) < 0
+						}
+					}
+				}
+			}
+		""")
+		returnResult.append(comparableConformance)
+		
+		// extend the structure to conform to equatable if it does not already.
+		let equatableConformance = try ExtensionDeclSyntax("""
+			// declares equatable conformance on the type.
+			extension \(structureName):Equatable {
+				/// default implementation that compares the raw representation of the type.
+				\(structureModifiers) static func == (lhs:Self, rhs:Self) -> Bool {
+					return ( \(raw:buildEqualities.joined(separator:" && ")) )
+				}
+			}
+		""")
+		returnResult.append(equatableConformance)
+
+		returnResult.append(try ExtensionDeclSyntax("""
 			// declares the type as a static buffer type with the given number of bytes as the storetype.
 			extension \(structureName):RAW_staticbuff {
 				\(structureModifiers) typealias RAW_staticbuff_storetype = \(raw:generateTypeExpression(byteCount:Self.parseNumber(from:node)))
 			}
-			""")
-		let arrayLiteralDecl = try ExtensionDeclSyntax("""
+		"""))
+		returnResult.append(try ExtensionDeclSyntax("""
 			// declares array literal conformance on the type.
 			extension \(structureName):ExpressibleByArrayLiteral {
 				/// initializer for array literal expressions of the byte buffer.
@@ -85,13 +130,13 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 					}
 				}
 			}
-		""")
+		"""))
 
-		let collectionExtension = try ExtensionDeclSyntax("""
+		returnResult.append(try ExtensionDeclSyntax("""
 			// declares collection conformance on the type.
 			extension \(structureName):Collection {}
-		""")
-		return [extensionDecl, arrayLiteralDecl, collectionExtension]
+		"""))
+		return returnResult
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
@@ -143,7 +188,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		let typeDecl = generateTypeExpression(byteCount:newNumber)
 		let patternBinding = PatternBindingSyntax(pattern:PatternSyntax(bufferName), typeAnnotation:TypeAnnotationSyntax(colon:TokenSyntax.colonToken(), type:typeDecl), initializer:nil, accessorBlock:nil, trailingComma:nil)
 		let newList = PatternBindingListSyntax([patternBinding])
-		let privateFixedBufferVal = DeclSyntax(VariableDeclSyntax(modifiers:DeclModifierListSyntax([DeclModifierSyntax(name:TokenSyntax.keyword(.private))]), bindingSpecifier:varSyntax, bindings:newList))
+		let privateFixedBufferVal = DeclSyntax(VariableDeclSyntax(modifiers:DeclModifierListSyntax([DeclModifierSyntax(name:TokenSyntax.keyword(.internal))]), bindingSpecifier:varSyntax, bindings:newList))
 		
 		// build a tuple initializer that individually references each byte in the input raw pointer.
 		var buildPointerRef = "("

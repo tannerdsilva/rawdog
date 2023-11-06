@@ -1,7 +1,7 @@
 import RAW_macros
 
 @attached(member, names:arbitrary)
-@attached(extension, conformances:RAW_staticbuff, Collection, ExpressibleByArrayLiteral, names:named(RAW_staticbuff_storetype), named(init(arrayLiteral:)))
+@attached(extension, conformances:RAW_staticbuff, Collection, ExpressibleByArrayLiteral, Equatable, Comparable, RAW_comparable, names:arbitrary)
 // @attached(peer)
 // @attached(memberAttribute)
 // @attached(accessor)

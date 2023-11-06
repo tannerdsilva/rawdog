@@ -4,9 +4,7 @@ extension Double:RAW_encodable, RAW_decodable, RAW_comparable {
 	/// retrieves the raw IEEE 754 representation of the double.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bitPattern) { ptr in
-			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<UInt64>.size) { bytePtr in
-				return try valFunc(RAW(bytePtr, MemoryLayout<UInt64>.size))
-			}
+			return try valFunc(RAW(ptr, MemoryLayout<UInt64>.size))
 		}
 	}
 	
@@ -20,21 +18,13 @@ extension Double:RAW_encodable, RAW_decodable, RAW_comparable {
 		}
 		self = Double(bitPattern:RAW_data!.load(as:UInt64.self))
 	}
-
-	public static func RAW_compare(_ lhs: RAW, _ rhs: RAW) -> Int32 {
-		let lhsD = Self(RAW_size:lhs.RAW_size, RAW_data:lhs.RAW_data)!
-		let rhsD = Self(RAW_size:rhs.RAW_size, RAW_data:rhs.RAW_data)!
-		return (lhsD < rhsD) ? -1 : ((lhsD > rhsD) ? 1 : 0)
-	}
 }
 
 extension Float:RAW_encodable, RAW_decodable, RAW_comparable {
 	/// retrieves the raw IEEE 754 representation of the float.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bitPattern) { ptr in
-			return try ptr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<UInt32>.size) { bytePtr in
-				return try valFunc(RAW(bytePtr, MemoryLayout<UInt32>.size))
-			}
+			return try valFunc(RAW(ptr, MemoryLayout<UInt32>.size))
 		}
 	}
 	
@@ -47,11 +37,5 @@ extension Float:RAW_encodable, RAW_decodable, RAW_comparable {
 			return nil
 		}
 		self = Float(bitPattern:RAW_data!.load(as:UInt32.self))
-	}
-
-	public static func RAW_compare(_ lhs: RAW, _ rhs: RAW) -> Int32 {
-		let lhsD = Self(RAW_size:lhs.RAW_size, RAW_data:lhs.RAW_data)!
-		let rhsD = Self(RAW_size:rhs.RAW_size, RAW_data:rhs.RAW_data)!
-		return (lhsD < rhsD) ? -1 : ((lhsD > rhsD) ? 1 : 0)
 	}
 }
