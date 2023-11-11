@@ -9,7 +9,9 @@ final class NumberTests: XCTestCase {
 			3.141,
 		]
 		let decoded = encodeNumbers.asRAW_val { rawVal in
-			return Array<Double>(RAW_size:rawVal.RAW_size, RAW_data:rawVal.RAW_data)
+			XCTAssertEqual(rawVal.RAW_size, 24)
+			let bytes = Array<Double>(RAW_size:rawVal.RAW_size, RAW_data:rawVal.RAW_data)
+			return bytes
 		}
 		XCTAssertEqual(decoded, [
 			3.14159,

@@ -5,7 +5,7 @@ public typealias RAW_convertible = RAW_encodable & RAW_decodable
 /// - initializers may return nil if the memory is not valid for the given type.
 public protocol RAW_decodable {
 	/// required implementation.
-	init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?)
+	init?(RAW_size:size_t, RAW_data:UnsafeRawPointer)
 }
 
 extension RAW_decodable {

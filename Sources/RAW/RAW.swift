@@ -11,13 +11,13 @@ public let RAW_memcmp = CRAW.memcmp
 /// a default implementation of the ``RAW_val`` protocol.
 @frozen public struct RAW:RAW_val {
 	/// the raw data that the structure instance represents.
-	public let RAW_data:UnsafeRawPointer?
+	public let RAW_data:UnsafeRawPointer
 	
 	/// the size of the data that the structure instance represents.
 	public let RAW_size:size_t
 
 	/// creates a new RAW object from a given size and pointer.
-	public init(RAW_data:UnsafeRawPointer?, RAW_size:size_t) {
+	public init(RAW_data:UnsafeRawPointer, RAW_size:size_t) {
 		self.RAW_data = RAW_data
 		self.RAW_size = RAW_size
 	}
@@ -32,7 +32,7 @@ extension RAW:RAW_encodable {
 
 extension RAW:RAW_decodable {
 	/// creates a new RAW object from a given size and pointer.
-	public init(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
+	public init(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
 		self.RAW_data = RAW_data
 		self.RAW_size = RAW_size
 	}
@@ -91,7 +91,7 @@ extension RAW:Collection {
 
 	/// returns the element at the given index.
 	public subscript(position:Int) -> UInt8 {
-		return self.RAW_data!.assumingMemoryBound(to:UInt8.self).advanced(by:position).pointee
+		return self.RAW_data.assumingMemoryBound(to:UInt8.self).advanced(by:position).pointee
 	}
 
 	/// returns the index after the given index.

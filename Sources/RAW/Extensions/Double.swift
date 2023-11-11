@@ -22,11 +22,11 @@ extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 	
 	/// initialize a double from a raw IEEE 754 representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == MemoryLayout<UInt64>.size) && RAW_data != nil else {
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
+		guard (RAW_size == MemoryLayout<UInt64>.size) else {
 			return nil
 		}
-		self = .init(RAW_data:RAW_data!)
+		self = .init(RAW_data:RAW_data)
 	}
 }
 
@@ -51,10 +51,10 @@ extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 	
 	/// initializes a float32 from a raw IEEE 754 representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == MemoryLayout<UInt32>.size) && RAW_data != nil else {
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
+		guard (RAW_size == MemoryLayout<UInt32>.size) else {
 			return nil
 		}
-		self = .init(RAW_data:RAW_data!)
+		self = .init(RAW_data:RAW_data)
 	}
 }

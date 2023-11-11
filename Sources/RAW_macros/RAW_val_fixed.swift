@@ -189,7 +189,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		// build a tuple initializer that individually references each byte in the input raw pointer.
 		var buildPointerRef = "("
 		for i in 0..<newNumber {
-			buildPointerRef.append("RAW_data!.load(fromByteOffset:\(i), as:UInt8.self)")
+			buildPointerRef.append("RAW_data.load(fromByteOffset:\(i), as:UInt8.self)")
 			if i + 1 < newNumber {
 				buildPointerRef.append(",")
 			}

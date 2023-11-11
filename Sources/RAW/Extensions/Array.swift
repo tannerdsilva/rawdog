@@ -23,17 +23,16 @@ extension Array where Element == UInt8 {
 
 extension Array:RAW_decodable where Element:RAW_decodable {
 	/// initialize the array with repeated contents of a RAW_decodable Element type
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_data != nil) else {
-			return nil
-		}
+	public init(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
 		guard RAW_size > 0 else {
 			self = []
 			return
 		}
+		var consumedSize:size_t = 0
 		var existingVal = RAW(RAW_size, RAW_data)
 		var buildElements = [Element]()
-		while let (element, newVal) = existingVal.consume(Element.self) {
+		while let (curSize, element, newVal) = existingVal.consume(Element.self), (consumedSize + curSize) <= RAW_size {
+			consumedSize += curSize
 			existingVal = newVal
 			buildElements.append(element)
 		}
@@ -42,10 +41,7 @@ extension Array:RAW_decodable where Element:RAW_decodable {
 }
 
 extension Array where Element == UInt8 {
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_data != nil) else {
-			return nil
-		}
+	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
 		guard RAW_size > 0 else {
 			self = []
 			return
