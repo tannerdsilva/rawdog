@@ -9,12 +9,6 @@ public struct Blake2 {
 		case updateError
 		case exportError
 	}
-	fileprivate static func validateOutputLength(_ type:any RAW_staticbuff.Type) throws {
-		let buffSize = type.RAW_staticbuff_size
-		guard buffSize > 0 && buffSize <= 64 else {
-			throw Error.invalidOutputType(type)
-		}
-	}
 
 	/// blake2b hasher implementation.
 	public struct B<S:RAW_staticbuff> {
@@ -31,7 +25,7 @@ public struct Blake2 {
 			return try hasher.finalize()
 		}
 		public init() throws {
-			try Blake2.validateOutputLength(S.self)
+			try Self.validateOutputLength(S.self)
 			guard blake2b_init(&state, S.RAW_staticbuff_size) == 0 else {
 				throw Error.initializationError
 			}
@@ -76,7 +70,7 @@ public struct Blake2 {
 			return try hasher.finalize()
 		}
 		public init() throws {
-			try Blake2.validateOutputLength(S.self)
+			try Self.validateOutputLength(S.self)
 			guard blake2s_init(&state, S.RAW_staticbuff_size) == 0 else {
 				throw Error.initializationError
 			}
@@ -121,7 +115,7 @@ public struct Blake2 {
 			return try hasher.finalize()
 		}
 		public init() throws {
-			try Blake2.validateOutputLength(S.self)
+			try Self.validateOutputLength(S.self)
 			guard blake2bp_init(&state, S.RAW_staticbuff_size) == 0 else {
 				throw Error.initializationError
 			}
@@ -166,7 +160,7 @@ public struct Blake2 {
 			return try hasher.finalize()
 		}
 		public init() throws {
-			try Blake2.validateOutputLength(S.self)
+			try Self.validateOutputLength(S.self)
 			guard blake2sp_init(&state, S.RAW_staticbuff_size) == 0 else {
 				throw Error.initializationError
 			}
@@ -211,7 +205,7 @@ public struct Blake2 {
 			return try hasher.finalize()
 		}
 		public init() throws {
-			try Blake2.validateOutputLength(S.self)
+			try Self.validateOutputLength(S.self)
 			guard blake2xb_init(&state, S.RAW_staticbuff_size) == 0 else {
 				throw Error.initializationError
 			}
@@ -256,7 +250,7 @@ public struct Blake2 {
 			return try hasher.finalize()
 		}
 		public init() throws {
-			try Blake2.validateOutputLength(S.self)
+			try Self.validateOutputLength(S.self)
 			guard blake2xs_init(&state, S.RAW_staticbuff_size) == 0 else {
 				throw Error.initializationError
 			}

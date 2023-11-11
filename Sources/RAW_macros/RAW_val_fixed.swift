@@ -5,7 +5,7 @@ import SwiftDiagnostics
 
 #if RAWDOG_MACRO_LOG
 import Logging
-let mainLogger = Logger(label:"RAW_macros")
+fileprivate let mainLogger = Logger(label:"RAW_val_fixed")
 #endif
 
 public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttributeMacro, AccessorMacro, PeerMacro {
@@ -34,6 +34,23 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		let newNumber = getNewNumber!
 		return newNumber
 	}
+	fileprivate static func parseAttachedDeclGroupSyntax(_ declaration:some DeclGroupSyntax) throws -> (structureName:TokenSyntax, structureModifiers:DeclModifierListSyntax) {
+		guard let structDecl = declaration.as(StructDeclSyntax.self) else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.critical("expected struct declaration. found \(declaration)")
+			#endif
+			throw Diagnostics.mustBeStructOrClassDeclaration(declaration.syntaxNodeType)
+		}
+		let structureName = structDecl.name
+		#if RAWDOG_MACRO_LOG
+		mainLogger.info("got structure name", metadata:["structureName": "\(structureName)"])
+		#endif
+		let structureModifiers = structDecl.modifiers
+		#if RAWDOG_MACRO_LOG
+		mainLogger.info("got structure modifiers", metadata:["structureModifiers": "\(structureModifiers)"])
+		#endif
+		return (structureName, structureModifiers)
+	}
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingAttributesFor member: some SwiftSyntax.DeclSyntaxProtocol, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.AttributeSyntax] {
 		return []
 	}
@@ -55,19 +72,12 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 			logger.info("macro function finished.")
 		}
 		#endif
-		guard let structDecl = declaration.as(StructDeclSyntax.self) else {
-			#if RAWDOG_MACRO_LOG
-			logger.critical("expected struct declaration")
-			#endif
-			throw Diagnostics.mustBeIntegerLiteral("\(declaration)")
-		}
+		let (structureName, structureModifiers) = try Self.parseAttachedDeclGroupSyntax(declaration)
 		let newNumber = try Self.parseNumber(from:node)
 		var buildEqualities = [String]()
 		for i in 0..<newNumber {
 			buildEqualities.append("lhs.fixedBuffer.\(i) == rhs.fixedBuffer.\(i)")
 		}
-		let structureName = structDecl.name
-		let structureModifiers = structDecl.modifiers
 
 		var returnResult = [SwiftSyntax.ExtensionDeclSyntax]()
 
@@ -122,12 +132,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 					guard elements.count == MemoryLayout<Self.RAW_staticbuff_storetype>.size else {
 						fatalError("invalid array literal. the number of elements must match the size of the buffer. expected elements: \\(MemoryLayout<Self.RAW_staticbuff_storetype>.size), found: \\(elements.count)")
 					}
-					let makeSelf = Self.init(RAW_data:elements)
-					if makeSelf != nil {
-						self = makeSelf!
-					} else {
-						fatalError("invalid array literal.")
-					}
+					self = Self.init(RAW_data:elements)
 				}
 			}
 		"""))
@@ -143,24 +148,15 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		#if RAWDOG_MACRO_LOG
 		var logger = mainLogger
 		logger[metadataKey: "mtype"] = "members"
-		logger.info("running macro function on node.")
+		logger.debug("running fixed-length value macro.")
 		defer {
-			logger.info("macro function finished.")
+			logger.debug("done running fixed-length value macro.")
 		}
 		#endif
-		guard let structDecl = declaration.as(StructDeclSyntax.self) else {
-			#if RAWDOG_MACRO_LOG
-			logger.critical("expected struct declaration")
-			#endif
-			throw Diagnostics.mustBeIntegerLiteral("\(declaration)")
-		}
-		let structureName = structDecl.name
+		let (structureName, structureModifiers) = try Self.parseAttachedDeclGroupSyntax(declaration)
 		#if RAWDOG_MACRO_LOG
-		logger.info("got structure name.", metadata:["structureName": "\(structureName)"])
-		#endif
-		let structureModifiers = structDecl.modifiers
-		#if RAWDOG_MACRO_LOG
-		logger.info("got structure modifiers.", metadata:["structureModifiers": "\(structureModifiers)"])
+		logger.trace("got structure name.", metadata:["name": "\(structureName)"])
+		logger.trace("got structure modifiers.", metadata:["mods": "\(structureModifiers)"])
 		#endif
 		let attributeNumber = node.arguments?.as(LabeledExprListSyntax.self)?.first?.expression.as(IntegerLiteralExprSyntax.self)?.literal
 		let getNewNumber:UInt16?
@@ -174,7 +170,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 				}
 				getNewNumber = UInt16(value)
 				#if RAWDOG_MACRO_LOG
-				logger.info("got attribute number.", metadata:["attributeNumber": "\(getNewNumber!)"])
+				logger.info("got attribute number.", metadata:["#": "\(getNewNumber!)"])
 				#endif
 			case .none:
 				#if RAWDOG_MACRO_LOG
@@ -203,18 +199,15 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		// make the initializer that will allow us to initialize from a raw pointer.
 		let initializer = DeclSyntax("""
 			/// initializes the type from a raw pointer. it is assumed that the contents of the pointer are of correct size.
-			\(structureModifiers) init?(RAW_data:UnsafeRawPointer?) {
-				guard RAW_data != nil else {
-					return nil
-				}
-				self.fixedBuffer = RAW_data!.load(as:\(typeDecl).self)
+			\(structureModifiers) init(RAW_data:UnsafeRawPointer) {
+				self.fixedBuffer = RAW_data.load(as:\(typeDecl).self)
 			}
 			""")
 
 		// make the initializer that will allow us to initialize from a raw value type directly.
 		let directTypeInit = DeclSyntax("""
 			/// initializes the type directly from the raw storage type.
-			\(structureModifiers) init(_ val:RAW_staticbuff_storetype) {
+			\(structureModifiers) init(RAW_staticbuff_storetype val:RAW_staticbuff_storetype) {
 				self.fixedBuffer = val
 			}
 			""")
@@ -273,6 +266,8 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 	public enum Diagnostics:Swift.Error, DiagnosticMessage {
 		/// thrown when this macro is attached to a declaration that is not a class
 		case mustBeIntegerLiteral(String)
+		/// thrown when this macro is attached to a declaration that is not a structure or class
+		case mustBeStructOrClassDeclaration(SyntaxProtocol.Type)
 	
 		public var severity:DiagnosticSeverity {
 			return .error
@@ -281,7 +276,9 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		public var did:String {
 			switch self {
 				case .mustBeIntegerLiteral:
-					return "RAW_macros.mustBeIntegerLiteral"
+					return "RAW_val_fixed.mustBeIntegerLiteral"
+				case .mustBeStructOrClassDeclaration:
+					return "RAW_val_fixed.mustBeStructOrClassDeclaration"
 			}
 		}
 
@@ -289,6 +286,8 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 			switch self {
 				case .mustBeIntegerLiteral(let found):
 					return "this macro requires an integer literal as its argument. instead found \(found)"
+				case .mustBeStructOrClassDeclaration(let declType):
+					return "this macro must be attached to a struct or class declaration. instead found \(declType)"
 			}
 		}
 

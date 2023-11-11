@@ -8,19 +8,19 @@ public protocol RAW_staticbuff:RAW_encodable, RAW_decodable {
 	static var RAW_staticbuff_size:size_t { get }
 
 	/// initializes a new RAW_staticbuff from a given pointer. the length of the data is determined by the memory size of the ``RAW_staticbuff_storetype``.
-	init?(RAW_data:UnsafeRawPointer?)
+	init(RAW_data:UnsafeRawPointer)
 	
 	/// directly initialize a new RAW_staticbuff directly from its underlying storage type.
-	init(_:RAW_staticbuff_storetype)
+	init(RAW_staticbuff_storetype:RAW_staticbuff_storetype)
 }
 
 extension RAW_staticbuff {
 	/// creates a new RAW_fixedlength object from a given size and pointer.
 	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard RAW_size == MemoryLayout<RAW_staticbuff_storetype>.size else {
+		guard RAW_size == MemoryLayout<RAW_staticbuff_storetype>.size && RAW_data != nil else {
 			return nil
 		}
-		self.init(RAW_data:RAW_data)
+		self.init(RAW_data:RAW_data!)
 	}
 
 	public static var RAW_staticbuff_size:size_t {

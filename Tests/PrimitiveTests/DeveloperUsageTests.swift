@@ -7,6 +7,12 @@ import XCTest
 @StaticBufferType(5)
 struct FixedBuff5 {}
 
+@ConcatBufferType(FixedBuff5, FixedBuff5)
+struct MYSTRUCT {
+	let mYThing:FixedBuff5
+	let secondThing:FixedBuff5
+}
+
 final class TestDeveloperUsage:XCTestCase {
     // func testDeveloperUseCase() {
 	// 	let myBaseData = [UInt8]("Hello".utf8)

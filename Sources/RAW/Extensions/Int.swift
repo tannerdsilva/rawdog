@@ -1,6 +1,16 @@
 import struct CRAW.size_t;
 
-extension Int64:RAW_decodable, RAW_encodable, RAW_comparable {
+extension Int64:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
+	public typealias RAW_staticbuff_storetype = Self
+
+	public init(RAW_staticbuff_storetype:Self) {
+		self = Int64(bigEndian:RAW_staticbuff_storetype)
+	}
+
+	public init(RAW_data:UnsafeRawPointer) {
+		self = Int64(bigEndian:RAW_data.load(as:Int64.self))
+	}
+
 	/// retrieves the big endian representation of the int64.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -29,7 +39,17 @@ extension Int64:RAW_decodable, RAW_encodable, RAW_comparable {
 	}
 }
 
-extension Int32:RAW_decodable, RAW_encodable, RAW_comparable {
+extension Int32:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
+	public typealias RAW_staticbuff_storetype = Self
+	
+	public init(RAW_data:UnsafeRawPointer) {
+		self = Int32(bigEndian:RAW_data.load(as:Int32.self))
+	}
+
+	public init(RAW_staticbuff_storetype:Self) {
+		self = Int32(bigEndian:RAW_staticbuff_storetype)
+	}
+
 	/// retrieves the big endian representation of the int32.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -58,7 +78,18 @@ extension Int32:RAW_decodable, RAW_encodable, RAW_comparable {
 	}
 }
 
-extension Int16:RAW_decodable, RAW_encodable, RAW_comparable {
+extension Int16:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
+
+	public typealias RAW_staticbuff_storetype = Self
+
+	public init(RAW_data:UnsafeRawPointer) {
+		self = Int16(bigEndian:RAW_data.load(as:Int16.self))
+	}
+
+	public init(RAW_staticbuff_storetype:Self) {
+		self = Int16(bigEndian:RAW_staticbuff_storetype)
+	}
+
 	/// retrieves the big endian representation of the int16.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -87,7 +118,18 @@ extension Int16:RAW_decodable, RAW_encodable, RAW_comparable {
 	}
 }
 
-extension Int8:RAW_decodable, RAW_encodable, RAW_comparable {
+extension Int8:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
+	public typealias RAW_staticbuff_storetype = Self
+	
+	public init(RAW_staticbuff_storetype:Self) {
+		self = Int8(bigEndian:RAW_staticbuff_storetype)
+	}
+
+	public init(RAW_data:UnsafeRawPointer) {
+		self = Int8(bigEndian:RAW_data.load(as:Int8.self))
+	}
+	
+
 	/// retrieves the big endian representation of the int8.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -116,7 +158,17 @@ extension Int8:RAW_decodable, RAW_encodable, RAW_comparable {
 	}
 }
 
-extension Int:RAW_decodable, RAW_encodable, RAW_comparable {
+extension Int:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
+	public typealias RAW_staticbuff_storetype = Self
+
+	public init(RAW_staticbuff_storetype:Self) {
+		self = Int(bigEndian:RAW_staticbuff_storetype)
+	}
+
+	public init(RAW_data:UnsafeRawPointer) {
+		self = Int(bigEndian:RAW_data.load(as:Int.self))
+	}
+	
 	/// retrieves the big endian representation of the int.
 	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in

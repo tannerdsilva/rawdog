@@ -31,7 +31,7 @@ let package = Package(
 			.product(name: "SwiftParserDiagnostics", package: "swift-syntax"),
 			.product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
 			.product(name: "Logging", package:"swift-log")
-		]),
+		], swiftSettings: [.define("RAWDOG_MACRO_LOG")]),
 		.target(name:"RAW_base64", dependencies:["CRAW", "RAW"]),
 		.target(name:"RAW", dependencies: ["CRAW", "RAW_macros"]),
 		.target(name:"CRAW"),
