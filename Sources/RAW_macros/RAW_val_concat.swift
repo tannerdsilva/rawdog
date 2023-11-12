@@ -209,6 +209,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			mainLogger.info("found member '\(curVarName.identifier.text)' of type '\(curVarType.baseName.text)'")
 			#endif
 		}
+		
 		return []
 	}
 

@@ -10,13 +10,6 @@ import func CRAW.memcpy
 public let RAW_memcmp = CRAW.memcmp
 public let RAW_memcpy = CRAW.memcpy
 
-@ConcatBufferType(Int, Int)
-struct DatePairHash {
-	let date:Int
-	let hash:Int
-}
-
-
 /// a default implementation of the ``RAW_val`` protocol.
 @frozen public struct RAW:RAW_val {
 	/// the raw data that the structure instance represents.
