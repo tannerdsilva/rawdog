@@ -4,8 +4,8 @@ import XCTest
 class RAWUInt64Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value: UInt64 = 1
-		let rawVal = value.asRAW_val { rawVal in
-			Array(rawVal)
+		let rawVal = value.asRAW_val { rawDat, rawSiz in
+			return Array<UInt8>(RAW_size:Int(rawSiz), RAW_data:rawDat)
 		}
 		let expectedBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]
 		XCTAssertEqual(rawVal, expectedBytes)

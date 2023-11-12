@@ -27,8 +27,8 @@ extension RAW_val {
 
 extension RAW_val {
 	/// ``RAW_val``'s can be encoded into themselves.
-	public func asRAW_val<R>(_ valFunc: (RAW) throws -> R) rethrows -> R {
-		try valFunc(RAW(RAW_data, RAW_size))
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+		try valFunc(RAW_data, RAW_size)
 	}
 }
 
@@ -60,9 +60,9 @@ extension RAW_val {
 	}
 	/// this implementation has no correlation to the custom sort protocols that 
 	public static func == (lhs:Self, rhs:Self) -> Bool {
-		return lhs.asRAW_val { lhs in
-			return rhs.asRAW_val { rhs in
-				return memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size) == 0
+		return lhs.asRAW_val { lhsDat, lhsSiz in
+			return rhs.asRAW_val { rhsDat, rhsSiz in
+				return memcmp(lhsDat, rhsDat, Int(rhsSiz)) == 0
 			}
 		}
 	}

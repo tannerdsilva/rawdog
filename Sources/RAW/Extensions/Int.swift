@@ -2,28 +2,24 @@ import struct CRAW.size_t;
 
 extension Int64:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	public typealias RAW_staticbuff_storetype = Self
-
 	public init(RAW_staticbuff_storetype:Self) {
-		self = Int64(bigEndian:RAW_staticbuff_storetype)
+		self = Self(bigEndian:RAW_staticbuff_storetype)
 	}
-
 	public init(RAW_data:UnsafeRawPointer) {
-		self = Int64(bigEndian:RAW_data.load(as:Int64.self))
+		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
-
-	/// retrieves the big endian representation of the int64.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+	/// retrieves the big endian representation of the int.
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<Int64>.size))
+			return try valFunc(ptr, MemoryLayout<Self>.size)
 		}
 	}
-	
-	/// load a big endian int64 from a raw representation in memory.
+	/// load a big endian int from a raw representation in memory.
 	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<Int64>.size) else {
+		guard (RAW_size == MemoryLayout<Self>.size) else {
 			return nil
 		}
-		self = Int64(bigEndian:RAW_data.load(as:Int64.self))
+		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 
 	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
@@ -33,33 +29,28 @@ extension Int64:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 		} else {
 			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
 		}
-	}
-}
+	}}
 
 extension Int32:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	public typealias RAW_staticbuff_storetype = Self
-	
-	public init(RAW_data:UnsafeRawPointer) {
-		self = Int32(bigEndian:RAW_data.load(as:Int32.self))
-	}
-
 	public init(RAW_staticbuff_storetype:Self) {
-		self = Int32(bigEndian:RAW_staticbuff_storetype)
+		self = Self(bigEndian:RAW_staticbuff_storetype)
 	}
-
-	/// retrieves the big endian representation of the int32.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+	public init(RAW_data:UnsafeRawPointer) {
+		self = Self(bigEndian:RAW_data.load(as:Self.self))
+	}
+	/// retrieves the big endian representation of the int.
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<Int32>.size))
+			return try valFunc(ptr, MemoryLayout<Self>.size)
 		}
 	}
-	
-	/// load a big endian int32 from a raw representation in memory.
+	/// load a big endian int from a raw representation in memory.
 	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<Int32>.size) else {
+		guard (RAW_size == MemoryLayout<Self>.size) else {
 			return nil
 		}
-		self = Int32(bigEndian:RAW_data.load(as:Int32.self))
+		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 
 	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
@@ -69,36 +60,28 @@ extension Int32:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 		} else {
 			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
 		}
-	}
-}
+	}}
 
 extension Int16:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	public typealias RAW_staticbuff_storetype = Self
-
-	public init(RAW_data:UnsafeRawPointer) {
-		self = Int16(bigEndian:RAW_data.load(as:Int16.self))
-	}
-
 	public init(RAW_staticbuff_storetype:Self) {
-		self = Int16(bigEndian:RAW_staticbuff_storetype)
+		self = Self(bigEndian:RAW_staticbuff_storetype)
 	}
-
-	/// retrieves the big endian representation of the int16.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+	public init(RAW_data:UnsafeRawPointer) {
+		self = Self(bigEndian:RAW_data.load(as:Self.self))
+	}
+	/// retrieves the big endian representation of the int.
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<Int16>.size))
+			return try valFunc(ptr, MemoryLayout<Self>.size)
 		}
 	}
-	
-	/// load a big endian int16 from a raw representation in memory.
+	/// load a big endian int from a raw representation in memory.
 	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<Int16>.size) else {
+		guard (RAW_size == MemoryLayout<Self>.size) else {
 			return nil
 		}
-		guard (RAW_data != nil) else {
-			return nil
-		}
-		self = Int16(bigEndian:RAW_data.load(as:Int16.self))
+		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 
 	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
@@ -113,32 +96,24 @@ extension Int16:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 
 extension Int8:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	public typealias RAW_staticbuff_storetype = Self
-	
 	public init(RAW_staticbuff_storetype:Self) {
-		self = Int8(bigEndian:RAW_staticbuff_storetype)
+		self = Self(bigEndian:RAW_staticbuff_storetype)
 	}
-
 	public init(RAW_data:UnsafeRawPointer) {
-		self = Int8(bigEndian:RAW_data.load(as:Int8.self))
+		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
-	
-
-	/// retrieves the big endian representation of the int8.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+	/// retrieves the big endian representation of the int.
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<Int8>.size))
+			return try valFunc(ptr, MemoryLayout<Self>.size)
 		}
 	}
-	
-	/// load a big endian int8 from a raw representation in memory.
+	/// load a big endian int from a raw representation in memory.
 	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<Int8>.size) else {
+		guard (RAW_size == MemoryLayout<Self>.size) else {
 			return nil
 		}
-		guard (RAW_data != nil) else {
-			return nil
-		}
-		self = Int8(bigEndian:RAW_data.load(as:Int8.self))
+		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 
 	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
@@ -148,36 +123,28 @@ extension Int8:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 		} else {
 			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
 		}
-	}
-}
+	}}
 
 extension Int:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	public typealias RAW_staticbuff_storetype = Self
-
 	public init(RAW_staticbuff_storetype:Self) {
-		self = Int(bigEndian:RAW_staticbuff_storetype)
+		self = Self(bigEndian:RAW_staticbuff_storetype)
 	}
-
 	public init(RAW_data:UnsafeRawPointer) {
-		self = Int(bigEndian:RAW_data.load(as:Int.self))
+		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
-	
 	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<Int>.size))
+			return try valFunc(ptr, MemoryLayout<Self>.size)
 		}
 	}
-	
 	/// load a big endian int from a raw representation in memory.
 	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<Int>.size) else {
+		guard (RAW_size == MemoryLayout<Self>.size) else {
 			return nil
 		}
-		guard (RAW_data != nil) else {
-			return nil
-		}
-		self = Int(bigEndian:RAW_data.load(as:Int.self))
+		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 
 	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.

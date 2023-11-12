@@ -16,15 +16,16 @@ public struct Base64 {
 	/// - parameter bytes: the byte representation to encode.
 	/// - throws: ``Error.encodingError`` if the byte representation could not be encoded. this should never be thrown under normal operating conditions.
 	public static func encode<RE>(bytes rawBytes:RE) throws -> String where RE:RAW_encodable {
-		return try rawBytes.asRAW_val { rawVal in
-			let enclen = base64_encoded_length(rawVal.RAW_size) + 1
+		return try rawBytes.asRAW_val { rawDat, rawSiz in
+			let rawSize = Int(rawSiz)
+			let enclen = base64_encoded_length(rawSize) + 1
 			let newBytes = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:enclen)
 			defer {
 				newBytes.deallocate()
 			}
-			let encodeResult = base64_encode(newBytes.baseAddress, enclen, rawVal.RAW_data, rawVal.RAW_size)
+			let encodeResult = base64_encode(newBytes.baseAddress, enclen, rawDat, rawSize)
 			guard encodeResult >= 0 else {
-				throw Error.encodingError(Array(rawVal), errno)
+				throw Error.encodingError(Array(RAW_size:rawSize, RAW_data:rawDat), errno)
 			}
 			return String(cString:newBytes.baseAddress!)
 		}

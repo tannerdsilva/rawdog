@@ -15,9 +15,9 @@ extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 
 	/// retrieves the raw IEEE 754 representation of the double.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bitPattern) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<UInt64>.size))
+			return try valFunc(ptr, MemoryLayout<UInt64>.size)
 		}
 	}
 	
@@ -44,9 +44,9 @@ extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 
 	/// retrieves the raw IEEE 754 representation of the float.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bitPattern) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<UInt32>.size))
+			return try valFunc(ptr, MemoryLayout<UInt32>.size)
 		}
 	}
 	

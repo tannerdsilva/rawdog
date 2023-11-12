@@ -25,8 +25,8 @@ public let RAW_memcmp = CRAW.memcmp
 
 extension RAW:RAW_encodable {
 	/// allow for encodable access to the raw data.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
-		return try valFunc(self)
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+		return try valFunc(self.RAW_data, self.RAW_size)
 	}
 }
 

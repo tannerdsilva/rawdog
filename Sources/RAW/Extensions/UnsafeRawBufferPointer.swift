@@ -38,8 +38,8 @@ extension UnsafeBufferPointer:RAW_val where Element == UInt8 {
 	}
 
 	/// encodes the value into a RAW value representation.
-	public func asRAW_val<R>(_ valFunc: (RAW) throws -> R) rethrows -> R {
-		try valFunc(RAW(self.baseAddress!, self.count))
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+		try valFunc(self.baseAddress!, self.count)
 	}
 }
 

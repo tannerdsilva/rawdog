@@ -1,11 +1,12 @@
 import XCTest
 @testable import RAW_base64
+@testable import RAW
 
 class Base64Tests: XCTestCase {
 	// testing base64 encoding from raw value.
 	func testBase64EncodingFromRaw() {
-		Array("Hello, World!".utf8).asRAW_val { rv in
-			let base64Encoded = try! Base64.encode(bytes:rv)
+		Array("Hello, World!".utf8).asRAW_val { rawDat, rawSize in
+			let base64Encoded = try! Base64.encode(bytes:RAW(rawDat, rawSize))
 			XCTAssertEqual(base64Encoded, "SGVsbG8sIFdvcmxkIQ==")
 		}
 	}
