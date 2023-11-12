@@ -16,8 +16,8 @@ public protocol RAW_staticbuff:RAW_encodable, RAW_decodable {
 
 extension RAW_staticbuff {
 	/// creates a new RAW_fixedlength object from a given size and pointer.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard RAW_size == MemoryLayout<RAW_staticbuff_storetype>.size else {
+	public init?(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		guard RAW_size.pointee == MemoryLayout<RAW_staticbuff_storetype>.size else {
 			return nil
 		}
 		self.init(RAW_data:RAW_data)
@@ -30,7 +30,7 @@ extension RAW_staticbuff {
 	/// creates a new value (of the types own static length) with the contents in the passed argument..
 	public init?<R>(_ val:R) where R:RAW_encodable {
 		let result = val.asRAW_val { rawDat, rawSize in
-			let newSelf = Self.init(RAW_size:rawSize, RAW_data:rawDat)
+			let newSelf = Self.init(RAW_data:rawDat, RAW_size:rawSize)
 			return newSelf
 		}
 		

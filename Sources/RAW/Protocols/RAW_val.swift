@@ -1,5 +1,4 @@
 import func CRAW.memcmp;
-import struct CRAW.size_t;
 
 /// represents a raw binary value of a specified length
 public protocol RAW_val:Hashable, Collection, Sequence, RAW_encodable {
@@ -8,27 +7,18 @@ public protocol RAW_val:Hashable, Collection, Sequence, RAW_encodable {
 	/// the length of the data value.
 	var RAW_size:size_t { get }
 	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided RAW_val
-	init(RAW_data:UnsafeRawPointer, RAW_size:size_t)
 	/// loads the value of the given type from the ``RAW_val``. the ``RAW_val`` is consumed, and the returned value is the loaded value and the remaining ``RAW_val`` data.
-	func consume<T>(_ type:T.Type) -> (size_t, T, RAW)? where T:RAW_decodable
-}
-
-// convenience initializers for RAW.
-extension RAW_val {
-	/// convenience initializer that initializes a new RAW_val with the given data pointer and size.
-	public init<I>(_ data:UnsafeRawPointer, _ size:I) where I:BinaryInteger {
-		self.init(RAW_data:data, RAW_size:size_t(size))
-	}
-	/// convenience initializer that initializes a new RAW_val with the given data pointer and size.
-	public init<I>(_ size:I, _ data:UnsafeRawPointer) where I:BinaryInteger {
-		self.init(RAW_data:data, RAW_size:size_t(size))
-	}
+	init(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>)
+	/// loads the value of the given type from the ``RAW_val``. the ``RAW_val`` is consumed, and the returned value is the loaded value and the remaining ``RAW_val`` data.
+	mutating func consume<T>(_ type:T.Type) -> T? where T:RAW_decodable
 }
 
 extension RAW_val {
 	/// ``RAW_val``'s can be encoded into themselves.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
-		try valFunc(RAW_data, RAW_size)
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
+		return try withUnsafePointer(to:self.RAW_size) { sizePtr in
+			return try valFunc(self.RAW_data, sizePtr)
+		}
 	}
 }
 
@@ -36,19 +26,27 @@ extension RAW_val {
 	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided RAW_val
 	/// - parameter RAW_val: the RAW_val that describes the memory region
 	public init<R>(_ RAW_val:R) where R:RAW_val {
-		self.init(RAW_data:RAW_val.RAW_data, RAW_size:RAW_val.RAW_size)
+		self = withUnsafePointer(to:RAW_val.RAW_size) { sizePtr in
+			return Self.init(RAW_data:RAW_val.RAW_data, RAW_size:sizePtr)
+		}
 	}
 }
 
 extension RAW_val {
 	/// loads a RAW_decodable type from the given ``RAW_val``. the ``RAW_val`` is consumed, and the returned value is the loaded value and the remaining ``RAW_val`` data.
-	public func consume<T>(_ type:T.Type) -> (size_t, T, RAW)? where T:RAW_decodable {
-		let size = MemoryLayout<T>.size
-		let value = T(RAW_size:size, RAW_data:self.RAW_data)
+	public mutating func consume<T>(_ type:T.Type) -> T? where T:RAW_decodable {
+		var size = MemoryLayout<T>.size
+		guard (size <= self.RAW_size) else {
+			return nil
+		}
+		let value = T(RAW_data:self.RAW_data, RAW_size:&size)
 		guard value != nil else {
 			return nil
 		}
-		return (size, value!, RAW(self.RAW_size - size, self.RAW_data.advanced(by:size)))
+		withUnsafePointer(to:self.RAW_size - size) { newSizePtr in
+			self = Self.init(RAW_data:self.RAW_data.advanced(by:size), RAW_size:newSizePtr)
+		}
+		return value
 	}
 }
 
@@ -62,7 +60,7 @@ extension RAW_val {
 	public static func == (lhs:Self, rhs:Self) -> Bool {
 		return lhs.asRAW_val { lhsDat, lhsSiz in
 			return rhs.asRAW_val { rhsDat, rhsSiz in
-				return memcmp(lhsDat, rhsDat, Int(rhsSiz)) == 0
+				return memcmp(lhsDat, rhsDat, rhsSiz.pointee) == 0
 			}
 		}
 	}

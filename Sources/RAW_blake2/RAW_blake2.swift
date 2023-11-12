@@ -32,7 +32,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(rawDat, rawSiz))
+				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {
@@ -51,7 +51,9 @@ public struct Blake2 {
 			guard blake2b_final(&state, buffer, S.RAW_staticbuff_size) == 0 else {
 				throw Error.exportError
 			}
-			return S(RAW_size:S.RAW_staticbuff_size, RAW_data:buffer)!
+			return withUnsafePointer(to:S.RAW_staticbuff_size) { sizePtr in
+				return S(RAW_data:buffer, RAW_size:sizePtr)!
+			}
 		}
 	}
 
@@ -77,7 +79,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(rawDat, rawSiz))
+				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {
@@ -96,7 +98,9 @@ public struct Blake2 {
 			guard blake2s_final(&state, buffer, S.RAW_staticbuff_size) == 0 else {
 				throw Error.exportError
 			}
-			return S(RAW_size:S.RAW_staticbuff_size, RAW_data:buffer)!
+			return withUnsafePointer(to:S.RAW_staticbuff_size) { sizePtr in
+				return S(RAW_data:buffer, RAW_size:sizePtr)!
+			}
 		}
 	}
 
@@ -122,7 +126,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(rawDat, rawSiz))
+				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {
@@ -141,7 +145,9 @@ public struct Blake2 {
 			guard blake2bp_final(&state, buffer, S.RAW_staticbuff_size) == 0 else {
 				throw Error.exportError
 			}
-			return S(RAW_size:S.RAW_staticbuff_size, RAW_data:buffer)!
+			return withUnsafePointer(to:S.RAW_staticbuff_size) { sizePtr in
+				return S(RAW_data:buffer, RAW_size:sizePtr)!
+			}
 		}
 	}
 
@@ -167,7 +173,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(rawDat, rawSiz))
+				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {
@@ -186,7 +192,9 @@ public struct Blake2 {
 			guard blake2sp_final(&state, buffer, S.RAW_staticbuff_size) == 0 else {
 				throw Error.exportError
 			}
-			return S(RAW_size:S.RAW_staticbuff_size, RAW_data:buffer)!
+			return withUnsafePointer(to:S.RAW_staticbuff_size) { sizePtr in
+				return S(RAW_data:buffer, RAW_size:sizePtr)!
+			}
 		}
 	}
 
@@ -212,7 +220,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(rawDat, rawSiz))
+				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {
@@ -231,7 +239,9 @@ public struct Blake2 {
 			guard blake2xb_final(&state, buffer, S.RAW_staticbuff_size) == 0 else {
 				throw Error.exportError
 			}
-			return S(RAW_size:S.RAW_staticbuff_size, RAW_data:buffer)!
+			return withUnsafePointer(to:S.RAW_staticbuff_size) { sizePtr in
+				return S(RAW_data:buffer, RAW_size:sizePtr)!
+			}
 		}
 	}
 
@@ -257,7 +267,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(rawDat, rawSiz))
+				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {
@@ -276,7 +286,9 @@ public struct Blake2 {
 			guard blake2xs_final(&state, buffer, S.RAW_staticbuff_size) == 0 else {
 				throw Error.exportError
 			}
-			return S(RAW_size:S.RAW_staticbuff_size, RAW_data:buffer)!
+			return withUnsafePointer(to:S.RAW_staticbuff_size) { sizePtr in
+				return S(RAW_data:buffer, RAW_size:sizePtr)!
+			}
 		}
 	}
 }

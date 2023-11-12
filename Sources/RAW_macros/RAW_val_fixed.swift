@@ -214,9 +214,11 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 			
 		let asRawFunc = DeclSyntax("""
 			/// access the bytes of the static buffer.
-			\(structureModifiers) func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+			\(structureModifiers) func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 				try withUnsafePointer(to:fixedBuffer) { ptr in
-					return try valFunc(ptr, MemoryLayout<RAW_staticbuff_storetype>.size)
+					return try withUnsafePointer(to:MemoryLayout<RAW_staticbuff_storetype>.size) { sizePtr in
+						return try valFunc(ptr, sizePtr)
+					}
 				}
 			}
 			""")

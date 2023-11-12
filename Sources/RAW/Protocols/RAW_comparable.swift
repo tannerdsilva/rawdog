@@ -9,17 +9,18 @@ public protocol RAW_comparable {
 extension RAW_comparable where Self:Comparable, Self:Equatable, Self:RAW_decodable {
 	/// default implementation that compares the raw representation of the type.
 	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		let lhsInitialized = Self(RAW_size:lhs.RAW_size, RAW_data:lhs.RAW_data)!
-		let rhsInitialized = Self(RAW_size:rhs.RAW_size, RAW_data:rhs.RAW_data)!
-		switch lhsInitialized == rhsInitialized {
-			case true:
-				return 0
-			default:
-				if (lhsInitialized < rhsInitialized) {
-					return -1
+		return withUnsafePointer(to:lhs.RAW_size) { lhsSizePtr in
+			return withUnsafePointer(to:rhs.RAW_size) { rhsSizePtr in
+				if (lhsSizePtr.pointee != rhsSizePtr.pointee) {
+					return (lhsSizePtr.pointee < rhsSizePtr.pointee) ? -1 : 1
 				} else {
-					return 1
+					return withUnsafePointer(to:lhs.RAW_data) { lhsDataPtr in
+						withUnsafePointer(to:rhs.RAW_data) { rhsDataPtr in
+							return RAW_memcmp(lhsDataPtr, rhsDataPtr, lhsSizePtr.pointee)
+						}
+					}
 				}
+			}
 		}
 	}
 }

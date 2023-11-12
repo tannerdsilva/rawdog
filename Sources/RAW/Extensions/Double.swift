@@ -15,15 +15,17 @@ extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 
 	/// retrieves the raw IEEE 754 representation of the double.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bitPattern) { ptr in
-			return try valFunc(ptr, MemoryLayout<UInt64>.size)
+			return try withUnsafePointer(to:MemoryLayout<UInt64>.size) { sizePtr in
+				return try valFunc(ptr, sizePtr)
+			}
 		}
 	}
 	
 	/// initialize a double from a raw IEEE 754 representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<UInt64>.size) else {
+	public init?(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		guard (RAW_size.pointee == MemoryLayout<UInt64>.size) else {
 			return nil
 		}
 		self = .init(RAW_data:RAW_data)
@@ -44,15 +46,17 @@ extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 
 	/// retrieves the raw IEEE 754 representation of the float.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bitPattern) { ptr in
-			return try valFunc(ptr, MemoryLayout<UInt32>.size)
+			return try withUnsafePointer(to:MemoryLayout<UInt32>.size) { sizePtr in
+				return try valFunc(ptr, sizePtr)
+			}
 		}
 	}
 	
 	/// initializes a float32 from a raw IEEE 754 representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<UInt32>.size) else {
+	public init?(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		guard (RAW_size.pointee == MemoryLayout<UInt32>.size) else {
 			return nil
 		}
 		self = .init(RAW_data:RAW_data)

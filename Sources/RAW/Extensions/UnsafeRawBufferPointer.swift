@@ -13,8 +13,8 @@ extension UnsafeRawBufferPointer:RAW_val {
 	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided arguments
 	/// - parameter RAW_data: the data pointer
 	/// - parameter RAW_size: the length of the data
-	public init(RAW_data:UnsafeRawPointer, RAW_size:size_t) {
-		self.init(start:UnsafeRawPointer(RAW_data), count:RAW_size)
+	public init(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		self.init(start:UnsafeRawPointer(RAW_data), count:RAW_size.pointee)
 	}
 }
 
@@ -33,13 +33,15 @@ extension UnsafeBufferPointer:RAW_val where Element == UInt8 {
 	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided arguments
 	/// - parameter RAW_data: the data pointer
 	/// - parameter RAW_size: the length of the data
-	public init(RAW_data:UnsafeRawPointer, RAW_size:size_t) {
-		self.init(start:UnsafePointer(RAW_data.assumingMemoryBound(to: UInt8.self)), count:RAW_size)
+	public init(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		self.init(start:UnsafePointer(RAW_data.assumingMemoryBound(to: UInt8.self)), count:RAW_size.pointee)
 	}
 
 	/// encodes the value into a RAW value representation.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
-		try valFunc(self.baseAddress!, self.count)
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
+		return try withUnsafePointer(to:self.count) { sizePtr in
+			return try valFunc(UnsafeRawPointer(self.baseAddress!), sizePtr)
+		}
 	}
 }
 
@@ -56,7 +58,7 @@ extension UnsafeMutableRawBufferPointer:RAW_val {
 	/// creates an overlapping UnsafeRawBufferPointer from a given memory region described by the provided arguments.
 	/// - parameter RAW_data: the data pointer
 	/// - parameter RAW_size: the length of the data
-	public init(RAW_data:UnsafeRawPointer, RAW_size:size_t) {
-		self.init(start:UnsafeMutableRawPointer(mutating:RAW_data), count:RAW_size)
+	public init(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		self.init(start:UnsafeMutableRawPointer(mutating:RAW_data), count:RAW_size.pointee)
 	}
 }

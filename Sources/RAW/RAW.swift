@@ -17,24 +17,26 @@ public let RAW_memcmp = CRAW.memcmp
 	public let RAW_size:size_t
 
 	/// creates a new RAW object from a given size and pointer.
-	public init(RAW_data:UnsafeRawPointer, RAW_size:size_t) {
+	public init(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
 		self.RAW_data = RAW_data
-		self.RAW_size = RAW_size
+		self.RAW_size = RAW_size.pointee
 	}
 }
 
 extension RAW:RAW_encodable {
 	/// allow for encodable access to the raw data.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
-		return try valFunc(self.RAW_data, self.RAW_size)
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
+		return try withUnsafePointer(to:self.RAW_size) { sizePtr in
+			return try valFunc(self.RAW_data, sizePtr)
+		}
 	}
 }
 
 extension RAW:RAW_decodable {
 	/// creates a new RAW object from a given size and pointer.
-	public init(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
+	public init(RAW_size:UnsafePointer<size_t>, RAW_data:UnsafeRawPointer) {
 		self.RAW_data = RAW_data
-		self.RAW_size = RAW_size
+		self.RAW_size = RAW_size.pointee
 	}
 }
 

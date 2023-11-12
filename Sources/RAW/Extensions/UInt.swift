@@ -10,14 +10,16 @@ extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(ptr, MemoryLayout<Self>.size)
+			return try withUnsafePointer(to:MemoryLayout<Self>.size) { sizePtr in
+				return try valFunc(ptr, sizePtr)
+			}
 		}
 	}
 	/// load a big endian int from a raw representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<Self>.size) else {
+	public init?(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		guard (RAW_size.pointee == MemoryLayout<Self>.size) else {
 			return nil
 		}
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
@@ -30,7 +32,8 @@ extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		} else {
 			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
 		}
-	}}
+	}
+}
 
 extension UInt32:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	public typealias RAW_staticbuff_storetype = Self
@@ -41,14 +44,16 @@ extension UInt32:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(ptr, MemoryLayout<Self>.size)
+			return try withUnsafePointer(to:MemoryLayout<Self>.size) { sizePtr in
+				return try valFunc(ptr, sizePtr)
+			}
 		}
 	}
 	/// load a big endian int from a raw representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<Self>.size) else {
+	public init?(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		guard (RAW_size.pointee == MemoryLayout<Self>.size) else {
 			return nil
 		}
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
@@ -72,14 +77,16 @@ extension UInt16:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(ptr, MemoryLayout<Self>.size)
+			return try withUnsafePointer(to:MemoryLayout<Self>.size) { sizePtr in
+				return try valFunc(ptr, sizePtr)
+			}
 		}
 	}
 	/// load a big endian int from a raw representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<Self>.size) else {
+	public init?(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		guard (RAW_size.pointee == MemoryLayout<Self>.size) else {
 			return nil
 		}
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
@@ -103,14 +110,16 @@ extension UInt8:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(ptr, MemoryLayout<Self>.size)
+			return try withUnsafePointer(to:MemoryLayout<Self>.size) { sizePtr in
+				return try valFunc(ptr, sizePtr)
+			}
 		}
 	}
 	/// load a big endian int from a raw representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<Self>.size) else {
+	public init?(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		guard (RAW_size.pointee == MemoryLayout<Self>.size) else {
 			return nil
 		}
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
@@ -134,14 +143,16 @@ extension UInt:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(ptr, MemoryLayout<Self>.size)
+			return try withUnsafePointer(to:MemoryLayout<Self>.size) { sizePtr in
+				return try valFunc(ptr, sizePtr)
+			}
 		}
 	}
 	/// load a big endian int from a raw representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard (RAW_size == MemoryLayout<Self>.size) else {
+	public init?(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		guard (RAW_size.pointee == MemoryLayout<Self>.size) else {
 			return nil
 		}
 		self = Self(bigEndian:RAW_data.load(as:Self.self))

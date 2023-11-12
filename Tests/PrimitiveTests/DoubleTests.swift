@@ -9,8 +9,8 @@ final class NumberTests: XCTestCase {
 			3.141,
 		]
 		let decoded = encodeNumbers.asRAW_val { rawDat, rawSiz in
-			XCTAssertEqual(Int(rawSiz), 24)
-			let bytes = Array<Double>(RAW_size:Int(rawSiz), RAW_data:rawDat)
+			XCTAssertEqual(rawSiz.pointee, 24)
+			let bytes = Array<Double>(RAW_data:rawDat, RAW_size:rawSiz)
 			return bytes
 		}
 		XCTAssertEqual(decoded, [
@@ -22,14 +22,14 @@ final class NumberTests: XCTestCase {
 	func testEncodingAndDecodingDouble() throws {
 		let value: Double = 3.14159
 		let newVal = value.asRAW_val {
-			return Double(RAW_size:Int($1), RAW_data:$0)
+			return Double(RAW_data:$0, RAW_size:$1)
 		}
 		XCTAssertEqual(newVal, value)
 	}
 	func testEncodingAndDecodingFloat16() throws {
 		let value: Float = 3.14159
 		let newVal = value.asRAW_val {
-			return Float(RAW_size:Int($1), RAW_data:$0)
+			return Float(RAW_data:$0, RAW_size:$1)
 		}
 		XCTAssertEqual(newVal, value)
 	}
@@ -37,7 +37,7 @@ final class NumberTests: XCTestCase {
 	func testEncodingAndDecodingUInt() throws {
 		let value: UInt = 3
 		let newVal = value.asRAW_val {
-			return UInt(RAW_size:Int($1), RAW_data:$0)
+			return UInt(RAW_data:$0, RAW_size:$1)
 		}
 		XCTAssertEqual(newVal, value)
 	}
@@ -45,7 +45,7 @@ final class NumberTests: XCTestCase {
 	func testEncodingAndDecodingInt() throws {
 		let value: Int = 3
 		let newVal = value.asRAW_val {
-			return Int(RAW_size:Int($1), RAW_data:$0)
+			return Int(RAW_data:$0, RAW_size:$1)
 		}
 		XCTAssertEqual(newVal, value)
 	}
