@@ -5,7 +5,7 @@ import RAW_macros
 // @attached(peer)
 // @attached(memberAttribute)
 // @attached(accessor)
-public macro StaticBufferType(_:UInt16) = #externalMacro(module: "RAW_macros", type: "FixedSizeBufferTypeMacro")
+public macro StaticBufferType(_:size_t) = #externalMacro(module: "RAW_macros", type: "FixedSizeBufferTypeMacro")
 
 @attached(member, names:arbitrary)
 @attached(extension, conformances:RAW_staticbuff, Collection, ExpressibleByArrayLiteral, Equatable, Comparable, RAW_comparable, names:arbitrary)

@@ -1,14 +1,20 @@
 import struct CRAW.size_t;
-import func CRAW.memcmp;
+import func CRAW.memcpy;
 
 extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
+	/// the type of raw storage that this type uses.
 	public typealias RAW_staticbuff_storetype = Self
+
+	/// initialize an int from a raw representation in memory.
 	public init(RAW_staticbuff_storetype:Self) {
 		self = Self(bigEndian:RAW_staticbuff_storetype)
 	}
+
+	/// initialize an int from a raw representation in memory.
 	public init(RAW_data:UnsafeRawPointer) {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
+
 	/// retrieves the big endian representation of the int.
 	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -36,13 +42,19 @@ extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 }
 
 extension UInt32:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
+	/// the type of raw storage that this type uses.
 	public typealias RAW_staticbuff_storetype = Self
+
+	/// initialize an int from a raw representation in memory.
 	public init(RAW_staticbuff_storetype:Self) {
 		self = Self(bigEndian:RAW_staticbuff_storetype)
 	}
+
+	/// initialize an int from a raw representation in memory.
 	public init(RAW_data:UnsafeRawPointer) {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
+
 	/// retrieves the big endian representation of the int.
 	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -66,16 +78,23 @@ extension UInt32:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		} else {
 			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
 		}
-	}}
+	}
+}
 
 extension UInt16:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
+	/// the type of raw storage that this type uses.
 	public typealias RAW_staticbuff_storetype = Self
+
+	/// initialize an int from a raw representation in memory.
 	public init(RAW_staticbuff_storetype:Self) {
 		self = Self(bigEndian:RAW_staticbuff_storetype)
 	}
+
+	/// initialize an int from a raw representation in memory.
 	public init(RAW_data:UnsafeRawPointer) {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
+
 	/// retrieves the big endian representation of the int.
 	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -99,16 +118,23 @@ extension UInt16:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		} else {
 			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
 		}
-	}}
+	}
+}
 
 extension UInt8:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
+	/// the type of raw storage that this type uses.
 	public typealias RAW_staticbuff_storetype = Self
+
+	/// initialize an int from a raw representation in memory.
 	public init(RAW_staticbuff_storetype:Self) {
 		self = Self(bigEndian:RAW_staticbuff_storetype)
 	}
+
+	/// initialize an int from a raw representation in memory.
 	public init(RAW_data:UnsafeRawPointer) {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
+
 	/// retrieves the big endian representation of the int.
 	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -132,16 +158,23 @@ extension UInt8:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		} else {
 			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
 		}
-	}}
+	}
+}
 
 extension UInt:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
+	/// the type of raw storage that this type uses.
 	public typealias RAW_staticbuff_storetype = Self
+
+	/// initialize an int from a raw representation in memory.
 	public init(RAW_staticbuff_storetype:Self) {
 		self = Self(bigEndian:RAW_staticbuff_storetype)
 	}
+
+	/// initialize an int from a raw representation in memory.
 	public init(RAW_data:UnsafeRawPointer) {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
+
 	/// retrieves the big endian representation of the int.
 	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in

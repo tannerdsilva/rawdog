@@ -212,6 +212,22 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 			}
 			""")
 			
+		let rawCountAdd = DeclSyntax("""
+			/// adds the size of the raw memory representation to the given pointer.
+			\(structureModifiers) func addRAW_val_size(into size:inout size_t) {
+				size += \(raw:newNumber)
+			}
+			""")
+
+		let rawCopy = DeclSyntax("""
+			/// copies the raw memory representation into the given buffer.
+			\(structureModifiers) func copyRAW_val(into buffer: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+				return withUnsafePointer(to:fixedBuffer) { ptr in
+					return RAW_memcpy(buffer, ptr, MemoryLayout<RAW_staticbuff_storetype>.size)!
+				}
+			}
+			""")
+
 		let asRawFunc = DeclSyntax("""
 			/// access the bytes of the static buffer.
 			\(structureModifiers) func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
@@ -262,7 +278,9 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 			}
 			""")
 
-		return [privateFixedBufferVal, initializer, directTypeInit, asRawFunc, startIndexDecl, endIndexDecl, indexAfterDecl, subscriptDecl]
+		
+
+		return [rawCopy, rawCountAdd, privateFixedBufferVal, initializer, directTypeInit, asRawFunc, startIndexDecl, endIndexDecl, indexAfterDecl, subscriptDecl]
 	}
 
 	public enum Diagnostics:Swift.Error, DiagnosticMessage {

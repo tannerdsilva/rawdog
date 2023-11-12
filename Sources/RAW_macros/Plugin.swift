@@ -5,6 +5,6 @@ import SwiftSyntaxMacros
 struct RAW_macros:CompilerPlugin {
 	let providingMacros:[Macro.Type] = [
 		FixedSizeBufferTypeMacro.self,
-		ConcatBufferTypeMacro.self
+		ConcatBufferTypeMacro.self,
 	]
 }

@@ -1,4 +1,4 @@
-import struct CRAW.size_t;
+import func CRAW.memcpy;
 
 extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// the type of raw storage that this type uses.

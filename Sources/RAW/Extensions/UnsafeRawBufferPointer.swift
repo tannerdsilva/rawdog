@@ -1,4 +1,4 @@
-import struct CRAW.size_t;
+import func CRAW.memcpy;
 
 // raw buffers essentially the same thing as a RAW_val because they contain a buffer of data and a length. so we can implement this protocol directly.
 extension UnsafeRawBufferPointer:RAW_val {
@@ -47,6 +47,15 @@ extension UnsafeBufferPointer:RAW_val where Element == UInt8 {
 
 // the same applies for the mutable variant - just translate self to a non-mutable pointer.
 extension UnsafeMutableRawBufferPointer:RAW_val {
+    public func addRAW_val_size(into size: inout size_t) {
+		size += self.count
+    }
+
+    public func copyRAW_val(into buffer: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		let count = self.count
+		return RAW_memcpy(buffer, self.baseAddress!, count)!.advanced(by:count)
+    }
+
 	/// the data value.
 	public var RAW_data:UnsafeRawPointer {
 		return UnsafeRawPointer(self.baseAddress!)

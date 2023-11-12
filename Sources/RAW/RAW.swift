@@ -2,11 +2,20 @@
 
 // rawdog is a swift library that makes it easy to encode and decode programming objects from C-like memory representations.
 
-import func CRAW.memcmp
 import struct CRAW.size_t
 public typealias size_t = CRAW.size_t
 
+import func CRAW.memcmp
+import func CRAW.memcpy
 public let RAW_memcmp = CRAW.memcmp
+public let RAW_memcpy = CRAW.memcpy
+
+@ConcatBufferType(Int, Int)
+struct DatePairHash {
+	let date:Int
+	let hash:Int
+}
+
 
 /// a default implementation of the ``RAW_val`` protocol.
 @frozen public struct RAW:RAW_val {
@@ -24,6 +33,17 @@ public let RAW_memcmp = CRAW.memcmp
 }
 
 extension RAW:RAW_encodable {
+	/// adds the size of the raw memory representation to the given pointer.
+    public func addRAW_val_size(into size: inout size_t) {
+		size += self.RAW_size
+
+    }
+
+	/// copies the raw memory representation into the given buffer.
+    public func copyRAW_val(into buffer: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		return memcpy(buffer, self.RAW_data, self.RAW_size)
+    }
+
 	/// allow for encodable access to the raw data.
 	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.RAW_size) { sizePtr in

@@ -100,7 +100,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		return members
 	}
 
-	public static func validateAttachedDeclaration(expectingTypes:[DeclReferenceExprSyntax], _ declaration:some SwiftSyntax.DeclGroupSyntax) throws -> [String:DeclReferenceExprSyntax] {
+	public static func validateAttachedDeclaration(expectingTypes:[DeclReferenceExprSyntax], _ declaration:some SwiftSyntax.DeclGroupSyntax) throws -> [(IdentifierPatternSyntax, DeclReferenceExprSyntax)] {
 		#if RAWDOG_MACRO_LOG
 		mainLogger.info("parsing attribute members...")
 		defer {
@@ -108,6 +108,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		}
 		#endif
 		
+		// find the member block for the attached member (struct or class both should be handled)
 		let memberBlockList:MemberBlockItemListSyntax
 		if let asStructDecl = declaration.as(StructDeclSyntax.self) {
 			memberBlockList = asStructDecl.memberBlock.members
@@ -130,7 +131,9 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			#endif
 			throw Diagnostics.incorrectMemberCount(expected:expectingTypes.count, found:memberBlockList.count)
 		}
-		var buildNamesAndNameRefs = [String:DeclReferenceExprSyntax]()
+
+		// build a list of the member variable names and their associated type references
+		var buildNamesAndNameRefs = [(IdentifierPatternSyntax, DeclReferenceExprSyntax)]()
 		for (i, member) in memberBlockList.enumerated() {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("parsing member '\(member)'")
@@ -159,7 +162,6 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 				#endif
 				throw Diagnostics.unexpectedSyntaxStructure(TypeAnnotationSyntax.self, type(of:variableDecl.bindings.first!.typeAnnotation!))
 			}
-
 			guard let memberName = typeAnnotation.type.as(IdentifierTypeSyntax.self)?.name.text else {
 				#if RAWDOG_MACRO_LOG
 				mainLogger.critical("member '\(member)' is not a VariableDeclSyntax with a valid pattern binding")
@@ -168,7 +170,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			}
 			let expectedName = expectingTypes[i].baseName.text
 			#if RAWDOG_MACRO_LOG
-			mainLogger.info("identified member name: '\(memberName)'", metadata:["expecting":.string(expectedName)])
+			mainLogger.info("identified member type: '\(memberName)'", metadata:["expecting":.string(expectedName)])
 			#endif
 			guard memberName == expectedName else {
 				#if RAWDOG_MACRO_LOG
@@ -179,18 +181,34 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("member name matches.")
 			#endif
-			buildNamesAndNameRefs[idPattern.identifier.text] = expectingTypes[i]
+			buildNamesAndNameRefs.append((idPattern, expectingTypes[i]))
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("added member name to buildNamesAndNameRefs: '\(idPattern.identifier.text)'")
 			#endif
 		}
-
 		return buildNamesAndNameRefs
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-		let myVars = try parseVariableTypeReferences(from: node)
-		let myDecl = try validateAttachedDeclaration(expectingTypes:myVars, declaration)
+		// get the variable type references that were defined in the arguments for this macro 
+		let memberVariables = try parseVariableTypeReferences(from: node)
+		
+		#if RAWDOG_MACRO_LOG
+		mainLogger.info("parsed \(memberVariables.count) members from attribute.")
+		#endif
+		
+		// correlate these variable types with their associated variable names in the attached declaration
+		let memberVariableNamesAndTypes = try validateAttachedDeclaration(expectingTypes:memberVariables, declaration)
+		
+		#if RAWDOG_MACRO_LOG
+		mainLogger.info("validated \(memberVariableNamesAndTypes.count) members from attached declaration.")
+		#endif
+
+		for (curVarName, curVarType) in memberVariableNamesAndTypes {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.info("found member '\(curVarName.identifier.text)' of type '\(curVarType.baseName.text)'")
+			#endif
+		}
 		return []
 	}
 
