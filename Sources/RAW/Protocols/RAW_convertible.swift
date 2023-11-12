@@ -12,5 +12,5 @@ public protocol RAW_decodable {
 /// the protocol that enables encoding of programming objects to raw memory.
 public protocol RAW_encodable {
 	/// encodes a programming object to a ``RAW_val`` representation. the ``RAW_val`` is passed to the ``valFunc`` closure, and the represented memory is only valid for the duration of the closure.
-	func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R
+	func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R
 }

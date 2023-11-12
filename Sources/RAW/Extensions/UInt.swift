@@ -10,7 +10,7 @@ extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
 			return try valFunc(ptr, MemoryLayout<Self>.size)
 		}
@@ -41,7 +41,7 @@ extension UInt32:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
 			return try valFunc(ptr, MemoryLayout<Self>.size)
 		}
@@ -72,7 +72,7 @@ extension UInt16:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
 			return try valFunc(ptr, MemoryLayout<Self>.size)
 		}
@@ -103,7 +103,7 @@ extension UInt8:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
 			return try valFunc(ptr, MemoryLayout<Self>.size)
 		}
@@ -134,7 +134,7 @@ extension UInt:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		self = Self(bigEndian:RAW_data.load(as:Self.self))
 	}
 	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
 			return try valFunc(ptr, MemoryLayout<Self>.size)
 		}

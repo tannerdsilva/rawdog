@@ -27,7 +27,7 @@ extension RAW_val {
 
 extension RAW_val {
 	/// ``RAW_val``'s can be encoded into themselves.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		try valFunc(RAW_data, RAW_size)
 	}
 }

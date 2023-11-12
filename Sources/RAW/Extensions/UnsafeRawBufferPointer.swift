@@ -38,7 +38,7 @@ extension UnsafeBufferPointer:RAW_val where Element == UInt8 {
 	}
 
 	/// encodes the value into a RAW value representation.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		try valFunc(self.baseAddress!, self.count)
 	}
 }
@@ -57,6 +57,6 @@ extension UnsafeMutableRawBufferPointer:RAW_val {
 	/// - parameter RAW_data: the data pointer
 	/// - parameter RAW_size: the length of the data
 	public init(RAW_data:UnsafeRawPointer, RAW_size:size_t) {
-		self.init(start:UnsafeMutableRawPointer(mutating:RAW_data), count:Int(RAW_size))
+		self.init(start:UnsafeMutableRawPointer(mutating:RAW_data), count:RAW_size)
 	}
 }

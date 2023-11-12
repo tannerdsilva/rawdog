@@ -3,7 +3,7 @@ import func CRAW.memcpy;
 
 extension Array where Element == UInt8 {
 	/// converts the byte values of an array into a RAW_val that low level functions can operate within.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		if let hasContiguousBytes = try self.withContiguousStorageIfAvailable({ (bytes) -> R in
 			return try valFunc(bytes.baseAddress!, bytes.count)
 		}) {
@@ -55,7 +55,7 @@ extension Array where Element == UInt8 {
 
 extension Array:RAW_encodable where Element:RAW_encodable {
 	/// default implementation of RAW_val that exports each RAW_encodable Element into a contiguous byte stream.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, any BinaryInteger) throws -> R) rethrows -> R {
+	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		var buildBytes = [UInt8]()
 		for element in self {
 			let elementBytes = element.asRAW_val { rawData, rawSize in

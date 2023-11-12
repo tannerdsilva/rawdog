@@ -30,8 +30,7 @@ extension RAW_staticbuff {
 	/// creates a new value (of the types own static length) with the contents in the passed argument..
 	public init?<R>(_ val:R) where R:RAW_encodable {
 		let result = val.asRAW_val { rawDat, rawSize in
-
-			let newSelf = Self.init(RAW_size:size_t(rawSize), RAW_data:rawDat)
+			let newSelf = Self.init(RAW_size:rawSize, RAW_data:rawDat)
 			return newSelf
 		}
 		
