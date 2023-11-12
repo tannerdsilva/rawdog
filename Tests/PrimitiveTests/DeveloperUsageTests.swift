@@ -7,10 +7,11 @@ import XCTest
 @StaticBufferType(5)
 struct FixedBuff5 {}
 
-@ConcatBufferType(FixedBuff5, FixedBuff5)
+@ConcatBufferType(FixedBuff5, Double, Float)
 struct MYSTRUCT {
 	let mYThing:FixedBuff5
-	let secondThing:FixedBuff5
+	let myDouble:Double
+	let secondThing:Float
 }
 
 final class TestDeveloperUsage:XCTestCase {

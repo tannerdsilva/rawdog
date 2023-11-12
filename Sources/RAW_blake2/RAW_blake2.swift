@@ -32,7 +32,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
+				return try self.update(val(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {
@@ -79,7 +79,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
+				return try self.update(val(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {
@@ -126,7 +126,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
+				return try self.update(val(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {
@@ -173,7 +173,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
+				return try self.update(val(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {
@@ -220,7 +220,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
+				return try self.update(val(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {
@@ -267,7 +267,7 @@ public struct Blake2 {
 		}
 		public mutating func update<R>(_ input:R) throws where R:RAW_encodable {
 			try input.asRAW_val { rawDat, rawSiz in
-				return try self.update(RAW(RAW_data:rawDat, RAW_size:rawSiz))
+				return try self.update(val(RAW_data:rawDat, RAW_size:rawSiz))
 			}
 		}
 		public mutating func update<R>(_ rawVal:R) throws where R:RAW_val {

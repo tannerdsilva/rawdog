@@ -29,7 +29,7 @@ extension Array:RAW_decodable where Element:RAW_decodable {
 			self = []
 			return
 		}
-		var existingVal = RAW(RAW_data:RAW_data, RAW_size:RAW_size)
+		var existingVal = val(RAW_data:RAW_data, RAW_size:RAW_size)
 		var buildElements = [Element]()
 		while let newVal = existingVal.consume(Element.self) {
 			buildElements.append(newVal)

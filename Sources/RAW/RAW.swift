@@ -11,7 +11,7 @@ public let RAW_memcmp = CRAW.memcmp
 public let RAW_memcpy = CRAW.memcpy
 
 /// a default implementation of the ``RAW_val`` protocol.
-@frozen public struct RAW:RAW_val {
+@frozen public struct val:RAW_val {
 	/// the raw data that the structure instance represents.
 	public let RAW_data:UnsafeRawPointer
 	
@@ -25,7 +25,7 @@ public let RAW_memcpy = CRAW.memcpy
 	}
 }
 
-extension RAW:RAW_encodable {
+extension val:RAW_encodable {
 	/// adds the size of the raw memory representation to the given pointer.
     public func addRAW_val_size(into size: inout size_t) {
 		size += self.RAW_size
@@ -45,7 +45,7 @@ extension RAW:RAW_encodable {
 	}
 }
 
-extension RAW:RAW_decodable {
+extension val:RAW_decodable {
 	/// creates a new RAW object from a given size and pointer.
 	public init(RAW_size:UnsafePointer<size_t>, RAW_data:UnsafeRawPointer) {
 		self.RAW_data = RAW_data
@@ -54,7 +54,7 @@ extension RAW:RAW_decodable {
 }
 
 // sequence conformance for RAW_val. allows for convenient iteration.
-extension RAW:Sequence {
+extension val:Sequence {
 
 	/// returns a new iterator that will stride the contents of the RAW_val.
 	public func makeIterator() -> RAW_iterator {
@@ -93,7 +93,7 @@ extension RAW:Sequence {
 }
 
 // collection conformances for RAW_val, allows for convenient random access.
-extension RAW:Collection {
+extension val:Collection {
 	/// the start index for this collection is zero.
 	public var startIndex:Int {
 		return 0

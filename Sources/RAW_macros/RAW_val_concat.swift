@@ -100,7 +100,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		return members
 	}
 
-	public static func validateAttachedDeclaration(expectingTypes:[DeclReferenceExprSyntax], _ declaration:some SwiftSyntax.DeclGroupSyntax) throws -> [(IdentifierPatternSyntax, DeclReferenceExprSyntax)] {
+	public static func validateAttachedDeclaration(expectingTypes:[DeclReferenceExprSyntax], _ declaration:some SwiftSyntax.DeclGroupSyntax) throws -> [(String, String)] {
 		#if RAWDOG_MACRO_LOG
 		mainLogger.info("parsing attribute members...")
 		defer {
@@ -133,7 +133,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		}
 
 		// build a list of the member variable names and their associated type references
-		var buildNamesAndNameRefs = [(IdentifierPatternSyntax, DeclReferenceExprSyntax)]()
+		var buildNamesAndNameRefs = [(String, String)]()
 		for (i, member) in memberBlockList.enumerated() {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("parsing member '\(member)'")
@@ -181,7 +181,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("member name matches.")
 			#endif
-			buildNamesAndNameRefs.append((idPattern, expectingTypes[i]))
+			buildNamesAndNameRefs.append((idPattern.identifier.text, memberName))
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("added member name to buildNamesAndNameRefs: '\(idPattern.identifier.text)'")
 			#endif
@@ -204,12 +204,22 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		mainLogger.info("validated \(memberVariableNamesAndTypes.count) members from attached declaration.")
 		#endif
 
-		for (curVarName, curVarType) in memberVariableNamesAndTypes {
+		// create the primary initializer for the attached declaration
+		var initializerParamList = FunctionParameterListSyntax()
+		for (i, (curVarName, curVarType)) in memberVariableNamesAndTypes.reversed().enumerated() {
 			#if RAWDOG_MACRO_LOG
-			mainLogger.info("found member '\(curVarName.identifier.text)' of type '\(curVarType.baseName.text)'")
+			mainLogger.info("found member '\(curVarName)' of type '\(curVarType)'", metadata:["index":"\(i)", "comma_placed":(i == 0) ? "false" : "true"])
 			#endif
+			let thisFParam:FunctionParameterSyntax
+			if i == 0 {
+				thisFParam = FunctionParameterSyntax("\(raw:curVarName):\(raw:curVarType)")
+			} else {
+				thisFParam = FunctionParameterSyntax("\(raw:curVarName):\(raw:curVarType), ")
+			}
+			initializerParamList.append(thisFParam)
 		}
 		
+		// for 
 		return []
 	}
 

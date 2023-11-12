@@ -32,12 +32,8 @@ extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 
 	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
-	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		if (lhs.RAW_size != rhs.RAW_size) {
-			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
-		} else {
-			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
-		}
+	public static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
+		return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, MemoryLayout<Self>.size)
 	}
 }
 
@@ -72,12 +68,8 @@ extension UInt32:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 
 	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
-	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		if (lhs.RAW_size != rhs.RAW_size) {
-			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
-		} else {
-			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
-		}
+	public static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
+		return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, MemoryLayout<Self>.size)
 	}
 }
 
@@ -112,12 +104,8 @@ extension UInt16:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 
 	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
-	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		if (lhs.RAW_size != rhs.RAW_size) {
-			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
-		} else {
-			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
-		}
+	public static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
+		return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, MemoryLayout<Self>.size)
 	}
 }
 
@@ -152,12 +140,8 @@ extension UInt8:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 
 	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
-	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		if (lhs.RAW_size != rhs.RAW_size) {
-			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
-		} else {
-			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
-		}
+	public static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
+		return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, MemoryLayout<Self>.size)
 	}
 }
 
@@ -192,11 +176,7 @@ extension UInt:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 
 	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
-	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		if (lhs.RAW_size != rhs.RAW_size) {
-			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
-		} else {
-			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
-		}
+	public static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
+		return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, MemoryLayout<Self>.size)
 	}
 }

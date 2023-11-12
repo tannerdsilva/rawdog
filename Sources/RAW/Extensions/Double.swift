@@ -30,6 +30,19 @@ extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 		}
 		self = .init(RAW_data:RAW_data)
 	}
+
+	/// sorts based on its native IEEE 754 representation and not its lexical representation.
+	public static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
+		let asLeftDouble = Double(bitPattern:lhs.RAW_data.load(as:UInt64.self))
+		let asRightDouble = Double(bitPattern:rhs.RAW_data.load(as:UInt64.self))
+		if (asLeftDouble < asRightDouble) {
+			return -1
+		} else if (asLeftDouble > asRightDouble) {
+			return 1
+		} else {
+			return 0
+		}
+	}
 }
 
 extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
@@ -60,5 +73,18 @@ extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 			return nil
 		}
 		self = .init(RAW_data:RAW_data)
+	}
+
+	/// sorts based on its native IEEE 754 representation and not its lexical representation.
+	public static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
+		let asLeftFloat = Float(bitPattern:lhs.RAW_data.load(as:UInt32.self))
+		let asRightFloat = Float(bitPattern:rhs.RAW_data.load(as:UInt32.self))
+		if (asLeftFloat < asRightFloat) {
+			return -1
+		} else if (asLeftFloat > asRightFloat) {
+			return 1
+		} else {
+			return 0
+		}
 	}
 }

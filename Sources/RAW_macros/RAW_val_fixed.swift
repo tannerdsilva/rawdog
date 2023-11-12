@@ -34,6 +34,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		let newNumber = getNewNumber!
 		return newNumber
 	}
+
 	fileprivate static func parseAttachedDeclGroupSyntax(_ declaration:some DeclGroupSyntax) throws -> (structureName:TokenSyntax, structureModifiers:DeclModifierListSyntax) {
 		guard let structDecl = declaration.as(StructDeclSyntax.self) else {
 			#if RAWDOG_MACRO_LOG
@@ -84,7 +85,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		let rawComparableConformance = try ExtensionDeclSyntax("""
 			extension \(structureName):RAW_comparable {
 				/// default implementation that compares the raw representation of the type.
-				\(structureModifiers) static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
+				\(structureModifiers) static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
 					return memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
 				}
 			}
