@@ -29,7 +29,6 @@ extension val:RAW_encodable {
 	/// adds the size of the raw memory representation to the given pointer.
     public func addRAW_val_size(into size: inout size_t) {
 		size += self.RAW_size
-
     }
 
 	/// copies the raw memory representation into the given buffer.

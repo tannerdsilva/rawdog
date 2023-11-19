@@ -22,6 +22,7 @@ extension Int64:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 			}
 		}
 	}
+	
 	/// load a big endian int from a raw representation in memory.
 	public init?(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
 		guard (RAW_size.pointee == MemoryLayout<Self>.size) else {

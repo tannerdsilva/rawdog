@@ -94,13 +94,22 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			members.append(member)
 		}
 
+		// validate that there is more than one member
+		guard members.count > 0 else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.critical("attribute does not have any members")
+			#endif
+			throw Diagnostics.incorrectMemberCount(expected:1, found:0)
+		}
+
 		#if RAWDOG_MACRO_LOG
 		mainLogger.info("returning \(members.count) members")
 		#endif
+
 		return members
 	}
 
-	public static func validateAttachedDeclaration(expectingTypes:[DeclReferenceExprSyntax], _ declaration:some SwiftSyntax.DeclGroupSyntax) throws -> [(String, String)] {
+	public static func validateAttachedDeclaration(expectingTypes:[DeclReferenceExprSyntax], _ declaration:some SwiftSyntax.DeclGroupSyntax) throws -> (TokenSyntax, DeclModifierListSyntax, [(String, String)]) {
 		#if RAWDOG_MACRO_LOG
 		mainLogger.info("parsing attribute members...")
 		defer {
@@ -109,11 +118,23 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		#endif
 		
 		// find the member block for the attached member (struct or class both should be handled)
+		let parsedName:TokenSyntax
+		let modifiers:DeclModifierListSyntax
 		let memberBlockList:MemberBlockItemListSyntax
 		if let asStructDecl = declaration.as(StructDeclSyntax.self) {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.info("attached declaration is a struct")
+			#endif
 			memberBlockList = asStructDecl.memberBlock.members
+			modifiers = asStructDecl.modifiers
+			parsedName = asStructDecl.name
 		} else if let asClassDecl = declaration.as(ClassDeclSyntax.self) {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.info("attached declaration is a class")
+			#endif
 			memberBlockList = asClassDecl.memberBlock.members
+			modifiers = asClassDecl.modifiers
+			parsedName = asClassDecl.name
 		} else {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.critical("attached declaration is not a struct or class")
@@ -186,19 +207,19 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			mainLogger.info("added member name to buildNamesAndNameRefs: '\(idPattern.identifier.text)'")
 			#endif
 		}
-		return buildNamesAndNameRefs
+		return (parsedName, modifiers, buildNamesAndNameRefs)
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
 		// get the variable type references that were defined in the arguments for this macro 
-		let memberVariables = try parseVariableTypeReferences(from: node)
+		let (memberVariables) = try parseVariableTypeReferences(from: node)
 		
 		#if RAWDOG_MACRO_LOG
 		mainLogger.info("parsed \(memberVariables.count) members from attribute.")
 		#endif
 		
 		// correlate these variable types with their associated variable names in the attached declaration
-		let memberVariableNamesAndTypes = try validateAttachedDeclaration(expectingTypes:memberVariables, declaration)
+		let (parsedName, localModifiers, memberVariableNamesAndTypes) = try validateAttachedDeclaration(expectingTypes:memberVariables, declaration)
 		
 		#if RAWDOG_MACRO_LOG
 		mainLogger.info("validated \(memberVariableNamesAndTypes.count) members from attached declaration.")
@@ -206,7 +227,8 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 
 		// create the primary initializer for the attached declaration
 		var initializerParamList = FunctionParameterListSyntax()
-		for (i, (curVarName, curVarType)) in memberVariableNamesAndTypes.reversed().enumerated() {
+		var typeTypeBuild:[String] = []
+		for (i, (curVarName, curVarType)) in memberVariableNamesAndTypes.reversed().enumerated().reversed() {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("found member '\(curVarName)' of type '\(curVarType)'", metadata:["index":"\(i)", "comma_placed":(i == 0) ? "false" : "true"])
 			#endif
@@ -217,14 +239,59 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 				thisFParam = FunctionParameterSyntax("\(raw:curVarName):\(raw:curVarType), ")
 			}
 			initializerParamList.append(thisFParam)
+			typeTypeBuild.append(curVarType)
 		}
+
+		// create the type initializer
+		let typeType = DeclSyntax("""
+			public typealias RAW_staticbuff_storetype = (\(raw:typeTypeBuild.joined(separator:", ")))
+		""")
+		// assemble components for the primary raw initializer
+		let rawInitDecl = DeclSyntax("""
+			/// initializes a new RAW_staticbuff from a given pointer. the length of the data is determined by the memory size of the ``RAW_staticbuff_storetype``.
+			public init(RAW_data:UnsafeRawPointer) {
+				var rawValue = val(RAW_data:RAW_data, RAW_size:MemoryLayout<RAW_staticbuff_storetype>.size)
+				var prog:size_t = 0
+				for i in 0..<MemoryLayout<RAW_staticbuff_storetype>.size {
+					self.RAW_data[i] = RAW_data[i]
+					prog += 1
+				}
+				\(raw:parsedName)(RAW_staticbuff_storetype:(\(raw:memberVariableNamesAndTypes.map { "rawValue.consume(\($0.1).self)" }.joined(separator:", "))))
+			}
+		""")
 		
-		// for 
-		return []
+		let initDecl = DeclSyntax("""
+		\(raw:localModifiers) init(\(raw:initializerParamList)) {
+			\(raw:memberVariableNamesAndTypes.map { "self.\($0.0) = \($0.0)" }.joined(separator:"\n"))
+		}
+		""")
+
+		return [typeType, initDecl]
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
-		let myVars = try parseVariableTypeReferences(from: node)
+		// get the variable type references that were defined in the arguments for this macro 
+		let (memberVariables) = try parseVariableTypeReferences(from: node)
+		
+		#if RAWDOG_MACRO_LOG
+		mainLogger.info("parsed \(memberVariables.count) members from attribute.")
+		#endif
+		
+		// correlate these variable types with their associated variable names in the attached declaration
+		let (parsedName, localModifiers, memberVariableNamesAndTypes) = try validateAttachedDeclaration(expectingTypes:memberVariables, declaration)
+
+		// let extensionDecl = try ExtensionDeclSyntax("""
+		// 	extension \(raw:parsedName):RAW_staticbuff {
+		// 		\(raw:localModifiers) func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
+		// 			return try withUnsafePointer(to:self) { ptr in
+		// 				return try withUnsafePointer(to:MemoryLayout<Self>.size) { sizePtr in
+		// 					return try valFunc(ptr, sizePtr)
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// """)
+		// return [extensionDecl]
 		return []
 	}
 }

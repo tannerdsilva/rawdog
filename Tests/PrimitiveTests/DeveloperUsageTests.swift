@@ -9,12 +9,27 @@ struct FixedBuff5 {}
 
 @ConcatBufferType(FixedBuff5, Double, Float)
 struct MYSTRUCT {
-	let mYThing:FixedBuff5
-	let myDouble:Double
-	let secondThing:Float
+	private let firstItem:FixedBuff5
+	private let secondItem:Double
+	private let thirdItem:Float
 }
 
+// @ConcatBufferType(Double, Float)
+// struct MYSTRUCT2 {
+// 	private let firstItem:Double
+// 	private let secondItem:Float
+// }
+
+// let myByteBuffer = #ByteTuple(5)
+
+// var ms = MYSTRUCT(firstItem:FixedBuff5(RAW_staticbuff_storetype:(0x48, 0x65, 0x6c, 0x6c, 0x6f)), secondItem:3.14159, thirdItem:2.71828)
+
 final class TestDeveloperUsage:XCTestCase {
+	// func testSizeofConcat() {
+	// 	XCTAssertEqual(MemoryLayout<MYSTRUCT>.size, 5 + 8 + 4)
+	// 	XCTAssertEqual(MemoryLayout<MYSTRUCT2>.size, 8 + 4)
+	// }
+
     func testDeveloperUseCase() {
 		let myBaseData = [UInt8]("Hello".utf8)
 		let mySecondBuff:FixedBuff5 = FixedBuff5(myBaseData)!
