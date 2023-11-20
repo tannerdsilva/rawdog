@@ -250,13 +250,8 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		let rawInitDecl = DeclSyntax("""
 			/// initializes a new RAW_staticbuff from a given pointer. the length of the data is determined by the memory size of the ``RAW_staticbuff_storetype``.
 			public init(RAW_data:UnsafeRawPointer) {
-				var rawValue = val(RAW_data:RAW_data, RAW_size:MemoryLayout<RAW_staticbuff_storetype>.size)
-				var prog:size_t = 0
-				for i in 0..<MemoryLayout<RAW_staticbuff_storetype>.size {
-					self.RAW_data[i] = RAW_data[i]
-					prog += 1
-				}
-				\(raw:parsedName)(RAW_staticbuff_storetype:(\(raw:memberVariableNamesAndTypes.map { "rawValue.consume(\($0.1).self)" }.joined(separator:", "))))
+				var i = 0
+				\(raw:memberVariableNamesAndTypes.map { "self.\($0.0) = \($0.1)(RAW_data:RAW_data.advanced(by:i))\ni += MemoryLayout<\($0.1)>.size" }.joined(separator:"\n"))
 			}
 		""")
 		
@@ -266,7 +261,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		}
 		""")
 
-		return [typeType, initDecl]
+		return [typeType, initDecl, rawInitDecl]
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
@@ -280,18 +275,17 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		// correlate these variable types with their associated variable names in the attached declaration
 		let (parsedName, localModifiers, memberVariableNamesAndTypes) = try validateAttachedDeclaration(expectingTypes:memberVariables, declaration)
 
-		// let extensionDecl = try ExtensionDeclSyntax("""
-		// 	extension \(raw:parsedName):RAW_staticbuff {
-		// 		\(raw:localModifiers) func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
-		// 			return try withUnsafePointer(to:self) { ptr in
-		// 				return try withUnsafePointer(to:MemoryLayout<Self>.size) { sizePtr in
-		// 					return try valFunc(ptr, sizePtr)
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		// """)
-		// return [extensionDecl]
-		return []
+		let extensionDecl = try ExtensionDeclSyntax("""
+			extension \(raw:parsedName):RAW_staticbuff {
+				\(raw:localModifiers) func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
+					return try withUnsafePointer(to:self) { ptr in
+						return try withUnsafePointer(to:MemoryLayout<Self>.size) { sizePtr in
+							return try valFunc(ptr, sizePtr)
+						}
+					}
+				}
+			}
+		""")
+		return [extensionDecl]
 	}
 }
