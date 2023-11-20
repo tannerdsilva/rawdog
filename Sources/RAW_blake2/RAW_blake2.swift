@@ -1,5 +1,6 @@
 import cblake2
 import RAW
+import CRAW
 
 public struct Blake2 {
 	public enum Error:Swift.Error {

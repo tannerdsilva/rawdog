@@ -36,7 +36,7 @@ let package = Package(
 		.target(name:"RAW", dependencies: ["CRAW", "RAW_macros"]),
 		.target(name:"CRAW"),
 		.target(name:"cblake2"),
-		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2"]),
+		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2", "CRAW"]),
 		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2"]),
 	]
 )

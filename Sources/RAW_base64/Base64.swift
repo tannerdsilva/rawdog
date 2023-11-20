@@ -24,7 +24,7 @@ public struct Base64 {
 			}
 			let encodeResult = base64_encode(newBytes.baseAddress, enclen, rawDat, rawSiz.pointee)
 			guard encodeResult >= 0 else {
-				throw Error.encodingError(Array(RAW_size:rawSiz.pointee, RAW_data:rawDat), errno)
+				throw Error.encodingError(Array(RAW_size:rawSiz.pointee, RAW_data:rawDat), geterrno())
 			}
 			return String(cString:newBytes.baseAddress!)
 		}
@@ -40,10 +40,10 @@ public struct Base64 {
 		}
 		let decodeResult = base64_decode(newBytes.baseAddress, base64_decoded_length(dataEncoding.count), dataEncoding, dataEncoding.count)
 		guard decodeResult >= 0 else {
-			throw Error.decodingError(dataEncoding, errno)
+			throw Error.decodingError(dataEncoding, geterrno())
 		}
 		return Array(unsafeUninitializedCapacity:decodeResult, initializingWith: { (buffer, count) in
-			memcpy(buffer.baseAddress!, newBytes.baseAddress, decodeResult)
+			memcpy(buffer.baseAddress!, newBytes.baseAddress!, decodeResult)
 			count = decodeResult
 		})
 	}
