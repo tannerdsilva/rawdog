@@ -246,6 +246,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		let typeType = DeclSyntax("""
 			public typealias RAW_staticbuff_storetype = (\(raw:typeTypeBuild.joined(separator:", ")))
 		""")
+		
 		// assemble components for the primary raw initializer
 		let rawInitDecl = DeclSyntax("""
 			/// initializes a new RAW_staticbuff from a given pointer. the length of the data is determined by the memory size of the ``RAW_staticbuff_storetype``.
@@ -255,6 +256,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			}
 		""")
 		
+		// declare the primary initializer where each member is directly passed and stored in the new instance.
 		let initDecl = DeclSyntax("""
 		\(raw:localModifiers) init(\(raw:initializerParamList)) {
 			\(raw:memberVariableNamesAndTypes.map { "self.\($0.0) = \($0.0)" }.joined(separator:"\n"))
@@ -275,8 +277,14 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		// correlate these variable types with their associated variable names in the attached declaration
 		let (parsedName, localModifiers, memberVariableNamesAndTypes) = try validateAttachedDeclaration(expectingTypes:memberVariables, declaration)
 
-		let extensionDecl = try ExtensionDeclSyntax("""
+		#if RAWDOG_MACRO_LOG
+		mainLogger.info("parsed \(memberVariableNamesAndTypes.count) members from attached declaration.")
+		#endif
+
+		// extend conformance to RAW_staticbuff since each of the children already conform to it.
+		let rawSBDecl = try ExtensionDeclSyntax("""
 			extension \(raw:parsedName):RAW_staticbuff {
+				/// exports the value to its raw byte representation.
 				\(raw:localModifiers) func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 					return try withUnsafePointer(to:self) { ptr in
 						return try withUnsafePointer(to:MemoryLayout<Self>.size) { sizePtr in
@@ -286,6 +294,43 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 				}
 			}
 		""")
-		return [extensionDecl]
+
+		#if RAWDOG_MACRO_LOG
+		mainLogger.info("created extension declaration for RAW_staticbuff conformance.")
+		#endif
+
+		// build the compare condition steps that will allow the macro type to implement RAW_comparable based on the underlying implementation of each member.
+		var compareConditionSteps:[String] = []
+		for (i, (curVarName, curVarType)) in memberVariableNamesAndTypes.enumerated() {
+			
+			#if RAWDOG_MACRO_LOG
+			mainLogger.info("adding compare condition for member '\(curVarName)' of type '\(curVarType)'", metadata:["index":"\(i)"])
+			#endif
+
+			let appSyntax = """
+			// compare member \(i): \(curVarName). proceed to compare other members if this comparison is equal.
+			let compareResult\(curVarName) = \(curVarType).RAW_compare(lhs.\(curVarName), rhs.\(curVarName))
+			switch compareResult\(curVarName) {
+				case 0:
+					break;
+				default:
+					return compareResult\(curVarName)
+			}
+			"""
+			compareConditionSteps.append(appSyntax)
+		}
+
+		// extend conformance to RAW_comparable since each of the children already conform to it.
+		let extensionDecl = try ExtensionDeclSyntax("""
+			extension \(raw:parsedName):RAW_comparable {
+				/// sorts based on its native IEEE 754 representation and not its lexical representation.
+				public static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
+					\(raw:compareConditionSteps.joined(separator:"\n"))
+					return 0
+				}
+			}
+
+		""")
+		return [extensionDecl, rawSBDecl]
 	}
 }

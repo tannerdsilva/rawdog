@@ -1,5 +1,5 @@
 /// represents a raw binary value of a specified, fixed length
-public protocol RAW_staticbuff:RAW_encodable, RAW_decodable {
+public protocol RAW_staticbuff:RAW_encodable, RAW_decodable, RAW_comparable {
 	/// the type that will be used to represent the raw data.
 	/// - note: the size of this type is what will be used to determine the size of the raw data.
 	associatedtype RAW_staticbuff_storetype
