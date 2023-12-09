@@ -24,7 +24,7 @@ public struct Base64 {
 			}
 			let encodeResult = base64_encode(newBytes.baseAddress, enclen, rawDat, rawSiz.pointee)
 			guard encodeResult >= 0 else {
-				throw Error.encodingError(Array(RAW_size:rawSiz.pointee, RAW_data:rawDat), geterrno())
+				throw Error.encodingError(Array(RAW_data:rawDat, RAW_size:rawSiz), geterrno())
 			}
 			return String(cString:newBytes.baseAddress!)
 		}

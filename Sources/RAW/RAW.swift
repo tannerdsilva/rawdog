@@ -14,7 +14,7 @@ public let RAW_memcpy = CRAW.memcpy
 @frozen public struct val:RAW_val {
 	/// the raw data that the structure instance represents.
 	public let RAW_data:UnsafeRawPointer
-	
+
 	/// the size of the data that the structure instance represents.
 	public let RAW_size:size_t
 
