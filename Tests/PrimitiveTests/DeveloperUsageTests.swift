@@ -7,21 +7,13 @@ import XCTest
 @StaticBufferType(5)
 struct FixedBuff5 {}
 
-@ConcatBufferType(FixedBuff5, Double, Float)
-struct MYSTRUCT {
-	private let firstItem:FixedBuff5
-	private let secondItem:Double
-	private let thirdItem:Float
-
-	// init(RAW_data:UnsafePointer<UInt8>) {
-	// 	var i = 0
-	// 	self.firstItem = FixedBuff5(RAW_data:RAW_data)
-	// 	i += FixedBuff5.RAW_staticbuff_size
-	// 	self.secondItem = Double(RAW_data:RAW_data.advanced(by:i))
-	// 	i += MemoryLayout<Double>.size
-	// 	self.thirdItem = Float(RAW_data:RAW_data.advanced(by:i))
-	// }
-}
+// @ConcatBufferType(FixedBuff5, Double, Float)
+// struct MYSTRUCT {
+// 	// this is a test of comments in the struct. (they seem to work ok)
+// 	let firstItem:FixedBuff5
+// 	let secondItem:Double
+// 	let thirdItem:Float
+// }
 
 // @ConcatBufferType(Double, Float)
 // struct MYSTRUCT2 {
@@ -29,12 +21,18 @@ struct MYSTRUCT {
 // 	private let secondItem:Float
 // }
 
-// let myByteBuffer = #ByteTuple(5)
+@StaticBufferType(8)
+struct MyUInt64Equivalent{}
 
-// var ms = MYSTRUCT(firstItem:FixedBuff5(RAW_staticbuff_storetype:(0x48, 0x65, 0x6c, 0x6c, 0x6f)), secondItem:3.14159, thirdItem:2.71828)
+@StaticBufferType(4)
+struct MyUInt32Equivalent{}
+
+@StaticBufferType(2)
+struct MyUInt16Equivalent{}
 
 final class TestDeveloperUsage:XCTestCase {
     func testDeveloperUseCase() {
+		// var mything:#ByteTupleType(5)
 		let myBaseData = [UInt8]("Hello".utf8)
 		let mySecondBuff:FixedBuff5 = FixedBuff5(myBaseData)!
 		let myThird = FixedBuff5(RAW_staticbuff_storetype:(0x48, 0x65, 0x6c, 0x6c, 0x6f))
@@ -59,6 +57,19 @@ final class TestDeveloperUsage:XCTestCase {
 		let base64Decoded = try Base64.decode("HfZQsfk=")
 		let asBuff = FixedBuff5(base64Decoded)!
 		XCTAssertEqual(blake2sHash, asBuff)
+	}
+
+	// verifies that the size of a tuple is equal to the sum of the sizes of its members.
+	func testLayeredSizingOfStaticStructs() {
+		guard MemoryLayout<(FixedBuff5, FixedBuff5)>.size == 10 else {
+			XCTFail("MemoryLayout<(FixedBuff5, FixedBuff5)>.size == \(MemoryLayout<(FixedBuff5, FixedBuff5)>.size)")
+			return
+		}
+
+		guard MemoryLayout<(MyUInt16Equivalent, MyUInt32Equivalent, MyUInt64Equivalent)>.size == 14 else {
+			XCTFail("MemoryLayout<(UInt16, UInt32, UInt64)>.size == \(MemoryLayout<(MyUInt16Equivalent, MyUInt32Equivalent, MyUInt64Equivalent)>.size)")
+			return
+		}
 	}
 
 	func testExpectedLengths() {

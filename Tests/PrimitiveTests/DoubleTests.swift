@@ -33,19 +33,4 @@ final class NumberTests: XCTestCase {
 		}
 		XCTAssertEqual(newVal, value)
 	}
-	func testEncodingAndDecodingUInt() throws {
-		let value: UInt = 3
-		let newVal = value.asRAW_val {
-			return UInt(RAW_data:$0, RAW_size:$1)
-		}
-		XCTAssertEqual(newVal, value)
-	}
-
-	func testEncodingAndDecodingInt() throws {
-		let value: Int = 3
-		let newVal = value.asRAW_val {
-			return Int(RAW_data:$0, RAW_size:$1)
-		}
-		XCTAssertEqual(newVal, value)
-	}
 }

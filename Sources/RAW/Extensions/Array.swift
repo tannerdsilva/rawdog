@@ -39,14 +39,14 @@ extension Array:RAW_decodable where Element:RAW_decodable {
 }
 
 extension Array where Element == UInt8 {
-	public init(RAW_size:size_t, RAW_data:UnsafeRawPointer) {
-		guard RAW_size > 0 else {
+	public init(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
+		guard RAW_size.pointee > 0 else {
 			self = []
 			return
 		}
-		self = [UInt8](unsafeUninitializedCapacity:RAW_size, initializingWith: { ptr, buffSize in
-			memcpy(ptr.baseAddress!, RAW_data, RAW_size)
-			buffSize = RAW_size
+		self = [UInt8](unsafeUninitializedCapacity:RAW_size.pointee, initializingWith: { ptr, buffSize in
+			memcpy(ptr.baseAddress!, RAW_data, RAW_size.pointee)
+			buffSize = RAW_size.pointee
 		})
 	}
 }
