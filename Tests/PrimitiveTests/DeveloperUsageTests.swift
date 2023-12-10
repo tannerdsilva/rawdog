@@ -15,11 +15,11 @@ struct FixedBuff5 {}
 // 	let thirdItem:Float
 // }
 
-// @ConcatBufferType(Double, Float)
-// struct MYSTRUCT2 {
-// 	private let firstItem:Double
-// 	private let secondItem:Float
-// }
+@ConcatBufferType(Double, Float)
+struct MYSTRUCT2 {
+	let firstItem:Double
+	let secondItem:Float
+}
 
 @StaticBufferType(8)
 struct MyUInt64Equivalent{}
@@ -29,6 +29,13 @@ struct MyUInt32Equivalent{}
 
 @StaticBufferType(2)
 struct MyUInt16Equivalent{}
+
+@ConcatBufferType(MyUInt16Equivalent, MyUInt32Equivalent, MyUInt64Equivalent)
+struct MySpecialUIntType {
+	let bitVar16:MyUInt16Equivalent
+	let bitVar32:MyUInt32Equivalent
+	let bitVar64:MyUInt64Equivalent
+}
 
 final class TestDeveloperUsage:XCTestCase {
     func testDeveloperUseCase() {
@@ -66,8 +73,8 @@ final class TestDeveloperUsage:XCTestCase {
 			return
 		}
 
-		guard MemoryLayout<(MyUInt16Equivalent, MyUInt32Equivalent, MyUInt64Equivalent)>.size == 14 else {
-			XCTFail("MemoryLayout<(UInt16, UInt32, UInt64)>.size == \(MemoryLayout<(MyUInt16Equivalent, MyUInt32Equivalent, MyUInt64Equivalent)>.size)")
+		guard MySpecialUIntType.RAW_staticbuff_size == 14 else {
+			XCTFail("MySpecialUIntType.RAW_staticbuff_size == \(MySpecialUIntType.RAW_staticbuff_size)")
 			return
 		}
 	}

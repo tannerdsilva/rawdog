@@ -67,30 +67,40 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			mainLogger.info("done parsing attribute members")
 		}
 		#endif
+
+		// capture the attribute members as their expected compiler type - labeled expression list syntax
 		guard let attributeNumber = node.arguments?.as(LabeledExprListSyntax.self) else {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.critical("attribute does not have a LabeledExprListSyntax")
 			#endif
 			throw Diagnostics.unexpectedSyntaxStructure(LabeledExprListSyntax.self, type(of:node.arguments!))
 		}
+
 		#if RAWDOG_MACRO_LOG
 		mainLogger.critical("parsed members '\(attributeNumber)'")
 		#endif
+
+
 		var members:[DeclReferenceExprSyntax] = []
 		for member in attributeNumber {
+
 			#if RAWDOG_MACRO_LOG
 			mainLogger.critical("parsing member '\(member)'")
 			#endif
+
+			// members of this type must be exclusively a DeclReferenceExprSyntax type
 			guard let member = member.expression.as(DeclReferenceExprSyntax.self) else {
 				#if RAWDOG_MACRO_LOG
 				mainLogger.critical("member '\(member)' is not a DeclReferenceExprSyntax")
 				#endif
 				throw Diagnostics.unexpectedSyntaxStructure(DeclReferenceExprSyntax.self, type(of:member.expression))
 			}
+
 			#if RAWDOG_MACRO_LOG
 			let memberName = member.baseName.text
 			mainLogger.info("identified member name: '\(memberName)'")
 			#endif
+
 			members.append(member)
 		}
 
@@ -109,6 +119,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		return members
 	}
 
+	// this verifies that the body of the attached class or structure contains the expect type and name of members.
 	public static func validateAttachedDeclaration(expectingTypes:[DeclReferenceExprSyntax], _ declaration:some SwiftSyntax.DeclGroupSyntax) throws -> (TokenSyntax, DeclModifierListSyntax, [(String, String)]) {
 		#if RAWDOG_MACRO_LOG
 		mainLogger.info("parsing attribute members...")
@@ -189,20 +200,27 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 				#endif
 				throw Diagnostics.unexpectedSyntaxStructure(VariableDeclSyntax.self, type(of:member))
 			}
+
 			let expectedName = expectingTypes[i].baseName.text
+			
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("identified member type: '\(memberName)'", metadata:["expecting":.string(expectedName)])
 			#endif
+			
+			// validate that the member name matches the expected name
 			guard memberName == expectedName else {
 				#if RAWDOG_MACRO_LOG
 				mainLogger.critical("member name mismatch: expecting '\(expectedName)' but found '\(memberName)'")
 				#endif
 				throw Diagnostics.incorrectMemberType(expected:expectingTypes[i].baseName.text, found:memberName)
 			}
+			
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("member name matches.")
 			#endif
+			
 			buildNamesAndNameRefs.append((idPattern.identifier.text, memberName))
+			
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("added member name to buildNamesAndNameRefs: '\(idPattern.identifier.text)'")
 			#endif
@@ -211,7 +229,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-		// get the variable type references that were defined in the arguments for this macro 
+		// get the variable type references that were defined in the arguments for this macro
 		let (memberVariables) = try parseVariableTypeReferences(from: node)
 		
 		#if RAWDOG_MACRO_LOG
@@ -222,7 +240,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		let (parsedName, localModifiers, memberVariableNamesAndTypes) = try validateAttachedDeclaration(expectingTypes:memberVariables, declaration)
 		
 		#if RAWDOG_MACRO_LOG
-		mainLogger.info("validated \(memberVariableNamesAndTypes.count) members from attached declaration.")
+		mainLogger.info("validated \(memberVariableNamesAndTypes.count) members from attached declaration.", metadata:["attached_entity_name":.string(parsedName.text)])
 		#endif
 
 		// create the primary initializer for the attached declaration
@@ -232,6 +250,8 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("found member '\(curVarName)' of type '\(curVarType)'", metadata:["index":"\(i)", "comma_placed":(i == 0) ? "false" : "true"])
 			#endif
+
+			// build the function parameter syntax for this variable member
 			let thisFParam:FunctionParameterSyntax
 			if i == 0 {
 				thisFParam = FunctionParameterSyntax("\(raw:curVarName):\(raw:curVarType)")
@@ -242,15 +262,10 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			typeTypeBuild.append(curVarType)
 		}
 
-		// create the type initializer
-		let typeType = DeclSyntax("""
-			public typealias RAW_staticbuff_storetype = (\(raw:typeTypeBuild.joined(separator:", ")))
-		""")
-		
 		// assemble components for the primary raw initializer
 		let rawInitDecl = DeclSyntax("""
 			/// initializes a new RAW_staticbuff from a given pointer. the length of the data is determined by the memory size of the ``RAW_staticbuff_storetype``.
-			public init(RAW_data:UnsafeRawPointer) {
+			\(raw:localModifiers) init(RAW_data:UnsafeRawPointer) {
 				var i = 0
 				\(raw:memberVariableNamesAndTypes.map { "self.\($0.0) = \($0.1)(RAW_data:RAW_data.advanced(by:i))\ni += MemoryLayout<\($0.1)>.size" }.joined(separator:"\n"))
 			}
@@ -263,7 +278,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		}
 		""")
 
-		return [typeType, initDecl, rawInitDecl]
+		return [initDecl, rawInitDecl]
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
@@ -281,9 +296,65 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		mainLogger.info("parsed \(memberVariableNamesAndTypes.count) members from attached declaration.")
 		#endif
 
+		#if RAWDOG_MACRO_LOG
+		mainLogger.info("created extension declaration for RAW_staticbuff conformance.")
+		#endif
+
+		// build the compare condition steps that will allow the macro type to implement RAW_comparable based on the underlying implementation of each member.
+		var typeSizeSum:String = "("
+		var compareConditionSteps:[String] = []
+		for (i, (curVarName, curVarType)) in memberVariableNamesAndTypes.reversed().enumerated().reversed() {
+			
+			#if RAWDOG_MACRO_LOG
+			mainLogger.info("adding compare condition for member '\(curVarName)' of type '\(curVarType)'", metadata:["index":"\(i)"])
+			#endif
+
+			// build the syntax that adds the static size of this type
+			typeSizeSum += "\(curVarType).RAW_staticbuff_storetype"
+			if i == 0 {
+				typeSizeSum += ""
+			} else {
+				typeSizeSum += ", "
+			}
+
+			let appSyntax = """
+			// compare member \(i): \(curVarName). proceed to compare other members if this comparison is equal.
+			let compareResult_\(curVarName) = rhs.asRAW_val { (rhsPtr, rhsSizePtr) in
+				let rhsVal = val(RAW_data:rhsPtr, RAW_size:rhsSizePtr)
+				return lhs.asRAW_val { (lhsPtr, lhsSizePtr) in
+					let lhsVal = val(RAW_data:lhsPtr, RAW_size:lhsSizePtr)
+					return \(curVarType).RAW_compare(lhsVal, rhsVal)
+				}
+			}
+
+			switch compareResult_\(curVarName) {
+				case 0:
+					// this member is equal. continue to the next member.
+					break
+				default:
+					// this member is not equal. return the result.
+					return compareResult_\(curVarName)
+			}
+			"""
+			compareConditionSteps.append(appSyntax)
+		}
+		typeSizeSum += ")"
+
+		#if RAWDOG_MACRO_LOG
+		mainLogger.info("built typeSizeSum argument strings: '\(typeSizeSum)'")
+		#endif
+
+		// build the initializer lines that will allow the macro type to implement RAW_staticbuff based on the underlying implementation of each member.
+		var initializerLines:[String] = []
+		for (i, (curVarName, curVarType)) in memberVariableNamesAndTypes.enumerated() {
+			initializerLines.append("self.\(curVarName) = \(curVarType)(RAW_staticbuff_storetype:RAW_staticbuff_storetype.\(i))")
+		}
+
 		// extend conformance to RAW_staticbuff since each of the children already conform to it.
 		let rawSBDecl = try ExtensionDeclSyntax("""
 			extension \(raw:parsedName):RAW_staticbuff {
+				\(raw:localModifiers) typealias RAW_staticbuff_storetype = \(raw:typeSizeSum)
+
 				/// exports the value to its raw byte representation.
 				\(raw:localModifiers) func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 					return try withUnsafePointer(to:self) { ptr in
@@ -292,39 +363,18 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 						}
 					}
 				}
+
+				\(raw:localModifiers) init(RAW_staticbuff_storetype:RAW_staticbuff_storetype) {
+					\(raw:initializerLines.joined(separator:"\n"))
+				}
 			}
 		""")
-
-		#if RAWDOG_MACRO_LOG
-		mainLogger.info("created extension declaration for RAW_staticbuff conformance.")
-		#endif
-
-		// build the compare condition steps that will allow the macro type to implement RAW_comparable based on the underlying implementation of each member.
-		var compareConditionSteps:[String] = []
-		for (i, (curVarName, curVarType)) in memberVariableNamesAndTypes.enumerated() {
-			
-			#if RAWDOG_MACRO_LOG
-			mainLogger.info("adding compare condition for member '\(curVarName)' of type '\(curVarType)'", metadata:["index":"\(i)"])
-			#endif
-
-			let appSyntax = """
-			// compare member \(i): \(curVarName). proceed to compare other members if this comparison is equal.
-			let compareResult\(curVarName) = \(curVarType).RAW_compare(lhs.\(curVarName), rhs.\(curVarName))
-			switch compareResult\(curVarName) {
-				case 0:
-					break;
-				default:
-					return compareResult\(curVarName)
-			}
-			"""
-			compareConditionSteps.append(appSyntax)
-		}
 
 		// extend conformance to RAW_comparable since each of the children already conform to it.
 		let extensionDecl = try ExtensionDeclSyntax("""
 			extension \(raw:parsedName):RAW_comparable {
 				/// sorts based on its native IEEE 754 representation and not its lexical representation.
-				public static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
+				\(raw:localModifiers) static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
 					\(raw:compareConditionSteps.joined(separator:"\n"))
 					return 0
 				}

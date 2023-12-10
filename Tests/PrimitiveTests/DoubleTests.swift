@@ -7,17 +7,14 @@ final class NumberTests: XCTestCase {
 			3.14159,
 			3.0,
 			3.141,
+			-600
 		]
 		let decoded = encodeNumbers.asRAW_val { rawDat, rawSiz in
-			XCTAssertEqual(rawSiz.pointee, 24)
+			XCTAssertEqual(rawSiz.pointee, 32)
 			let bytes = Array<Double>(RAW_data:rawDat, RAW_size:rawSiz)
 			return bytes
 		}
-		XCTAssertEqual(decoded, [
-			3.14159,
-			3,
-			3.141
-		])
+		XCTAssertEqual(decoded, encodeNumbers)
 	}
 	func testEncodingAndDecodingDouble() throws {
 		let value: Double = 3.14159
