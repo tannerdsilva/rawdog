@@ -23,7 +23,7 @@ extension Array where Element == UInt8 {
 }
 
 extension Array:RAW_decodable where Element:RAW_decodable {
-	/// initialize the array with repeated contents of a RAW_decodable Element type
+	/// initialize the array with repeated contents of a RAW_decodable Element type.
 	public init(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
 		guard RAW_size.pointee > 0 else {
 			self = []
@@ -39,6 +39,7 @@ extension Array:RAW_decodable where Element:RAW_decodable {
 }
 
 extension Array where Element == UInt8 {
+	/// default implementation of RAW_decodable that initializes the byte array with the contents of the raw data.
 	public init(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
 		guard RAW_size.pointee > 0 else {
 			self = []

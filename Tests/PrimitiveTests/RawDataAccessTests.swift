@@ -6,7 +6,7 @@ class DataPointersTests: XCTestCase {
 		var myTuple:(UInt8, UInt8, UInt8) = (1, 2, 3)
 		let decoded = withUnsafePointer(to:&myTuple) { ptr in
 			return [UInt8](unsafeUninitializedCapacity:3, initializingWith: { buffer, size in
-				memcpy(buffer.baseAddress, ptr, 3)
+				memcpy(buffer.baseAddress!, ptr, 3)
 				size = 3
 			})
 		}
