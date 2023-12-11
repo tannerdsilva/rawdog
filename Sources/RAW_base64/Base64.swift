@@ -1,10 +1,13 @@
 import RAW
 import CRAW
+import CRAW_base64
 
 /// a namespace for base64 encoding/decoding functions.
 public struct Base64 {
+	
 	/// error thrown by Base64 encoding/decoding functions
 	public enum Error:Swift.Error {
+		
 		/// the provided string could not be decoded.
 		case decodingError(String, Int32)
 
