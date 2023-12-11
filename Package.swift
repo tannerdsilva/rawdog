@@ -36,8 +36,9 @@ let package = Package(
 		.target(name:"RAW", dependencies: ["CRAW", "RAW_macros"]),
 		.target(name:"CRAW"),
 		.target(name:"CRAW_base64"),
+		.target(name:"CRAW_hex"),
 		.target(name:"cblake2"),
 		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2", "CRAW"]),
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2"]),
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "CRAW_hex"]),
 	]
 )
