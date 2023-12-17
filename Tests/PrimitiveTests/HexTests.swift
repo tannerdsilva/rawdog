@@ -4,8 +4,8 @@ import CRAW_hex
 class HexTests: XCTestCase {
 	func testHexDecode() {
 		let hexString = "1F2F"
-		let expectedData: [CChar] = [0x1F, 0x2F]
-		var decodedData = [CChar](repeating: 0, count: expectedData.count)
+		let expectedData: [UInt8] = [0x1F, 0x2F]
+		var decodedData = [UInt8](repeating: 0, count: expectedData.count)
 		
 		let result = hex_decode(hexString, hexString.count, &decodedData, decodedData.count)
 		
@@ -15,7 +15,7 @@ class HexTests: XCTestCase {
 	
 	func testHexEncode() {
 		let data: [UInt8] = [0x1F, 0x2F]
-		let expectedHexString = "1f2f"
+		let expectedHexString = "1F2F"
 		var encodedString = [CChar](repeating: 0, count: expectedHexString.count + 1)
 		
 		let result = hex_encode(data, data.count, &encodedString, encodedString.count)
@@ -34,7 +34,7 @@ class HexTests: XCTestCase {
 	}
 	
 	func testHexDataSize() {
-		let hexString = "1f2f"
+		let hexString = "1F2F"
 		let expectedSize = hexString.count / 2
 		
 		let result = hex_data_size(hexString.count)

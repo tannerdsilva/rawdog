@@ -58,9 +58,38 @@ final class TestDeveloperUsage:XCTestCase {
 		}
 	}
 
+
 	func testBlake2Functionality() throws {
-		// let jsonTestContent = Bundle.main.url(forResource:"blake2-kat", withExtension:"json", subdirectory:"testvectors")
-		// let parsedJSON = try JSONDecoder().decode([[String:String]].self, from:try Data(contentsOf:jsonTestContent!))
+		struct Blake2TestScenario:Codable {
+			enum CodingKeys:String, CodingKey {
+				case hash = "hash"
+				case key = "key"
+				case input = "in"
+				case output = "out"
+			}
+			let hash:String
+			let key:String
+			let input:String
+			let output:String
+			init(from decoder:Decoder) throws {
+				let container = try decoder.container(keyedBy:CodingKeys.self)
+				hash = try container.decode(String.self, forKey:.hash)
+				key = try container.decode(String.self, forKey:.key)
+				input = try container.decode(String.self, forKey:.input)
+				output = try container.decode(String.self, forKey:.output)
+			}
+			func encode(to encoder:Encoder) throws {
+				var container = encoder.container(keyedBy:CodingKeys.self)
+				try container.encode(hash, forKey:.hash)
+				try container.encode(key, forKey:.key)
+				try container.encode(input, forKey:.input)
+				try container.encode(output, forKey:.output)
+			}
+		}
+		let jsonTestContent = Bundle.module.resourceURL!.appendingPathComponent("blake2-kat.json")
+		let parsedJSON = try Data(contentsOf:jsonTestContent)
+		XCTAssertGreaterThan(parsedJSON.count, 0)
+		let testScenarios = try JSONDecoder().decode([Blake2TestScenario].self, from:parsedJSON)
 		var blake2sHasher = try Hasher<S, FixedBuff5>()
 		try blake2sHasher.update(Array("Hello".utf8))
 		let blake2sHash = try blake2sHasher.finish()
@@ -71,12 +100,6 @@ final class TestDeveloperUsage:XCTestCase {
 
 	func testBlake2BOutBytes() {
 		XCTAssertEqual(BLAKE2B_OUTBYTES.rawValue, 64)
-	}
-
-	func testBlake2BundledItems() {
-		let bundleResourcePath = Bundle.module.resourceURL
-		fatalError("\(bundleResourcePath)")
-		XCTAssertEqual(1, 1)
 	}
 
 	// verifies that the size of a tuple is equal to the sum of the sizes of its members.
