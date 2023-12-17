@@ -32,13 +32,13 @@ let package = Package(
 			.product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
 			.product(name: "Logging", package:"swift-log")
 		], swiftSettings: [.define("RAWDOG_MACRO_LOG")]),
-		.target(name:"RAW_base64", dependencies:["CRAW", "RAW"]),
+		.target(name:"RAW_base64", dependencies:["CRAW", "RAW", "CRAW_base64"]),
 		.target(name:"RAW", dependencies: ["CRAW", "RAW_macros"]),
 		.target(name:"CRAW"),
 		.target(name:"CRAW_base64"),
 		.target(name:"CRAW_hex"),
 		.target(name:"cblake2"),
 		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2", "CRAW"]),
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "CRAW_hex"]),
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "CRAW_hex", "cblake2"], resources:[.process("blake2-kat.json")]),
 	]
 )

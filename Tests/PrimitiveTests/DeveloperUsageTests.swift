@@ -73,6 +73,12 @@ final class TestDeveloperUsage:XCTestCase {
 		XCTAssertEqual(BLAKE2B_OUTBYTES.rawValue, 64)
 	}
 
+	func testBlake2BundledItems() {
+		let bundleResourcePath = Bundle.module.resourceURL
+		fatalError("\(bundleResourcePath)")
+		XCTAssertEqual(1, 1)
+	}
+
 	// verifies that the size of a tuple is equal to the sum of the sizes of its members.
 	func testLayeredSizingOfStaticStructs() {
 		guard MemoryLayout<(FixedBuff5, FixedBuff5)>.size == 10 else {
