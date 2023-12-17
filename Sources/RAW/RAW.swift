@@ -26,16 +26,6 @@ public let RAW_memcpy = CRAW.memcpy
 }
 
 extension val:RAW_encodable {
-	/// adds the size of the raw memory representation to the given pointer.
-    public func addRAW_val_size(into size: inout size_t) {
-		size += self.RAW_size
-    }
-
-	/// copies the raw memory representation into the given buffer.
-    public func copyRAW_val(into buffer: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-		return memcpy(buffer, self.RAW_data, self.RAW_size)
-    }
-
 	/// allow for encodable access to the raw data.
 	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.RAW_size) { sizePtr in

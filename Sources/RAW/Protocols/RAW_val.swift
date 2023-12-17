@@ -56,6 +56,7 @@ extension RAW_val {
 	public func hash(into hasher:inout Hasher) {
 		hasher.combine(bytes:UnsafeRawBufferPointer(start:self.RAW_data, count:Int(self.RAW_size)))
 	}
+	
 	/// this implementation has no correlation to the custom sort protocols that 
 	public static func == (lhs:Self, rhs:Self) -> Bool {
 		return lhs.asRAW_val { lhsDat, lhsSiz in

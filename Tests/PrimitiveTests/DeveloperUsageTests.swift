@@ -3,6 +3,7 @@ import XCTest
 @testable import RAW_blake2
 @testable import RAW_base64
 @testable import cblake2
+// import Foundation
 
 @StaticBufferType(5)
 struct FixedBuff5 {}
@@ -58,12 +59,18 @@ final class TestDeveloperUsage:XCTestCase {
 	}
 
 	func testBlake2Functionality() throws {
-		var blake2sHasher = try Blake2.S<FixedBuff5>()
+		// let jsonTestContent = Bundle.main.url(forResource:"blake2-kat", withExtension:"json", subdirectory:"testvectors")
+		// let parsedJSON = try JSONDecoder().decode([[String:String]].self, from:try Data(contentsOf:jsonTestContent!))
+		var blake2sHasher = try Hasher<S, FixedBuff5>()
 		try blake2sHasher.update(Array("Hello".utf8))
-		let blake2sHash = try blake2sHasher.finalize()
-		let base64Decoded = try Base64.decode("HfZQsfk=")
+		let blake2sHash = try blake2sHasher.finish()
+		let base64Decoded = try RAW_base64.decode("HfZQsfk=")
 		let asBuff = FixedBuff5(base64Decoded)!
 		XCTAssertEqual(blake2sHash, asBuff)
+	}
+
+	func testBlake2BOutBytes() {
+		XCTAssertEqual(BLAKE2B_OUTBYTES.rawValue, 64)
 	}
 
 	// verifies that the size of a tuple is equal to the sum of the sizes of its members.
