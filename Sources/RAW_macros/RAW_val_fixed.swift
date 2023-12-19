@@ -10,29 +10,51 @@ fileprivate let mainLogger = Logger(label:"RAW_val_fixed")
 
 public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttributeMacro, AccessorMacro, PeerMacro {
 	/// parses the static buffer number from the attribute node.
-	fileprivate static func parseNumber(from node:SwiftSyntax.AttributeSyntax) throws -> UInt16 {
-		let attributeNumber = node.arguments?.as(LabeledExprListSyntax.self)?.first?.expression.as(IntegerLiteralExprSyntax.self)?.literal
-		let getNewNumber:UInt16?
-		switch attributeNumber {
-			case .some(let number):
-				guard case .integerLiteral(let value) = number.tokenKind else {
+	fileprivate static func parseNumber(from node:SwiftSyntax.AttributeSyntax) throws -> (bytes:UInt16, type:IdentifierTypeSyntax) {
+		let labeledExpressionList = node.arguments!.as(LabeledExprListSyntax.self)!
+		var getNewNumber:UInt16? = nil
+		var getUnsigned:Bool? = nil
+		for (i, curItem) in labeledExpressionList.enumerated() {
+			switch i {
+				case 0:
+					// get the number of bytes
+					let number = curItem.expression.as(IntegerLiteralExprSyntax.self)!.literal
+					guard case .integerLiteral(let value) = number.tokenKind else {
+						#if RAWDOG_MACRO_LOG
+						mainLogger.critical("expected integer literal")
+						#endif
+						throw Diagnostics.mustBeIntegerLiteral("\(number)")
+					}
+					getNewNumber = UInt16(value)
 					#if RAWDOG_MACRO_LOG
-					mainLogger.critical("expected integer literal")
+					mainLogger.info("got attribute number", metadata:["attributeNumber": "\(getNewNumber!)"])
 					#endif
-					throw Diagnostics.mustBeIntegerLiteral("\(number)")
-				}
-				getNewNumber = UInt16(value)
-			case .none:
-				#if RAWDOG_MACRO_LOG
-				mainLogger.critical("expected integer literal")
-				#endif
-				throw Diagnostics.mustBeIntegerLiteral("\(String(describing: node.arguments))")
+				case 1:
+					// get the unsigned flag
+					let bool = curItem.expression.as(BooleanLiteralExprSyntax.self)!.literal
+					switch bool.tokenKind {
+						case TokenKind.keyword(.true):
+							getUnsigned = true
+						case TokenKind.keyword(.false):
+							getUnsigned = false
+						default:
+							#if RAWDOG_MACRO_LOG
+							mainLogger.critical("expected boolean literal")
+							#endif
+							throw Diagnostics.mustBeBooleanLiteral("\(bool)")
+					}
+					#if RAWDOG_MACRO_LOG
+					mainLogger.info("got attribute unsigned flag", metadata:["attributeUnsigned": "\(getUnsigned!)"])
+					#endif
+				default:
+					#if RAWDOG_MACRO_LOG
+					mainLogger.critical("expected 2 arguments")
+					#endif
+					throw Diagnostics.mustBeIntegerLiteral("\(String(describing: node.arguments))")
+			}
 		}
-		#if RAWDOG_MACRO_LOG
-		mainLogger.info("got attribute number", metadata:["attributeNumber": "\(String(describing: getNewNumber!))"])
-		#endif
-		let newNumber = getNewNumber!
-		return newNumber
+		let type = getUnsigned! ? IdentifierTypeSyntax(name:.identifier("UInt8")) : IdentifierTypeSyntax(name:.identifier("Int8"))
+		return (getNewNumber!, type)
 	}
 
 	fileprivate static func parseAttachedDeclGroupSyntax(_ declaration:some DeclGroupSyntax) throws -> (structureName:TokenSyntax, structureModifiers:DeclModifierListSyntax) {
@@ -74,7 +96,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		}
 		#endif
 		let (structureName, structureModifiers) = try Self.parseAttachedDeclGroupSyntax(declaration)
-		let newNumber = try Self.parseNumber(from:node)
+		let (newNumber, byteType) = try Self.parseNumber(from:node)
 		var buildEqualities = [String]()
 		for i in 0..<newNumber {
 			buildEqualities.append("lhs.fixedBuffer.\(i) == rhs.fixedBuffer.\(i)")
@@ -122,14 +144,14 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		returnResult.append(try ExtensionDeclSyntax("""
 			// declares the type as a static buffer type with the given number of bytes as the storetype.
 			extension \(structureName):RAW_staticbuff {
-				\(structureModifiers) typealias RAW_staticbuff_storetype = \(raw:generateTypeExpression(byteCount:Self.parseNumber(from:node)))
+				\(structureModifiers) typealias RAW_staticbuff_storetype = \(raw:generateTypeExpression(typeSyntax:byteType, byteCount:newNumber))
 			}
 		"""))
 		returnResult.append(try ExtensionDeclSyntax("""
 			// declares array literal conformance on the type.
 			extension \(structureName):ExpressibleByArrayLiteral {
 				/// initializer for array literal expressions of the byte buffer.
-				\(structureModifiers) init(arrayLiteral elements: UInt8...) {
+				\(structureModifiers) init(arrayLiteral elements: \(byteType)...) {
 					guard elements.count == MemoryLayout<Self.RAW_staticbuff_storetype>.size else {
 						fatalError("invalid array literal. the number of elements must match the size of the buffer. expected elements: \\(MemoryLayout<Self.RAW_staticbuff_storetype>.size), found: \\(elements.count)")
 					}
@@ -159,30 +181,10 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		logger.trace("got structure name.", metadata:["name": "\(structureName)"])
 		logger.trace("got structure modifiers.", metadata:["mods": "\(structureModifiers)"])
 		#endif
-		let attributeNumber = node.arguments?.as(LabeledExprListSyntax.self)?.first?.expression.as(IntegerLiteralExprSyntax.self)?.literal
-		let getNewNumber:UInt16?
-		switch attributeNumber {
-			case .some(let number):
-				guard case .integerLiteral(let value) = number.tokenKind else {
-					#if RAWDOG_MACRO_LOG
-					logger.critical("expected integer literal.")
-					#endif
-					throw Diagnostics.mustBeIntegerLiteral("\(number)")
-				}
-				getNewNumber = UInt16(value)
-				#if RAWDOG_MACRO_LOG
-				logger.info("got attribute number.", metadata:["#": "\(getNewNumber!)"])
-				#endif
-			case .none:
-				#if RAWDOG_MACRO_LOG
-				logger.critical("expected integer literal.")
-				#endif
-				throw Diagnostics.mustBeIntegerLiteral(String(describing:node.arguments))
-		}
-		let newNumber = getNewNumber!
+		let (newNumber, byteType) = try Self.parseNumber(from:node)
 		let varSyntax = TokenSyntax.keyword(.let)
 		let bufferName = IdentifierPatternSyntax(identifier:TokenSyntax.identifier("fixedBuffer"))
-		let typeDecl = generateTypeExpression(byteCount:newNumber)
+		let typeDecl:TupleTypeSyntax = generateTypeExpression(typeSyntax:byteType, byteCount:newNumber)
 		let patternBinding = PatternBindingSyntax(pattern:PatternSyntax(bufferName), typeAnnotation:TypeAnnotationSyntax(colon:TokenSyntax.colonToken(), type:typeDecl), initializer:nil, accessorBlock:nil, trailingComma:nil)
 		let newList = PatternBindingListSyntax([patternBinding])
 		let privateFixedBufferVal = DeclSyntax(VariableDeclSyntax(modifiers:DeclModifierListSyntax([DeclModifierSyntax(name:TokenSyntax.keyword(.internal))]), bindingSpecifier:varSyntax, bindings:newList))
@@ -190,7 +192,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		// build a tuple initializer that individually references each byte in the input raw pointer.
 		var buildPointerRef = "("
 		for i in 0..<newNumber {
-			buildPointerRef.append("RAW_data.load(fromByteOffset:\(i), as:UInt8.self)")
+			buildPointerRef.append("RAW_data.load(fromByteOffset:\(i), as:\(byteType).self)")
 			if i + 1 < newNumber {
 				buildPointerRef.append(",")
 			}
@@ -264,7 +266,7 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 		}
 		let subscriptDecl = DeclSyntax("""
 			/// (collection conformance) access any given byte in the collection by index.
-			\(structureModifiers) subscript(position: Int) -> UInt8 {
+			\(structureModifiers) subscript(position: Int) -> \(byteType) {
 				switch position {
 					\(raw:forContents)
 					default: fatalError("invalid index.")
@@ -287,6 +289,10 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 	public enum Diagnostics:Swift.Error, DiagnosticMessage {
 		/// thrown when this macro is attached to a declaration that is not a class
 		case mustBeIntegerLiteral(String)
+
+		/// thrown when this macro is attached to a declaration that is not a structure or class
+		case mustBeBooleanLiteral(String)
+
 		/// thrown when this macro is attached to a declaration that is not a structure or class
 		case mustBeStructOrClassDeclaration(SyntaxProtocol.Type)
 	
@@ -300,7 +306,9 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 					return "RAW_val_fixed.mustBeIntegerLiteral"
 				case .mustBeStructOrClassDeclaration:
 					return "RAW_val_fixed.mustBeStructOrClassDeclaration"
-			}
+			case .mustBeBooleanLiteral(_):
+				return "RAW_val_fixed.mustBeBooleanLiteral"
+}
 		}
 
 		public var message:String {
@@ -309,6 +317,8 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 					return "this macro requires an integer literal as its argument. instead found \(found)"
 				case .mustBeStructOrClassDeclaration(let declType):
 					return "this macro must be attached to a struct or class declaration. instead found \(declType)"
+				case .mustBeBooleanLiteral(let found):
+					return "this macro requires a boolean literal as its argument. instead found \(found)"
 			}
 		}
 
@@ -318,13 +328,17 @@ public struct FixedSizeBufferTypeMacro:MemberMacro, ExtensionMacro, MemberAttrib
 	}
 }
 
-
-fileprivate func generateTypeExpression(byteCount:UInt16) -> SwiftSyntax.TupleTypeSyntax {
-	let byteTypeElement = IdentifierTypeSyntax(name:.identifier("UInt8"))
+fileprivate func generateSignedByteTypeExpression(byteCount:UInt16) -> SwiftSyntax.TupleTypeSyntax {
+	return generateTypeExpression(typeSyntax:IdentifierTypeSyntax(name:.identifier("Int8")), byteCount:byteCount)
+}
+fileprivate func generateUnsignedByteTypeExpression(byteCount:UInt16) -> SwiftSyntax.TupleTypeSyntax {
+	return generateTypeExpression(typeSyntax:IdentifierTypeSyntax(name:.identifier("UInt8")), byteCount:byteCount)
+}
+fileprivate func generateTypeExpression(typeSyntax:IdentifierTypeSyntax, byteCount:UInt16) -> SwiftSyntax.TupleTypeSyntax {
 	var buildContents = TupleTypeElementListSyntax()
 	var i:UInt16 = 0
 	while i < byteCount {
-		var byteTypeElement = TupleTypeElementSyntax(type:byteTypeElement)
+		var byteTypeElement = TupleTypeElementSyntax(type:typeSyntax)
 		byteTypeElement.trailingComma = i + 1 < byteCount ? TokenSyntax.commaToken() : nil
 		buildContents.append(byteTypeElement)
 		i += 1

@@ -5,7 +5,7 @@ import XCTest
 @testable import cblake2
 // import Foundation
 
-@StaticBufferType(5)
+@StaticBufferType(5, isUnsigned:true)
 struct FixedBuff5 {}
 
 // @ConcatBufferType(FixedBuff5, Double, Float)
@@ -22,13 +22,13 @@ struct MYSTRUCT2 {
 	let secondItem:Float
 }
 
-@StaticBufferType(8)
+@StaticBufferType(8, isUnsigned:true)
 struct MyUInt64Equivalent{}
 
-@StaticBufferType(4)
+@StaticBufferType(4, isUnsigned:true)
 struct MyUInt32Equivalent{}
 
-@StaticBufferType(2)
+@StaticBufferType(2, isUnsigned:true)
 struct MyUInt16Equivalent{}
 
 @ConcatBufferType(MyUInt16Equivalent, MyUInt32Equivalent, MyUInt64Equivalent)
@@ -40,6 +40,18 @@ struct MySpecialUIntType {
 
 final class TestDeveloperUsage:XCTestCase {
     func testDeveloperUseCase() {
+		let myValues:[Value] = [.A, .F]
+		myValues.asRAW_val { myValues, mySize in
+			let myVal = val(RAW_data:myValues, RAW_size:mySize)
+			guard myVal[0] == Value.A.rawValue else {
+				XCTFail("myVal[0] == \(myVal[0])")
+				return
+			}
+			guard myVal[1] == Value.F.rawValue else {
+				XCTFail("myVal[1] == \(myVal[1])")
+				return
+			}
+		}
 		// var mything:#ByteTupleType(5)
 		let myBaseData = [UInt8]("Hello".utf8)
 		let mySecondBuff:FixedBuff5 = FixedBuff5(myBaseData)!

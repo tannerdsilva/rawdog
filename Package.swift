@@ -42,7 +42,7 @@ let package = Package(
 
 		// c implementations
 		.target(name:"CRAW"),
-		.target(name:"CRAW_base64"),
+		.target(name:"CRAW_base64", dependencies:[.product(name:"Logging", package:"swift-log")]),
 		.target(name:"CRAW_hex"),
 		.target(name:"cblake2"),
 

@@ -10,7 +10,9 @@ public enum Error: Swift.Error {
 	case invalidHexCharacter(UInt8)
 }
 
-public enum HexValue:UInt8, RAW_encodable {
+public typealias HexValue = Value
+
+public enum Value:UInt8 {
 
 	case zero = 0x30
 	case one = 0x31
