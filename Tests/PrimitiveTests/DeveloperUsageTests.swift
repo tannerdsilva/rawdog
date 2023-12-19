@@ -42,6 +42,10 @@ final class TestDeveloperUsage:XCTestCase {
     func testDeveloperUseCase() {
 		let myValues:[Value] = [.A, .F]
 		myValues.asRAW_val { myValues, mySize in
+			guard mySize.pointee == 2 else {
+				XCTFail("mySize == \(mySize.pointee)")
+				return
+			}
 			let myVal = val(RAW_data:myValues, RAW_size:mySize)
 			guard myVal[0] == Value.A.rawValue else {
 				XCTFail("myVal[0] == \(myVal[0])")

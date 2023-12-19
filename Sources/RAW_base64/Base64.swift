@@ -1,6 +1,7 @@
 import RAW
 import CRAW
 import CRAW_base64
+import Logging
 
 /// error thrown by Base64 encoding/decoding functions
 public enum Error:Swift.Error {
@@ -15,23 +16,37 @@ public enum Error:Swift.Error {
 	case invalidCharacter(UInt8)
 }
 
+/// a typealias for the base64 value type.
 public typealias Base64Value = Value
-public enum Value:UInt8, RAW_encodable, RAW_decodable, ExpressibleByIntegerLiteral {
+
+// value shall be expressible by an integer literal.
+extension Value:ExpressibleByIntegerLiteral {
+	/// the type of integer that is used for literal expressions.
 	public typealias IntegerLiteralType = UInt8
 
+	/// create a new value from an integer literal.
 	public init(integerLiteral value: UInt8) {
 		self = Self(rawValue:value)!
 	}
+}
 
+/// values are 
+extension Value:RAW_encodable, RAW_decodable {
+	/// encode the base64 value to its ascii byte representation.
 	public func asRAW_val<R>(_ valFunc: (UnsafeRawPointer, UnsafePointer<RAW.size_t>) throws -> R) rethrows -> R {
 		try rawValue.asRAW_val({
 			try valFunc($0, $1)
 		})
 	}
 
+	/// decode the base64 value from its ascii byte representation.
 	public init?(RAW_data: UnsafeRawPointer, RAW_size: UnsafePointer<RAW.size_t>) {
 		self = Self(rawValue:UInt8(RAW_data:RAW_data, RAW_size:RAW_size)!)!
 	}
+}
+
+/// represents one of the possible 64 values that are possible in a base64 encoded string.
+public enum Value:UInt8 {
 
 	// upper case
 	case A = 0x41
@@ -104,9 +119,8 @@ public enum Value:UInt8, RAW_encodable, RAW_decodable, ExpressibleByIntegerLiter
 	// special characters
 	case plus = 0x2B
 	case slash = 0x2F
-	case equals = 0x3D
 
-	init(_ character: Character) throws {
+	init(_ character:Character) throws {
 		switch character {
 		case "A": self = .A
 		case "B": self = .B
@@ -172,13 +186,12 @@ public enum Value:UInt8, RAW_encodable, RAW_decodable, ExpressibleByIntegerLiter
 		case "9": self = .nine
 		case "+": self = .plus
 		case "/": self = .slash
-		case "=": self = .equals
 		default:
 			throw Error.invalidCharacter(character.asciiValue!)
 		}
 	}
 
-	init(_ cchar: CChar) throws {
+	init(_ cchar:CChar) throws {
 		guard let character = String(validatingUTF8: [cchar])?.first else {
 			throw Error.invalidCharacter(UInt8(bitPattern: cchar))
 		}
@@ -325,15 +338,15 @@ internal func base64_encoded_length(_ bytes:size_t) -> size_t {
 	return ((bytes + 2) / 3) * 4
 }
 
-internal func sixbit_to_b64(_ sixbit: UInt8) -> Value {
-    assert(sixbit <= 63)
-    let encodedChar = RFC4648.EncodeMap[Int(sixbit)]
-    return encodedChar
+internal func sixbit_to_b64(_ sixbit:UInt8) -> Value {
+	assert(sixbit <= 63)
+	let encodedChar = RFC4648.EncodeMap[Int(sixbit)]
+	return encodedChar
 }
 
-internal func sixbit_from_b64(_ b64letter: UInt8) throws -> UInt8 {
-    let ret = RFC4648.decodeMap[Int(b64letter)]
-    switch ret {
+internal func sixbit_from_b64(_ b64letter:UInt8) throws -> UInt8 {
+	let ret = RFC4648.decodeMap[Int(b64letter)]
+	switch ret {
 		case 0xff:
 			throw Error.invalidCharacter(b64letter)
 		default:
@@ -344,13 +357,13 @@ internal func sixbit_from_b64(_ b64letter: UInt8) throws -> UInt8 {
 func base64_encode_triplet_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ src: UnsafeRawBufferPointer) {
 	dest[0] = sixbit_to_b64((src[0] & 0xfc) >> 2)
 	dest[1] = sixbit_to_b64(((src[0] & 0x3) << 4) | ((src[1] & 0xf0) >> 4))
-    dest[2] = sixbit_to_b64(((src[1] & 0xf) << 2) | ((src[2] & 0xc0) >> 6))
-    dest[3] = sixbit_to_b64(src[2] & 0x3f)
+	dest[2] = sixbit_to_b64(((src[1] & 0xf) << 2) | ((src[2] & 0xc0) >> 6))
+	dest[3] = sixbit_to_b64(src[2] & 0x3f)
 }
 
 func base64_encode_tail_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ src:UnsafeRawBufferPointer, _ src_len:size_t) {
 	var longsrc:(UInt8, UInt8, UInt8)
-	switch src_len {
+	switch (src.count % 3) {
 		case 0:
 			longsrc = (0, 0, 0)
 		case 1:
@@ -364,22 +377,35 @@ func base64_encode_tail_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ s
 	}
 	withUnsafePointer(to:longsrc) { longsrcptr in
 		base64_encode_triplet_using_maps(dest, UnsafeRawBufferPointer(start:longsrcptr, count:src_len))
-	}
+		
+		//write the = padding characters
+		switch (src.count % 3) {
+			case 0:
+				break
+			case 1:
+				dest[2] = .equals
+				dest[3] = .equals
+			case 2:
+				dest[3] = .equals
+			case 3:
+				break
+			default:
+				fatalError()
+		}
 }
 
 /// - note: this function assumes that the destination buffer is large enough to hold the encoded data. despite taking the destination buffer size as a parameter, this function does not check that the destination buffer is large enough to hold the encoded data.
 func base64_encode_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ destlen:size_t, _ src:UnsafeRawBufferPointer, _ srclen:size_t) {
 	var srcOffset = 0
 	var destOffset = 0
-
 	while srclen - srcOffset >= 3 {
 		base64_encode_triplet_using_maps(UnsafeMutableBufferPointer(rebasing:dest[destOffset...]), UnsafeRawBufferPointer(rebasing:src[srcOffset...]))
 		srcOffset += 3
 		destOffset += 4
 	}
 	
-	if srcOffset < srclen {
-		base64_encode_tail_using_maps(UnsafeMutableBufferPointer(rebasing:dest[destOffset...]), UnsafeRawBufferPointer(rebasing:src[srcOffset...]), srclen - srcOffset)
+	if (srclen % 3) > 0 {
+		base64_encode_tail_using_maps(UnsafeMutableBufferPointer(rebasing:dest[destOffset...]), UnsafeRawBufferPointer(rebasing:src[srcOffset...]), (srclen % 3))
 		destOffset += 4
 	}
 	memset(&dest[destOffset], 0, destlen - destOffset)
@@ -389,16 +415,13 @@ func base64_encode_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ destle
 /// - parameter bytes: the byte representation to encode.
 /// - throws: ``Error.encodingError`` if the byte representation could not be encoded. this should never be thrown under normal operating conditions.
 public func encode<RE>(bytes rawBytes:RE) throws -> [Value] where RE:RAW_encodable {
-	return try rawBytes.asRAW_val { rawDat, rawSiz in
+	return rawBytes.asRAW_val { rawDat, rawSiz in
 		let enclen = base64_encoded_length(rawSiz.pointee) + 1
-		let newBytes = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:enclen)
+		let newBytes = UnsafeMutableBufferPointer<Value>.allocate(capacity:enclen)
 		defer {
 			newBytes.deallocate()
 		}
-		let encodeResult = base64_encode(newBytes.baseAddress!, enclen, rawDat, rawSiz.pointee)
-		guard encodeResult >= 0 else {
-			throw Error.encodingError(Array(RAW_data:rawDat, RAW_size:rawSiz), geterrno())
-		}
+		base64_encode_using_maps(newBytes, enclen, UnsafeRawBufferPointer(start:rawDat, count:rawSiz.pointee), rawSiz.pointee)
 		return [Value](RAW_data:newBytes.baseAddress!, RAW_size:rawSiz)
 	}
 }
