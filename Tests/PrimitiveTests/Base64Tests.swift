@@ -14,20 +14,20 @@ class Base64Tests: XCTestCase {
 	@StaticBufferType(256, isUnsigned:false)
 	fileprivate struct Base64DecodeMap {}
 
+	// test that the encoding map is the same as the C implementation.
     func testBase64EncodingMap() throws {
 		let cEncodingMap = Base64EncodeMap(RAW_staticbuff_storetype:CRAW_base64.base64_maps_rfc4648.encode_map)
 		// test the encoding map.
 		for i in 0..<64 {
 			let char = RAW_base64.RFC4648.EncodeMap[i]
-			let cSource = Value(rawValue:UInt8(cEncodingMap[i]))
+			let cSource = try? Value(validate:UInt8(cEncodingMap[i]))
 			XCTAssertEqual(char, cSource)
 		}
 	}
 	
+	// test that the decoding map is the same as the C implementation.
 	func testBase64DecodingMap() throws {
-
 		let cDecodingMap = Base64DecodeMap(RAW_staticbuff_storetype:CRAW_base64.base64_maps_rfc4648.decode_map)
-		
 		for dm in RAW_base64.RFC4648.decodeMap.enumerated() {
 			let cSource = UInt8(bitPattern:cDecodingMap[dm.offset])
 			XCTAssertEqual(dm.element, cSource)

@@ -2,6 +2,20 @@
 import PackageDescription
 import CompilerPluginSupport
 
+#if RAWDOG_LOG
+let rawTargetDependencies:[Target.Dependency] = [
+	"CRAW",
+	"RAW_macros"
+	.product(name: "Logging", package:"swift-log")
+]
+#else
+let rawTargetDependencies:[Target.Dependency] = [
+	"CRAW",
+	"RAW_macros"
+]
+#endif
+
+
 let package = Package(
 	name: "rawdog",
 	platforms:[
@@ -38,7 +52,7 @@ let package = Package(
 		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2", "CRAW"]),
 		.target(name:"RAW_base64", dependencies:["CRAW", "RAW", "CRAW_base64"]),
 		.target(name:"RAW_hex", dependencies:["CRAW", "RAW", "CRAW_hex"]),
-		.target(name:"RAW", dependencies: ["CRAW", "RAW_macros"]),
+		.target(name:"RAW", dependencies:rawTargetDependencies),
 
 		// c implementations
 		.target(name:"CRAW"),

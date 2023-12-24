@@ -76,7 +76,7 @@ void base64_encode_triplet_using_maps(const base64_maps_t *maps,
 void base64_encode_tail_using_maps(const base64_maps_t *maps, char dest[4],
 				   const char *src, const size_t srclen)
 {
-	char\ longsrc[3] = { 0 };
+	char longsrc[3] = { 0 };
 
 	assert(srclen <= 3);
 

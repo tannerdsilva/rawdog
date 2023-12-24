@@ -1,16 +1,43 @@
 /// convertible (alias) protocol that encapsulates encodable and decodable protocols.
 public typealias RAW_convertible = RAW_encodable & RAW_decodable
 
-/// the protocol that enables initialization of programming objects from raw memory.
-/// - initializers may return nil if the memory is not valid for the given type.
+/// protocol that represents a type that can initialize from a raw representation.
 public protocol RAW_decodable {
-	/// initializes a new instance of the type from a given size and pointer.
-	/// - it is assumed that this function will only return nil if the size is not valid for the type.
-	init?(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>)
+
+	/// initialize the value from the raw value buffer.
+	/// - note: it is possible that the value buffer is larger than the bytes needed to encode the frontmost value in the buffer.
+	static func RAW_decode(ptr:UnsafeRawPointer, size:size_t, stride:inout size_t) -> Self?
 }
 
-/// the protocol that enables encoding of programming objects to raw memory.
+extension RAW_decodable {
+
+	init?<E>(RAW_decode encodableType:E) where E:RAW_encodable {
+		let bytes = encodableType.RAW_encoded_bytes()
+		let byteSize:size_t = bytes.count
+		var stride:size_t = 0
+		guard let makeSelf = Self.RAW_decode(ptr:bytes, size:byteSize, stride:&stride), byteSize == stride else {
+			return nil
+		}
+		self = makeSelf
+	}
+}
+
+// LOOKS GOOD DO NOT TOUCH
 public protocol RAW_encodable {
-	/// encodes a programming object to a ``RAW_val`` representation. the ``RAW_val`` is passed to the ``valFunc`` closure, and the represented memory is only valid for the duration of the closure.
-	func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R
+	func RAW_encoded_size() -> size_t
+
+	/// encode the value to a raw representation.
+	func RAW_encode(ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer
+}
+
+extension RAW_encodable {
+
+	/// encode the value to a raw representation and return the bytes as an array.
+	public func RAW_encoded_bytes() -> [UInt8] {
+		let encodedSize = self.RAW_encoded_size()
+		return [UInt8](unsafeUninitializedCapacity:encodedSize, initializingWith: { bufferPtr, initializedCount in
+			_ = self.RAW_encode(ptr:bufferPtr.baseAddress!)
+			initializedCount = encodedSize
+		})
+	}
 }

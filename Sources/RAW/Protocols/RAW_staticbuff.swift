@@ -1,44 +1,33 @@
-/// represents a raw binary value of a specified, fixed length
+/// represents a raw binary value of a pre-specified, static length.
 public protocol RAW_staticbuff:RAW_encodable, RAW_decodable, RAW_comparable {
 	/// the type that will be used to represent the raw data.
-	/// - note: the size of this type is what will be used to determine the size of the raw data.
+	/// - note: this protocol assumes that the result of `MemoryLayout<Self.RAW_staticbuff_storetype>.size` is the true size of your static buffer data. behavior with this protocol is undefined if this is not the case.
 	associatedtype RAW_staticbuff_storetype
 
-	/// the size of the underlying storage type.
-	static var RAW_staticbuff_size:size_t { get }
-
-	/// initializes a new RAW_staticbuff from a given pointer. the length of the data is determined by the memory size of the ``RAW_staticbuff_storetype``.
-	init(RAW_data:UnsafeRawPointer)
-	
-	/// directly initialize a new RAW_staticbuff directly from its underlying storage type.
-	init(RAW_staticbuff_storetype:RAW_staticbuff_storetype)
+	/// initialize the static buffer from its raw representation. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
+	init(RAW_staticbuff_storetype:UnsafeRawPointer)
 }
 
 extension RAW_staticbuff {
-	/// creates a new RAW_fixedlength object from a given size and pointer.
-	public init?(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
-		guard RAW_size.pointee == MemoryLayout<RAW_staticbuff_storetype>.size else {
-			return nil
-		}
-		self.init(RAW_data:RAW_data)
-	}
-
-	public static var RAW_staticbuff_size:size_t {
+	// the underlying storage type (and its size) of the static buffer.
+	public static func RAW_staticbuff_size() -> size_t {
 		return MemoryLayout<RAW_staticbuff_storetype>.size
 	}
 
-	/// creates a new value (of the types own static length) with the contents in the passed argument..
-	public init?<R>(_ val:R) where R:RAW_encodable {
-		let result = val.asRAW_val { rawDat, rawSize in
-			let newSelf = Self.init(RAW_data:rawDat, RAW_size:rawSize)
-			return newSelf
+	public static func RAW_decode(ptr:UnsafeRawPointer, size:size_t, stride:inout size_t) -> Self? {
+		// validate that the buffer is large enough to parse a value of this type. since the protocol assumes that there may be additional data in the buffer that is not part of this value, we can allow lengths greater than.
+		guard size >= MemoryLayout<RAW_staticbuff_storetype>.size else {
+			return nil
 		}
-		
-		switch result {
-			case .some(let newSelf):
-				self = newSelf
-			case .none:
-				return nil
-		}
+		stride += MemoryLayout<RAW_staticbuff_storetype>.size
+		return Self(RAW_staticbuff_storetype:ptr)
+	}
+}
+
+// automatically implement the RAW_encoded_size property for types that conform to RAW_staticbuff.
+extension RAW_encodable where Self:RAW_staticbuff {
+	/// default implementation. returns the size of the static buffer storage type, since that is the size of the encoded value.
+	public func RAW_encoded_size() -> size_t {
+		return MemoryLayout<RAW_staticbuff_storetype>.size
 	}
 }

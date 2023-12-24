@@ -49,17 +49,17 @@ public protocol RAW_blake2_func_impl {
 	/// initialize the hasher, preparing it for use without a given key value.
 	static func create(state:inout RAW_blake2_statetype, outputLength:size_t) throws
 	/// initialize the hasher, preparing it for use with a specified key value.
-	static func create(state:inout RAW_blake2_statetype, RAW_key_data:UnsafeRawPointer, RAW_key_size:size_t, outputLength:size_t) throws
+	static func create(state:inout RAW_blake2_statetype, RAW_key_data_ptr:UnsafeRawPointer, RAW_key_size:size_t, outputLength:size_t) throws
 
 	// required update implementation.
 	/// primary update function for the hasher.
-	static func update(state:inout RAW_blake2_statetype, RAW_data:UnsafeRawPointer, RAW_size:size_t) throws
+	static func update(state:inout RAW_blake2_statetype, RAW_data_ptr:UnsafeRawPointer, RAW_size:size_t) throws
 	
 	// required finalize implementation.
 	/// finish the hashing process and return the result.
 	/// - parameter state: the state of the hasher.
 	/// - parameter data_out: the output buffer to write the result into.
-	static func finalize(state:inout RAW_blake2_statetype, RAW_data:UnsafeMutableRawPointer) throws
+	static func finalize(state:inout RAW_blake2_statetype, RAW_data_ptr:UnsafeMutableRawPointer) throws
 }
 
 extension RAW_blake2_func_impl {
@@ -67,7 +67,7 @@ extension RAW_blake2_func_impl {
 	/// finish the hashing process and return the result as a byte array.
 	internal static func finalize(state:inout RAW_blake2_statetype, to outType:[UInt8].Type) throws -> [UInt8] {
 		try [UInt8](unsafeUninitializedCapacity:state.outlen, initializingWith: { (buffer, initializedCount) in
-			try Self.finalize(state:&state, RAW_data:buffer.baseAddress!)
+			try Self.finalize(state:&state, RAW_data_ptr:buffer.baseAddress!)
 			initializedCount = state.outlen
 		})
 	}
@@ -86,15 +86,15 @@ public struct Hasher<H:RAW_blake2_func_impl, O:RAW_decodable> {
 
 	/// update the hasher with the given bytes as input.
 	public mutating func update(RAW_data:UnsafeRawPointer, RAW_size:size_t) throws {
-		try RAW_blake2_func_type.update(state:&state, RAW_data:RAW_data, RAW_size:RAW_size)
+		try RAW_blake2_func_type.update(state:&state, RAW_data_ptr:RAW_data, RAW_size:RAW_size)
 	}
 
 	/// finish the hashing process and return the result as a byte array.
 	public mutating func finish() throws -> RAW_blake2_out_type {
 		let finalHashedBytes = try RAW_blake2_func_type.finalize(state:&state, to:[UInt8].self)
-		return finalHashedBytes.asRAW_val({ bytes, size in
-			RAW_blake2_out_type(RAW_data:bytes, RAW_size:size)!
-		})
+		var i = 0
+		
+		RAW_blake2_out_type(RAW_decode: finalHashedBytes)
 	}
 }
 
@@ -130,7 +130,7 @@ extension Hasher where RAW_blake2_out_type == [UInt8] {
 	/// initialize the hasher, preparing it for use with a specified key value.
 	public init(key:UnsafeRawPointer, keySize:size_t, outputLength:size_t) throws {
 		var newState = RAW_blake2_func_type.RAW_blake2_statetype()
-		try Self.RAW_blake2_func_type.create(state:&newState, RAW_key_data:key, RAW_key_size:keySize, outputLength:outputLength)
+		try Self.RAW_blake2_func_type.create(state:&newState, RAW_key_data_ptr:key, RAW_key_size:keySize, outputLength:outputLength)
 		self.state = newState
 	}
 }

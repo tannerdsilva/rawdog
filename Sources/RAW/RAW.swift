@@ -10,35 +10,32 @@ import func CRAW.memcpy
 public let RAW_memcmp = CRAW.memcmp
 public let RAW_memcpy = CRAW.memcpy
 
+#if RAWDOG_LOG
+import Logging
+internal func makeDefaultLogger(label loggerLabel:String, level:Logger.Level) -> Logger {
+	let logger = Logger(label:loggerLabel)
+	logger.logLevel = .trace
+	return logger
+}
+internal let mainLogger = Logger(label:"RAW")
+#endif
+
 /// a default implementation of the ``RAW_val`` protocol.
 @frozen public struct val:RAW_val {
 	/// the raw data that the structure instance represents.
-	public let RAW_data:UnsafeRawPointer
+	public let RAW_val_data_ptr:UnsafeRawPointer
 
 	/// the size of the data that the structure instance represents.
-	public let RAW_size:size_t
+	public let RAW_val_size:size_t
 
 	/// creates a new RAW object from a given size and pointer.
-	public init(RAW_data:UnsafeRawPointer, RAW_size:UnsafePointer<size_t>) {
-		self.RAW_data = RAW_data
-		self.RAW_size = RAW_size.pointee
-	}
-}
+	public init(RAW_val_size:size_t, RAW_val_data_ptr:UnsafeRawPointer) {
+		self.RAW_val_data_ptr = RAW_val_data_ptr
+		self.RAW_val_size = RAW_val_size
 
-extension val:RAW_encodable {
-	/// allow for encodable access to the raw data.
-	public func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
-		return try withUnsafePointer(to:self.RAW_size) { sizePtr in
-			return try valFunc(self.RAW_data, sizePtr)
-		}
-	}
-}
-
-extension val:RAW_decodable {
-	/// creates a new RAW object from a given size and pointer.
-	public init(RAW_size:UnsafePointer<size_t>, RAW_data:UnsafeRawPointer) {
-		self.RAW_data = RAW_data
-		self.RAW_size = RAW_size.pointee
+		#if RAWDOG_LOG
+		mainLogger.trace("created val with size \(RAW_val_size) and data pointer \(RAW_val_data_ptr)")
+		#endif
 	}
 }
 
@@ -46,25 +43,33 @@ extension val:RAW_decodable {
 extension val:Sequence {
 
 	/// returns a new iterator that will stride the contents of the RAW_val.
-	public func makeIterator() -> RAW_iterator {
-		return RAW_iterator(self)
+	public func makeIterator() -> RAW_val_iterator {
+		return RAW_val_iterator(self)
 	}
 
 	/// an object that strides through the contents of a RAW_val.
-	public struct RAW_iterator:IteratorProtocol {
+	public struct RAW_val_iterator:IteratorProtocol {
+		
 		/// the sequence element for this iterator is UInt8
 		public typealias Element = UInt8
 
 		// represents the memory (byte buffer) that this iterator is striding through.
-		private let memory:UnsafeRawBufferPointer
+		private let memory:UnsafeRawPointer
+		
 		// the size of the data that this iterator is striding through.
 		private var size:size_t
+		
 		// the current index of the iterator.
 		private var i:size_t = 0
+		
 		// creates a new iterator based on the memory contents of a given ``RAW_val``.
 		internal init<R>(_ val:R) where R:RAW_val {
-			self.memory = UnsafeRawBufferPointer(val)
-			self.size = val.RAW_size
+			self.memory = val.RAW_val_data_ptr
+			self.size = val.RAW_val_size
+
+			#if RAWDOG_LOG
+			mainLogger.trace("created RAW_val_iterator with size \(size) and data pointer \(memory)")
+			#endif
 		}
 
 		/// returns the next element in the sequence, or nil if there are no more elements.
@@ -72,10 +77,15 @@ extension val:Sequence {
 			if (i >= size) {
 				return nil
 			} else {
+
+				#if RAWDOG_LOG
+				mainLogger.trace("RAW_val_iterator is returning element at index \(i)")
+				#endif
+
 				defer {
 					i += 1;
 				}
-				return self.memory[i]
+				return self.memory.advanced(by:i).load(as:UInt8.self)
 			}
 		}
 	}
@@ -84,22 +94,22 @@ extension val:Sequence {
 // collection conformances for RAW_val, allows for convenient random access.
 extension val:Collection {
 	/// the start index for this collection is zero.
-	public var startIndex:Int {
+	public var startIndex:size_t {
 		return 0
 	}
 
 	/// the end index for this collection is the size of the ``RAW_val``.
-	public var endIndex:Int {
-		return Int(self.RAW_size)
+	public var endIndex:size_t {
+		return self.RAW_val_size
 	}
 
 	/// returns the element at the given index.
-	public subscript(position:Int) -> UInt8 {
-		return self.RAW_data.assumingMemoryBound(to:UInt8.self).advanced(by:position).pointee
+	public subscript(position:size_t) -> UInt8 {
+		return self.RAW_val_data_ptr.assumingMemoryBound(to:UInt8.self).advanced(by:position).pointee
 	}
 
 	/// returns the index after the given index.
-	public func index(after i:Int) -> Int {
+	public func index(after i:size_t) -> size_t {
 		return i + 1
 	}
 }
