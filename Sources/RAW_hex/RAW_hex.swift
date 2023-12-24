@@ -24,12 +24,33 @@ public enum Value:UInt8 {
 	case seven = 0x37
 	case eight = 0x38
 	case nine = 0x39
+	
 	case a = 0x61
 	case b = 0x62
 	case c = 0x63
 	case d = 0x64
 	case e = 0x65
 	case f = 0x66
+	case g = 0x67
+	case h = 0x68
+	case i = 0x69
+	case j = 0x6A
+	case k = 0x6B
+	case l = 0x6C
+	case m = 0x6D
+	case n = 0x6E
+	case o = 0x6F
+	case p = 0x70
+	case q = 0x71
+	case r = 0x72
+	case s = 0x73
+	case t = 0x74
+	case u = 0x75
+	case v = 0x76
+	case w = 0x77
+	case x = 0x78
+	case y = 0x79
+	case z = 0x7A
 
 	/// initialize a hex value from a character value.
 	/// - throws: `Error.invalidHexCharacter` if the character is not a valid hex character.

@@ -32,48 +32,37 @@ extension Value:ExpressibleByIntegerLiteral {
 
 /// values are 
 extension Value:RAW_encodable, RAW_decodable {
-    public func RAW_encoded_size() -> RAW.size_t {
-        return 1
-    }
-
-    public static func RAW_decode(ptr: UnsafeRawPointer, size: RAW.size_t, stride: inout RAW.size_t) -> Value? {
-        
-    }
-
-	public func RAW_encode(ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-		return rawValue.RAW_encode(ptr:ptr)
+	public func RAW_encoded_size() -> RAW.size_t {
+		return 1
 	}
 
-	public init?(RAW_decode:inout UnsafeRawPointer, i:inout RAW.size_t) {
-		let ogValPtr:UnsafeRawPointer = RAW_decode
-		let ogI = i
-		do {
-			self = try Self(validate:UInt8(RAW_decode:&RAW_decode, i:&i)!)
-		} catch {
-			RAW_decode = ogValPtr
-			i = ogI
+	public static func RAW_decode(ptr: UnsafeRawPointer, size: RAW.size_t, stride: inout RAW.size_t) -> Value? {
+		let initialStride = stride
+		let loadByte = UInt8.RAW_decode(ptr:ptr, size:size, stride:&stride)
+		guard loadByte != nil else {
+			stride = initialStride
 			return nil
 		}
+	}
+
+	public func RAW_encode(ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		ptr.assumingMemoryBound(to:UInt8.self).pointee = self.asciiCharacter()
+		return ptr.advanced(by:1)
 	}
 }
 
 public struct EncodedData:RAW_encodable {
-    public func RAW_encoded_size() -> RAW.size_t {
-        return bytes.count + 1
-    }
-
-    public var RAW_encoded_size: RAW.size_t {
-		return bytes.count
+	public func RAW_encoded_size() -> RAW.size_t {
+		return bytes.count + 1
 	}
 
-    public func RAW_encode(ptr: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-		var afterBytes = bytes.RAW_encode(ptr:ptr)
-		for i in 0..<paddingCount {
-			afterBytes.advanced(by:Int(i)).assumingMemoryBound(to:UInt8.self).pointee = 0x3D
-			afterBytes = afterBytes.advanced(by:1)
+	public func RAW_encode(ptr: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		var ptr = ptr
+		for byte in bytes {
+			ptr = byte.RAW_encode(ptr:&ptr)
 		}
-		return afterBytes
-    }
+		return ptr
+	}
 
 	public var bytes:[Value]
 	public var paddingCount:UInt8
@@ -87,134 +76,161 @@ public struct EncodedData:RAW_encodable {
 public typealias DecodedData = [UInt8]
 
 /// represents one of the possible 64 values that are possible in a base64 encoded string.
-public enum Value {
+public enum Value:UInt8 {
 
-	// alphas
-	case A
-	case B
-	case C
-	case D
-	case E
-	case F
-	case G
-	case H
-	case I
-	case J
-	case K
-	case L
-	case M
-	case N
-	case O
-	case P
-	case Q
-	case R
-	case S
-	case T
-	case U
-	case V
-	case W
-	case X
-	case Y
-	case Z
+	// uppercase letters
+	case A = 0x41
+	case B = 0x42
+	case C = 0x43
+	case D = 0x44
+	case E = 0x45
+	case F = 0x46
+	case G = 0x47
+	case H = 0x48
+	case I = 0x49
+	case J = 0x4A
+	case K = 0x4B
+	case L = 0x4C
+	case M = 0x4D
+	case N = 0x4E
+	case O = 0x4F
+	case P = 0x50
+	case Q = 0x51
+	case R = 0x52
+	case S = 0x53
+	case T = 0x54
+	case U = 0x55
+	case V = 0x56
+	case W = 0x57
+	case X = 0x58
+	case Y = 0x59
+	case Z = 0x5A
+
+	// lowercase letters
+	case a = 0x61
+	case b = 0x62
+	case c = 0x63
+	case d = 0x64
+	case e = 0x65
+	case f = 0x66
+	case g = 0x67
+	case h = 0x68
+	case i = 0x69
+	case j = 0x6A
+	case k = 0x6B
+	case l = 0x6C
+	case m = 0x6D
+	case n = 0x6E
+	case o = 0x6F
+	case p = 0x70
+	case q = 0x71
+	case r = 0x72
+	case s = 0x73
+	case t = 0x74
+	case u = 0x75
+	case v = 0x76
+	case w = 0x77
+	case x = 0x78
+	case y = 0x79
+	case z = 0x7A
 
 	// numbers
-	case zero
-	case one
-	case two
-	case three
-	case four
-	case five
-	case six
-	case seven
-	case eight
-	case nine
+	case zero = 0x30
+	case one = 0x31
+	case two = 0x32
+	case three = 0x33
+	case four = 0x34
+	case five = 0x35
+	case six = 0x36
+	case seven = 0x37
+	case eight = 0x38
+	case nine = 0x39
 
 	// special characters
-	case plus
-	case slash
+	case plus = 0x2B
+	case slash = 0x2F
 
 }
 
 extension Value {
 	/// get the ascii representation of this base64 value.
-	func asciiCharacter(useUppercase:Bool = false) -> UInt8 {
-		switch (self, useUppercase) {
+	func asciiCharacter() -> UInt8 {
+		switch self {
 			// uppercase letters
-			case (.A, true): return 0x41
-			case (.B, true): return 0x42
-			case (.C, true): return 0x43
-			case (.D, true): return 0x44
-			case (.E, true): return 0x45
-			case (.F, true): return 0x46
-			case (.G, true): return 0x47
-			case (.H, true): return 0x48
-			case (.I, true): return 0x49
-			case (.J, true): return 0x4A
-			case (.K, true): return 0x4B
-			case (.L, true): return 0x4C
-			case (.M, true): return 0x4D
-			case (.N, true): return 0x4E
-			case (.O, true): return 0x4F
-			case (.P, true): return 0x50
-			case (.Q, true): return 0x51
-			case (.R, true): return 0x52
-			case (.S, true): return 0x53
-			case (.T, true): return 0x54
-			case (.U, true): return 0x55
-			case (.V, true): return 0x56
-			case (.W, true): return 0x57
-			case (.X, true): return 0x58
-			case (.Y, true): return 0x59
-			case (.Z, true): return 0x5A
+			case .A: return 0x41
+			case .B: return 0x42
+			case .C: return 0x43
+			case .D: return 0x44
+			case .E: return 0x45
+			case .F: return 0x46
+			case .G: return 0x47
+			case .H: return 0x48
+			case .I: return 0x49
+			case .J: return 0x4A
+			case .K: return 0x4B
+			case .L: return 0x4C
+			case .M: return 0x4D
+			case .N: return 0x4E
+			case .O: return 0x4F
+			case .P: return 0x50
+			case .Q: return 0x51
+			case .R: return 0x52
+			case .S: return 0x53
+			case .T: return 0x54
+			case .U: return 0x55
+			case .V: return 0x56
+			case .W: return 0x57
+			case .X: return 0x58
+			case .Y: return 0x59
+			case .Z: return 0x5A
 
 			// lowercase letters
-			case (.A, false): return 0x61
-			case (.B, false): return 0x62
-			case (.C, false): return 0x63
-			case (.D, false): return 0x64
-			case (.E, false): return 0x65
-			case (.F, false): return 0x66
-			case (.G, false): return 0x67
-			case (.H, false): return 0x68
-			case (.I, false): return 0x69
-			case (.J, false): return 0x6A
-			case (.K, false): return 0x6B
-			case (.L, false): return 0x6C
-			case (.M, false): return 0x6D
-			case (.N, false): return 0x6E
-			case (.O, false): return 0x6F
-			case (.P, false): return 0x70
-			case (.Q, false): return 0x71
-			case (.R, false): return 0x72
-			case (.S, false): return 0x73
-			case (.T, false): return 0x74
-			case (.U, false): return 0x75
-			case (.V, false): return 0x76
-			case (.W, false): return 0x77
-			case (.X, false): return 0x78
-			case (.Y, false): return 0x79
-			case (.Z, false): return 0x7A
+			case .a: return 0x61
+			case .b: return 0x62
+			case .c: return 0x63
+			case .d: return 0x64
+			case .e: return 0x65
+			case .f: return 0x66
+			case .g: return 0x67
+			case .h: return 0x68
+			case .i: return 0x69
+			case .j: return 0x6A
+			case .k: return 0x6B
+			case .l: return 0x6C
+			case .m: return 0x6D
+			case .n: return 0x6E
+			case .o: return 0x6F
+			case .p: return 0x70
+			case .q: return 0x71
+			case .r: return 0x72
+			case .s: return 0x73
+			case .t: return 0x74
+			case .u: return 0x75
+			case .v: return 0x76
+			case .w: return 0x77
+			case .x: return 0x78
+			case .y: return 0x79
+			case .z: return 0x7A
 
 			// numbers
-			case (.zero, _): return 0x30
-			case (.one, _): return 0x31
-			case (.two, _): return 0x32
-			case (.three, _): return 0x33
-			case (.four, _): return 0x34
-			case (.five, _): return 0x35
-			case (.six, _): return 0x36
-			case (.seven, _): return 0x37
-			case (.eight, _): return 0x38
-			case (.nine, _): return 0x39
+			case .zero: return 0x30
+			case .one: return 0x31
+			case .two: return 0x32
+			case .three: return 0x33
+			case .four: return 0x34
+			case .five: return 0x35
+			case .six: return 0x36
+			case .seven: return 0x37
+			case .eight: return 0x38
+			case .nine: return 0x39
 
 			// symbols
-			case (.plus, _): return 0x2B
-			case (.slash, _): return 0x2F
+			case .plus: return 0x2B
+			case .slash: return 0x2F
 
 			default: fatalError()
 		}
 	}
-
 
 	/// initialize a base64 value based on a byte value that is already validated to be a valid base64 value.
 	/// - NOTE: this function will crash if the provided byte value is not a valid base64 value.
@@ -275,57 +291,57 @@ extension Value {
 
 			// lc:
 			case 0x61:
-			self = .A
+			self = .a
 			case 0x62:
-			self = .B
+			self = .b
 			case 0x63:
-			self = .C
+			self = .c
 			case 0x64:
-			self = .D
+			self = .d
 			case 0x65:
-			self = .E
+			self = .e
 			case 0x66:
-			self = .F
+			self = .f
 			case 0x67:
-			self = .G
+			self = .g
 			case 0x68:
-			self = .H
+			self = .h
 			case 0x69:
-			self = .I
+			self = .i
 			case 0x6A:
-			self = .J
+			self = .j
 			case 0x6B:
-			self = .K
+			self = .k
 			case 0x6C:
-			self = .L
+			self = .l
 			case 0x6D:
-			self = .M
+			self = .m
 			case 0x6E:
-			self = .N
+			self = .n
 			case 0x6F:
-			self = .O
+			self = .o
 			case 0x70:
-			self = .P
+			self = .p
 			case 0x71:
-			self = .Q
+			self = .q
 			case 0x72:
-			self = .R
+			self = .r
 			case 0x73:
-			self = .S
+			self = .s
 			case 0x74:
-			self = .T
+			self = .t
 			case 0x75:
-			self = .U
+			self = .u
 			case 0x76:
-			self = .V
+			self = .v
 			case 0x77:
-			self = .W
+			self = .w
 			case 0x78:
-			self = .X
+			self = .x
 			case 0x79:
-			self = .Y
+			self = .y
 			case 0x7A:
-			self = .Z
+			self = .z
 
 			// number
 			case 0x30:
@@ -417,57 +433,57 @@ extension Value {
 
 			// lc:
 			case 0x61:
-			self = .A
+			self = .a
 			case 0x62:
-			self = .B
+			self = .b
 			case 0x63:
-			self = .C
+			self = .c
 			case 0x64:
-			self = .D
+			self = .d
 			case 0x65:
-			self = .E
+			self = .e
 			case 0x66:
-			self = .F
+			self = .f
 			case 0x67:
-			self = .G
+			self = .g
 			case 0x68:
-			self = .H
+			self = .h
 			case 0x69:
-			self = .I
+			self = .i
 			case 0x6A:
-			self = .J
+			self = .j
 			case 0x6B:
-			self = .K
+			self = .k
 			case 0x6C:
-			self = .L
+			self = .l
 			case 0x6D:
-			self = .M
+			self = .m
 			case 0x6E:
-			self = .N
+			self = .n
 			case 0x6F:
-			self = .O
+			self = .o
 			case 0x70:
-			self = .P
+			self = .p
 			case 0x71:
-			self = .Q
+			self = .q
 			case 0x72:
-			self = .R
+			self = .r
 			case 0x73:
-			self = .S
+			self = .s
 			case 0x74:
-			self = .T
+			self = .t
 			case 0x75:
-			self = .U
+			self = .u
 			case 0x76:
-			self = .V
+			self = .v
 			case 0x77:
-			self = .W
+			self = .w
 			case 0x78:
-			self = .X
+			self = .x
 			case 0x79:
-			self = .Y
+			self = .y
 			case 0x7A:
-			self = .Z
+			self = .z
 
 			// number
 			case 0x30:
@@ -501,6 +517,88 @@ extension Value {
 			fatalError()
 		}
 	}
+}
+
+extension Value:Equatable, Hashable {
+	// conformance to hashable.
+	// - pass the ascii representation of the value to the hasher.
+	public func hash(into hasher:inout Hasher) {
+		hasher.combine(self.asciiCharacter())
+	}
+
+	public static func == (lhs:Value, rhs:Value) -> Bool {
+		switch (lhs, rhs) {
+			case (.A, .A): return true
+			case (.B, .B): return true
+			case (.C, .C): return true
+			case (.D, .D): return true
+			case (.E, .E): return true
+			case (.F, .F): return true
+			case (.G, .G): return true
+			case (.H, .H): return true
+			case (.I, .I): return true
+			case (.J, .J): return true
+			case (.K, .K): return true
+			case (.L, .L): return true
+			case (.M, .M): return true
+			case (.N, .N): return true
+			case (.O, .O): return true
+			case (.P, .P): return true
+			case (.Q, .Q): return true
+			case (.R, .R): return true
+			case (.S, .S): return true
+			case (.T, .T): return true
+			case (.U, .U): return true
+			case (.V, .V): return true
+			case (.W, .W): return true
+			case (.X, .X): return true
+			case (.Y, .Y): return true
+			case (.Z, .Z): return true
+
+			case (.a, .a): return true
+			case (.b, .b): return true
+			case (.c, .c): return true
+			case (.d, .d): return true
+			case (.e, .e): return true
+			case (.f, .f): return true
+			case (.g, .g): return true
+			case (.h, .h): return true
+			case (.i, .i): return true
+			case (.j, .j): return true
+			case (.k, .k): return true
+			case (.l, .l): return true
+			case (.m, .m): return true
+			case (.n, .n): return true
+			case (.o, .o): return true
+			case (.p, .p): return true
+			case (.q, .q): return true
+			case (.r, .r): return true
+			case (.s, .s): return true
+			case (.t, .t): return true
+			case (.u, .u): return true
+			case (.v, .v): return true
+			case (.w, .w): return true
+			case (.x, .x): return true
+			case (.y, .y): return true
+			case (.z, .z): return true
+			
+			case (.one, .one): return true
+			case (.two, .two): return true
+			case (.three, .three): return true
+			case (.four, .four): return true
+			case (.five, .five): return true
+			case (.six, .six): return true
+			case (.seven, .seven): return true
+			case (.eight, .eight): return true
+			case (.nine, .nine): return true
+
+			case (.plus, .plus): return true
+			case (.slash, .slash): return true
+
+			default: return false
+		}
+	}
+	
 }
 
 internal struct RFC4648 {
