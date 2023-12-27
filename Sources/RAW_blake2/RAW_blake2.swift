@@ -51,7 +51,6 @@ public protocol RAW_blake2_func_impl {
 	typealias RAW_blake2_func_impl_exec_update_t = (UnsafeMutablePointer<RAW_blake2_statetype>?, UnsafeRawPointer?, Int) -> Int32
 	typealias RAW_blake2_func_impl_exec_finalize_t = (UnsafeMutablePointer<RAW_blake2_statetype>?, UnsafeMutableRawPointer?, Int) -> Int32
 
-	/// 
 	static var RAW_blake2_func_impl_exec_init_nokey_f:RAW_blake2_func_impl_exec_init_nokey_t { get }
 	static var RAW_blake2_func_impl_exec_init_keyed_f:RAW_blake2_func_impl_exec_init_keyed_t { get }
 	static var RAW_blake2_func_impl_exec_update_f:RAW_blake2_func_impl_exec_update_t { get }
