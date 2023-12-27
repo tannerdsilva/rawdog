@@ -1,7 +1,6 @@
 import RAW
 import CRAW
 import CRAW_base64
-import Logging
 
 /// error thrown by Base64 encoding/decoding functions
 public enum Error:Swift.Error {
@@ -30,52 +29,32 @@ extension Value:ExpressibleByIntegerLiteral {
 	}
 }
 
-/// values are 
-extension Value:RAW_encodable, RAW_decodable {
-	public func RAW_encoded_size() -> RAW.size_t {
-		return 1
-	}
+// public struct EncodedData:RAW_encodable {
+// 	public func RAW_encoded_size() -> RAW.size_t {
+// 		return bytes.count + 1
+// 	}
 
-	public static func RAW_decode(ptr: UnsafeRawPointer, size: RAW.size_t, stride: inout RAW.size_t) -> Value? {
-		let initialStride = stride
-		let loadByte = UInt8.RAW_decode(ptr:ptr, size:size, stride:&stride)
-		guard loadByte != nil else {
-			stride = initialStride
-			return nil
-		}
-	}
+// 	public func RAW_encode(ptr: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+// 		var ptr = ptr
+// 		for byte in bytes {
+// 			ptr = byte.RAW_encode(ptr:&ptr)
+// 		}
+// 		return ptr
+// 	}
 
-	public func RAW_encode(ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-		ptr.assumingMemoryBound(to:UInt8.self).pointee = self.asciiCharacter()
-		return ptr.advanced(by:1)
-	}
-}
+// 	public var bytes:[Value]
+// 	public var paddingCount:UInt8
 
-public struct EncodedData:RAW_encodable {
-	public func RAW_encoded_size() -> RAW.size_t {
-		return bytes.count + 1
-	}
-
-	public func RAW_encode(ptr: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-		var ptr = ptr
-		for byte in bytes {
-			ptr = byte.RAW_encode(ptr:&ptr)
-		}
-		return ptr
-	}
-
-	public var bytes:[Value]
-	public var paddingCount:UInt8
-
-	public init(bytes:[Value], paddingCount:UInt8) {
-		self.bytes = bytes
-		self.paddingCount = paddingCount
-	}
-}
+// 	public init(bytes:[Value], paddingCount:UInt8) {
+// 		self.bytes = bytes
+// 		self.paddingCount = paddingCount
+// 	}
+// }
 
 public typealias DecodedData = [UInt8]
 
 /// represents one of the possible 64 values that are possible in a base64 encoded string.
+/// raw values are the ascii values of the characters.
 public enum Value:UInt8 {
 
 	// uppercase letters
@@ -154,7 +133,7 @@ public enum Value:UInt8 {
 
 extension Value {
 	/// get the ascii representation of this base64 value.
-	func asciiCharacter() -> UInt8 {
+	public func asciiValue() -> UInt8 {
 		switch self {
 			// uppercase letters
 			case .A: return 0x41
@@ -227,8 +206,6 @@ extension Value {
 			// symbols
 			case .plus: return 0x2B
 			case .slash: return 0x2F
-
-			default: fatalError()
 		}
 	}
 
@@ -523,7 +500,7 @@ extension Value:Equatable, Hashable {
 	// conformance to hashable.
 	// - pass the ascii representation of the value to the hasher.
 	public func hash(into hasher:inout Hasher) {
-		hasher.combine(self.asciiCharacter())
+		hasher.combine(self.asciiValue())
 	}
 
 	public static func == (lhs:Value, rhs:Value) -> Bool {
@@ -610,7 +587,7 @@ internal struct RFC4648 {
 		public static subscript(_ index:Int) -> Base64Value {
 			switch index {
 
-			// Uppercase letters
+			// uppercase letters
 			case 0: return .A
 			case 1: return .B
 			case 2: return .C
@@ -638,35 +615,35 @@ internal struct RFC4648 {
 			case 24: return .Y
 			case 25: return .Z
 
-			// Lowercase letters
-			case 26: return .A
-			case 27: return .B
-			case 28: return .C
-			case 29: return .D
-			case 30: return .E
-			case 31: return .F
-			case 32: return .G
-			case 33: return .H
-			case 34: return .I
-			case 35: return .J
-			case 36: return .K
-			case 37: return .L
-			case 38: return .M
-			case 39: return .N
-			case 40: return .O
-			case 41: return .P
-			case 42: return .Q
-			case 43: return .R
-			case 44: return .S
-			case 45: return .T
-			case 46: return .U
-			case 47: return .V
-			case 48: return .W
-			case 49: return .X
-			case 50: return .Y
-			case 51: return .Z
+			// lowercase letters
+			case 26: return .a
+			case 27: return .b
+			case 28: return .c
+			case 29: return .d
+			case 30: return .e
+			case 31: return .f
+			case 32: return .g
+			case 33: return .h
+			case 34: return .i
+			case 35: return .j
+			case 36: return .k
+			case 37: return .l
+			case 38: return .m
+			case 39: return .n
+			case 40: return .o
+			case 41: return .p
+			case 42: return .q
+			case 43: return .r
+			case 44: return .s
+			case 45: return .t
+			case 46: return .u
+			case 47: return .v
+			case 48: return .w
+			case 49: return .x
+			case 50: return .y
+			case 51: return .z
 
-			// Digits 0-9
+			// digits 0-9
 			case 52: return .zero
 			case 53: return .one
 			case 54: return .two
@@ -678,7 +655,7 @@ internal struct RFC4648 {
 			case 60: return .eight
 			case 61: return .nine
 
-			// Special characters
+			// special characters
 			case 62: return .plus
 			case 63: return .slash
 
@@ -735,10 +712,10 @@ internal func base64_encoded_length_without_padding(_ bytes:size_t) -> size_t {
 	let fullBlocks = bytes / 3
 	let remainingBytes = bytes % 3
 
-	// Each full block of 3 bytes becomes 4 bytes in Base64
+	// each full block of 3 bytes becomes 4 bytes in Base64
 	let fullBlockLength = fullBlocks * 4
 
-	// Calculate the length contribution of the remaining bytes
+	// calculate the length contribution of the remaining bytes
 	let remainingBlockLength = remainingBytes > 0 ? (remainingBytes + 1) : 0
 
 	return fullBlockLength + remainingBlockLength
@@ -760,64 +737,72 @@ internal func sixbit_from_b64(_ b64letter:UInt8) throws -> UInt8 {
 	}
 }
 
-func base64_encode_triplet_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ src:UnsafeRawBufferPointer) {
-	dest[0] = sixbit_to_b64((src[0] & 0xfc) >> 2)
-	dest[1] = sixbit_to_b64(((src[0] & 0x3) << 4) | ((src[1] & 0xf0) >> 4))
-	dest[2] = sixbit_to_b64(((src[1] & 0xf) << 2) | ((src[2] & 0xc0) >> 6))
-	dest[3] = sixbit_to_b64(src[2] & 0x3f)
+func base64_encode_triplet_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ src:(UInt8, UInt8, UInt8)) {
+	dest[0] = sixbit_to_b64((src.0 & 0xfc) >> 2)
+	dest[1] = sixbit_to_b64(((src.0 & 0x3) << 4) | ((src.1 & 0xf0) >> 4))
+	dest[2] = sixbit_to_b64(((src.1 & 0xf) << 2) | ((src.2 & 0xc0) >> 6))
+	dest[3] = sixbit_to_b64(src.2 & 0x3f)
 }
 
-func base64_encode_tail_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ destPadding:inout UInt8, _ src:UnsafeRawBufferPointer) {
-	let sourceCount = src.count
-	var longsrc:(UInt8, UInt8, UInt8)
-	destPadding = 0
-	// idk if this is right
-	switch sourceCount {
+func base64_encode_tail_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ destPadding:inout UInt8, _ src:UnsafePointer<(UInt8, UInt8, UInt8)>, _ sourceCount:size_t) {
+	let longsrc:(UInt8, UInt8, UInt8)
+ 	switch sourceCount {
 		case 1:
-			longsrc = (src[0], 0, 0)
+			longsrc = (src.pointee.0, 0, 0)
 			destPadding = 2
 		case 2:
-			longsrc = (src[0], src[1], 0)
+			longsrc = (src.pointee.0, src.pointee.1, 0)
 			destPadding = 1
 		case 3:
-			longsrc = (src[0], src[1], src[2])
+			longsrc = (src.pointee.0, src.pointee.1, src.pointee.2)
 			destPadding = 0
 		default:
 			fatalError("source length exceeds 3 bytes")
 	}
-	withUnsafePointer(to:longsrc) { longsrcptr in
-		base64_encode_triplet_using_maps(dest, UnsafeRawBufferPointer(start:longsrcptr, count:sourceCount))
-	}
+	base64_encode_triplet_using_maps(dest, longsrc)
 }
 
 /// - note: this function assumes that the destination buffer is large enough to hold the encoded data. despite taking the destination buffer size as a parameter, this function does not check that the destination buffer is large enough to hold the encoded data.
-func base64_encode_using_maps(_ src:UnsafeRawBufferPointer) -> Encoded {
-	let srclen = src.count
-	let writeBuffer = UnsafeMutableBufferPointer<Value>.allocate(capacity:base64_encoded_length_without_padding(srclen))
+func base64_encode_using_maps(ptr:UnsafeRawPointer, size:size_t) -> Encoded {
+	let srclen = size
+	let encodedLengthWithoutPadding = base64_encoded_length_without_padding(srclen)
+	var destPadding:UInt8 = 0
 	var srcOffset = 0
 	var destOffset = 0
-	var destPadding:UInt8 = 0
-	while srclen - srcOffset >= 3 {
-		base64_encode_triplet_using_maps(UnsafeMutableBufferPointer(rebasing:writeBuffer[destOffset...]), UnsafeRawBufferPointer(rebasing:src[srcOffset...]))
-		srcOffset += 3
-		destOffset += 4
-	}
-	if srcOffset < srclen {
-		base64_encode_tail_using_maps(UnsafeMutableBufferPointer(rebasing:writeBuffer[destOffset...]), &destPadding, UnsafeRawBufferPointer(rebasing:src[srcOffset...]))
-		destOffset += 4
-	}
-	return Encoded(bytes:[Value](writeBuffer), paddingCount:destPadding)
+	let byteValues = [Value](unsafeUninitializedCapacity:encodedLengthWithoutPadding, initializingWith: { writeBuffer, sizeThign in
+		var srcPtr = ptr
+		while (srclen - srcOffset) >= 3 {
+			let currentDest = UnsafeMutableBufferPointer(rebasing:writeBuffer[destOffset...])
+			base64_encode_triplet_using_maps(currentDest, srcPtr.assumingMemoryBound(to:(UInt8, UInt8, UInt8).self).pointee)
+			srcOffset += 3
+			destOffset += 4
+			srcPtr += 3
+		}
+		if srcOffset < srclen {
+			let remainingBytes = srclen - srcOffset
+			base64_encode_tail_using_maps(UnsafeMutableBufferPointer(rebasing:writeBuffer[destOffset...]), &destPadding, srcPtr.assumingMemoryBound(to:(UInt8, UInt8, UInt8).self), remainingBytes)
+			destOffset += 4
+		}
+		sizeThign = encodedLengthWithoutPadding
+	})
+	return Encoded(bytes:byteValues, paddingCount:destPadding)
+}
+
+public struct Encoded {
+	public var bytes:[Value]
+	public var paddingCount:UInt8
 }
 
 /// encode a bytestream representatin to a base64 string.
 /// - parameter bytes: the byte representation to encode.
 /// - throws: ``Error.encodingError`` if the byte representation could not be encoded. this should never be thrown under normal operating conditions.
-public func encode<RE>(bytes rawBytes:RE) throws -> [Value] where RE:RAW_encodable {
-	return rawBytes.asRAW_val { rawDat, rawSiz in
-		base64_encode_using_maps(UnsafeRawBufferPointer(start:rawDat, count:rawSiz.pointee), rawSiz.pointee)
-		return [Value](newBytes)
-	}
+public func encode<RE>(bytes rawBytes:RE) throws -> Encoded where RE:RAW_encodable {
+	let getBuff = rawBytes.RAW_encoded_bytes()
+	let buffSize = getBuff.count
+	return base64_encode_using_maps(ptr:getBuff, size:buffSize)
 }
+
+// public func base64_decode_using_maps(ptr:UnsafeRaw)
 
 /// decode a base64 string to a byte array.
 /// - parameter dataEncoding: the base64 string to decode.

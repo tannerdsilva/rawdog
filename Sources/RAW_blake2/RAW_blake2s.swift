@@ -24,15 +24,15 @@ public struct S:RAW_blake2_func_impl {
 	}
 
 	/// primary update function for the hasher.
-	public static func update(state:inout RAW_blake2_statetype, RAW_data_ptr:UnsafeRawPointer, RAW_size:size_t) throws {
-		guard blake2s_update(&state, RAW_data_ptr, RAW_size) == 0 else {
+	public static func update(state:inout RAW_blake2_statetype, RAW_val_data_ptr:UnsafeRawPointer, RAW_val_size:size_t) throws {
+		guard blake2s_update(&state, RAW_val_data_ptr, RAW_val_size) == 0 else {
 			throw Error.updateError
 		}
 	}
 
 	/// finish the hashing process and return the result.
-	public static func finalize(state:inout RAW_blake2_statetype, RAW_data_ptr:UnsafeMutableRawPointer) throws {
-		guard blake2s_final(&state, RAW_data_ptr, state.outlen) == 0 else {
+	public static func finalize(state:inout RAW_blake2_statetype, RAW_val_data_ptr:UnsafeMutableRawPointer) throws {
+		guard blake2s_final(&state, RAW_val_data_ptr, state.outlen) == 0 else {
 			throw Error.exportError
 		}
 	}

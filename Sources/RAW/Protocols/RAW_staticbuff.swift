@@ -9,18 +9,12 @@ public protocol RAW_staticbuff:RAW_encodable, RAW_decodable, RAW_comparable {
 }
 
 extension RAW_staticbuff {
-	// the underlying storage type (and its size) of the static buffer.
-	public static func RAW_staticbuff_size() -> size_t {
-		return MemoryLayout<RAW_staticbuff_storetype>.size
-	}
-
-	public static func RAW_decode(ptr:UnsafeRawPointer, size:size_t, stride:inout size_t) -> Self? {
-		// validate that the buffer is large enough to parse a value of this type. since the protocol assumes that there may be additional data in the buffer that is not part of this value, we can allow lengths greater than.
-		guard size >= MemoryLayout<RAW_staticbuff_storetype>.size else {
+	/// initialize from the given raw buffer representation.
+	public init?(RAW_decode bytes:UnsafeRawPointer, size:size_t) {
+		guard size == MemoryLayout<RAW_staticbuff_storetype>.size else {
 			return nil
 		}
-		stride += MemoryLayout<RAW_staticbuff_storetype>.size
-		return Self(RAW_staticbuff_storetype:ptr)
+		self.init(RAW_staticbuff_storetype:bytes.assumingMemoryBound(to:RAW_staticbuff_storetype.self))
 	}
 }
 
