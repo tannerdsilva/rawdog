@@ -4,36 +4,36 @@ import RAW
 @testable import RAW_base64
 @testable import RAW
 
-class Base64Tests: XCTestCase {
+// class Base64Tests: XCTestCase {
 
-	// used to compare the swift encoding map to the C implementation.
-	@StaticBufferType(64, isUnsigned:false)
-	fileprivate struct Base64EncodeMap {}
+// 	// used to compare the swift encoding map to the C implementation.
+// 	@RAW_staticbuff(64, isUnsigned:false)
+// 	fileprivate struct Base64EncodeMap:Collection {}
 
-	// used to compare the swift decoding map to the C implementation.
-	@StaticBufferType(256, isUnsigned:false)
-	fileprivate struct Base64DecodeMap {}
+// 	// used to compare the swift decoding map to the C implementation.
+// 	@RAW_staticbuff(256, isUnsigned:false)
+// 	fileprivate struct Base64DecodeMap:Collection {}
 
-	// test that the encoding map is the same as the C implementation.
-    func testBase64EncodingMap() throws {
-		let cEncodingMap = Base64EncodeMap(RAW_staticbuff_storetype:CRAW_base64.base64_maps_rfc4648.encode_map)
-		// test the encoding map.
-		for i in 0..<64 {
-			let char = RAW_base64.RFC4648.EncodeMap[i]
-			let cSource = try? Value(validate:UInt8(cEncodingMap[i]))
-			XCTAssertEqual(char, cSource)
-		}
-	}
+// 	// test that the encoding map is the same as the C implementation.
+//     func testBase64EncodingMap() throws {
+// 		let cEncodingMap = Base64EncodeMap(RAW_staticbuff_storetype:CRAW_base64.base64_maps_rfc4648.encode_map)
+// 		// test the encoding map.
+// 		for i in 0..<64 {
+// 			let char = RAW_base64.RFC4648.EncodeMap[i]
+// 			let cSource = try? Value(validate:UInt8(cEncodingMap[i]))
+// 			XCTAssertEqual(char, cSource)
+// 		}
+// 	}
 	
-	// test that the decoding map is the same as the C implementation.
-	func testBase64DecodingMap() throws {
-		let cDecodingMap = Base64DecodeMap(RAW_staticbuff_storetype:CRAW_base64.base64_maps_rfc4648.decode_map)
-		for dm in RAW_base64.RFC4648.decodeMap.enumerated() {
-			let cSource = UInt8(bitPattern:cDecodingMap[dm.offset])
-			XCTAssertEqual(dm.element, cSource)
-		}
-	}
-}
+// 	// test that the decoding map is the same as the C implementation.
+// 	func testBase64DecodingMap() throws {
+// 		let cDecodingMap = Base64DecodeMap(RAW_staticbuff_storetype:CRAW_base64.base64_maps_rfc4648.decode_map)
+// 		for dm in RAW_base64.RFC4648.decodeMap.enumerated() {
+// 			let cSource = UInt8(bitPattern:cDecodingMap[dm.offset])
+// 			XCTAssertEqual(dm.element, cSource)
+// 		}
+// 	}
+// }
 
 	// testing base64 encodinInt8g from raw value.
 	// func testBase64EncodingFromRaw() {

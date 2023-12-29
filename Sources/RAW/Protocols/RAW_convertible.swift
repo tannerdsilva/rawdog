@@ -4,18 +4,41 @@ public protocol RAW_decodable {
 	/// initialize from the contents of a raw data buffer.
 	/// the byte buffer SHOULD be considered comprehensive and exact, meaning that any failure to stride in full should result in a nil return.
 	/// - note: the initializer may returrn nil if the value is considered invalid or malformed.
-	init?(RAW_decode bytes:UnsafeRawPointer, size:size_t)
+	init?(RAW_decode:UnsafeRawPointer, size:size_t)
 }
 
+// implement convenience initializers for common types that represent byte buffers
 extension RAW_decodable {
-	/// initialize the value from an array of bytes.
+	public init?<S>(RAW_decode:S) where S:Sequence, S.Element == UInt8 {
+		self.init(RAW_decode:Array(RAW_decode))
+	}
+
+	public init?<C>(RAW_decode:C) where C:Collection, C.Element == UInt8 {
+		self.init(RAW_decode:Array(RAW_decode))
+	}
+	
 	public init?(RAW_decode bytes:[UInt8]) {
 		self.init(RAW_decode:bytes, size:bytes.count)
 	}
 
-	/// initialize the value from the bytes.
 	public init?(RAW_decode bytes:UnsafePointer<UInt8>, size:size_t) {
 		self.init(RAW_decode:bytes, size:size)
+	}
+
+	public init?(RAW_decode bytes:UnsafeMutableBufferPointer<UInt8>) {
+		self.init(RAW_decode:bytes.baseAddress!, size:bytes.count)
+	}
+
+	public init?(RAW_decode bytes:UnsafeMutableRawBufferPointer) {
+		self.init(RAW_decode:bytes.baseAddress!, size:bytes.count)
+	}
+
+	public init?(RAW_decode bytes:UnsafeRawBufferPointer) {
+		self.init(RAW_decode:bytes.baseAddress!, size:bytes.count)
+	}
+
+	public init?(RAW_decode bytes:UnsafeBufferPointer<UInt8>) {
+		self.init(RAW_decode:bytes.baseAddress!, size:bytes.count)
 	}
 }
 
@@ -28,25 +51,21 @@ public protocol RAW_encodable {
 	func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer
 }
 
-extension RAW_encodable {
+public protocol RAW_accessible:RAW_encodable {
+	func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R
+}
 
-	@available(*, deprecated)
-	func RAW_encode(ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-		return self.RAW_encode(dest:ptr)
+public extension RAW_accessible {
+	func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		return RAW_access { (ptr, datSize) in
+			return RAW_memcpy(dest, ptr, datSize)!.advanced(by:datSize)
+		}
 	}
+}
 
-	/// encode the value to a raw representation and return the bytes as an array.
+extension RAW_encodable {
+	@available(*, deprecated, message: "this function is deprecated. Use [UInt8](RAW_encodable:) instead.")
 	public func RAW_encoded_bytes() -> [UInt8] {
-		let encodedSize = self.RAW_encoded_size()
-		return [UInt8](unsafeUninitializedCapacity:encodedSize, initializingWith: { bufferPtr, initializedCount in
-			let bufferWritePtr = UnsafeMutableRawPointer(bufferPtr.baseAddress!)
-			initializedCount = encodedSize
-			#if DEBUG
-			let resultPtr = self.RAW_encode(dest:bufferWritePtr)
-			assert(bufferWritePtr.distance(to:resultPtr) == encodedSize)
-			#else
-			_ = self.RAW_encode(ptr:bufferWritePtr)
-			#endif
-		})
+		return [UInt8](RAW_encodable:self)
 	}
 }

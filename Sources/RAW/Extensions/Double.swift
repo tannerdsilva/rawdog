@@ -17,12 +17,7 @@ extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 
 	/// implements faithful comparison of the integer.
-	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_size:size_t, rhs_data:UnsafeRawPointer, rhs_size:size_t) -> Int32 {	
-		
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {	
 
 		let doubleLeft = Self(bitPattern:lhs_data.assumingMemoryBound(to:UInt64.self).pointee)
 		let doubleRight = Self(bitPattern:rhs_data.assumingMemoryBound(to:UInt64.self).pointee)
@@ -56,12 +51,7 @@ extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	}
 
 	/// implements faithful comparison of the integer.
-	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_size:size_t, rhs_data:UnsafeRawPointer, rhs_size:size_t) -> Int32 {	
-		
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {	
 
 		let doubleLeft = Self(bitPattern:lhs_data.assumingMemoryBound(to:UInt32.self).pointee)
 		let doubleRight = Self(bitPattern:rhs_data.assumingMemoryBound(to:UInt32.self).pointee)

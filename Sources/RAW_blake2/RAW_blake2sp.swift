@@ -9,31 +9,9 @@ public struct SP:RAW_blake2_func_impl {
 	/// the state type that this hashing variant uses
 	public typealias RAW_blake2_statetype = blake2sp_state
 
-	/// initialize the hasher, preparing it for use without a given key value.
-	public static func create(state:inout RAW_blake2_statetype, outputLength:size_t) throws {
-		guard blake2sp_init(&state, outputLength) == 0 else {
-			throw Error.initializationError
-		}
-	}
-
-	/// initialize the hasher, preparing it for use with a specified key value.
-	public static func create(state:inout RAW_blake2_statetype, RAW_key_data_ptr:UnsafeRawPointer, RAW_key_size:size_t, outputLength:Int) throws {
-		guard blake2sp_init_key(&state, outputLength, RAW_key_data_ptr, RAW_key_size) == 0 else {
-			throw Error.initializationError
-		}
-	}
-
-	/// primary update function for the hasher.
-	public static func update(state:inout RAW_blake2_statetype, RAW_val_data_ptr:UnsafeRawPointer, RAW_val_size:size_t) throws {
-		guard blake2sp_update(&state, RAW_val_data_ptr, RAW_val_size) == 0 else {
-			throw Error.updateError
-		}
-	}
-
-	/// finish the hashing process and return the result.
-	public static func finalize(state:inout RAW_blake2_statetype, RAW_val_data_ptr:UnsafeMutableRawPointer) throws {
-		guard blake2sp_final(&state, RAW_val_data_ptr, state.outlen) == 0 else {
-			throw Error.exportError
-		}
-	}
+	
+	public static let RAW_blake2_func_impl_exec_init_nokey_f:RAW_blake2_func_impl_exec_init_nokey_t = blake2sp_init
+	public static let RAW_blake2_func_impl_exec_init_keyed_f:RAW_blake2_func_impl_exec_init_keyed_t = blake2sp_init_key
+	public static let RAW_blake2_func_impl_exec_update_f:RAW_blake2_func_impl_exec_update_t = blake2sp_update
+	public static let RAW_blake2_func_impl_exec_finalize_f:RAW_blake2_func_impl_exec_finalize_t = blake2sp_final
 }

@@ -737,15 +737,15 @@ internal func sixbit_from_b64(_ b64letter:UInt8) throws -> UInt8 {
 	}
 }
 
-func base64_encode_triplet_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ src:(UInt8, UInt8, UInt8)) {
-	dest[0] = sixbit_to_b64((src.0 & 0xfc) >> 2)
-	dest[1] = sixbit_to_b64(((src.0 & 0x3) << 4) | ((src.1 & 0xf0) >> 4))
-	dest[2] = sixbit_to_b64(((src.1 & 0xf) << 2) | ((src.2 & 0xc0) >> 6))
-	dest[3] = sixbit_to_b64(src.2 & 0x3f)
+func base64_encode_triplet_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ src:UnsafePointer<(UInt8, UInt8, UInt8)>) {
+	dest[0] = sixbit_to_b64((src.pointee.0 & 0xfc) >> 2)
+	dest[1] = sixbit_to_b64(((src.pointee.0 & 0x3) << 4) | ((src.pointee.1 & 0xf0) >> 4))
+	dest[2] = sixbit_to_b64(((src.pointee.1 & 0xf) << 2) | ((src.pointee.2 & 0xc0) >> 6))
+	dest[3] = sixbit_to_b64(src.pointee.2 & 0x3f)
 }
 
 func base64_encode_tail_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ destPadding:inout UInt8, _ src:UnsafePointer<(UInt8, UInt8, UInt8)>, _ sourceCount:size_t) {
-	let longsrc:(UInt8, UInt8, UInt8)
+	var longsrc:(UInt8, UInt8, UInt8)
  	switch sourceCount {
 		case 1:
 			longsrc = (src.pointee.0, 0, 0)
@@ -759,7 +759,7 @@ func base64_encode_tail_using_maps(_ dest:UnsafeMutableBufferPointer<Value>, _ d
 		default:
 			fatalError("source length exceeds 3 bytes")
 	}
-	base64_encode_triplet_using_maps(dest, longsrc)
+	base64_encode_triplet_using_maps(dest, &longsrc)
 }
 
 /// - note: this function assumes that the destination buffer is large enough to hold the encoded data. despite taking the destination buffer size as a parameter, this function does not check that the destination buffer is large enough to hold the encoded data.
@@ -773,7 +773,7 @@ func base64_encode_using_maps(ptr:UnsafeRawPointer, size:size_t) -> Encoded {
 		var srcPtr = ptr
 		while (srclen - srcOffset) >= 3 {
 			let currentDest = UnsafeMutableBufferPointer(rebasing:writeBuffer[destOffset...])
-			base64_encode_triplet_using_maps(currentDest, srcPtr.assumingMemoryBound(to:(UInt8, UInt8, UInt8).self).pointee)
+			base64_encode_triplet_using_maps(currentDest, srcPtr.assumingMemoryBound(to:(UInt8, UInt8, UInt8).self))
 			srcOffset += 3
 			destOffset += 4
 			srcPtr += 3
@@ -797,7 +797,7 @@ public struct Encoded {
 /// - parameter bytes: the byte representation to encode.
 /// - throws: ``Error.encodingError`` if the byte representation could not be encoded. this should never be thrown under normal operating conditions.
 public func encode<RE>(bytes rawBytes:RE) throws -> Encoded where RE:RAW_encodable {
-	let getBuff = rawBytes.RAW_encoded_bytes()
+	let getBuff = [UInt8](RAW_encodable:rawBytes)
 	let buffSize = getBuff.count
 	return base64_encode_using_maps(ptr:getBuff, size:buffSize)
 }

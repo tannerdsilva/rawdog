@@ -6,9 +6,7 @@ import XCTest
 class RAWUIntTests:XCTestCase {
 	func testAsRAWVal() throws {
 		let value:UInt = 512
-		let rawVal = value.asRAW_val { rawDat, rawSiz in
-			return Array<UInt8>(RAW_data:rawDat, RAW_size:rawSiz)
-		}
+		let rawVal = value.RAW_encoded_bytes()
 		#if arch(x86_64) || arch(arm64)
 		let expectedBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]
 		#else
@@ -23,10 +21,8 @@ class RAWUIntTests:XCTestCase {
 		#else
 		let bytes: [UInt8] = [0x00, 0x00, 0x02, 0x00]
 		#endif
-		withUnsafePointer(to:MemoryLayout<Int>.size) { sizePtr in
-			let value = UInt(RAW_data:bytes, RAW_size:sizePtr)
-			XCTAssertEqual(value, 512)
-		}
+		let value = UInt(RAW_staticbuff_storetype:bytes)
+		XCTAssertEqual(value, 512)
 	}
 }
 
@@ -34,75 +30,59 @@ class RAWUIntTests:XCTestCase {
 class RAWUInt8Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value: UInt8 = 128
-		let rawVal = value.asRAW_val { rawDat, rawSiz in
-			return Array<UInt8>(RAW_data:rawDat, RAW_size:rawSiz)
-		}
+		let rawVal = value.RAW_encoded_bytes()
 		let expectedBytes: [UInt8] = [0x80]
 		XCTAssertEqual(rawVal, expectedBytes)
 	}
 	
 	func testInitWithRAWData() {
 		let bytes: [UInt8] = [0x80]
-		withUnsafePointer(to:MemoryLayout<UInt8>.size) { sizePtr in
-			let value = UInt8(RAW_data:bytes, RAW_size:sizePtr)
-			XCTAssertEqual(value, 128)
-		}
+		let value = UInt8(RAW_staticbuff_storetype:bytes)
+		XCTAssertEqual(value, 128)
 	}
 }
 
 class RAWUInt16Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value: UInt16 = 512
-		let rawVal = value.asRAW_val { rawDat, rawSiz in
-			return Array<UInt8>(RAW_data:rawDat, RAW_size:rawSiz)
-		}
+		let rawVal = value.RAW_encoded_bytes()
 		let expectedBytes: [UInt8] = [0x02, 0x00]
 		XCTAssertEqual(rawVal, expectedBytes)
 	}
 	
 	func testInitWithRAWData() {
 		let bytes: [UInt8] = [0x02, 0x00]
-		withUnsafePointer(to:MemoryLayout<UInt16>.size) { sizePtr in
-			let value = UInt16(RAW_data:bytes, RAW_size:sizePtr)
-			XCTAssertEqual(value, 512)
-		}
+		let value = UInt16(RAW_staticbuff_storetype:bytes)
+		XCTAssertEqual(value, 512)
 	}
 }
 
 class RAWUInt32Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value: UInt32 = 512
-		let rawVal = value.asRAW_val { rawDat, rawSiz in
-			return Array<UInt8>(RAW_data:rawDat, RAW_size:rawSiz)
-		}
+		let rawVal = value.RAW_encoded_bytes()
 		let expectedBytes: [UInt8] = [0x00, 0x00, 0x02, 0x00]
 		XCTAssertEqual(rawVal, expectedBytes)
 	}
 	
 	func testInitWithRAWData() {
 		let bytes: [UInt8] = [0x00, 0x00, 0x02, 0x00]
-		withUnsafePointer(to:MemoryLayout<UInt32>.size) { sizePtr in
-			let value = UInt32(RAW_data:bytes, RAW_size:sizePtr)
-			XCTAssertEqual(value, 512)
-		}
+		let value = UInt32(RAW_staticbuff_storetype:bytes)
+		XCTAssertEqual(value, 512)
 	}
 }
 
 class RAWUInt64Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value:UInt64 = 512
-		let rawVal = value.asRAW_val { rawDat, rawSiz in
-			return Array<UInt8>(RAW_data:rawDat, RAW_size:rawSiz)
-		}
+		let rawVal = value.RAW_encoded_bytes()
 		let expectedBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]
 		XCTAssertEqual(rawVal, expectedBytes)
 	}
 	
 	func testInitWithRAWData() {
 		let bytes: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]
-		withUnsafePointer(to:MemoryLayout<UInt64>.size) { sizePtr in
-			let value = UInt64(RAW_data:bytes, RAW_size:sizePtr)
-			XCTAssertEqual(value, 512)
-		}
+		let value = UInt64(RAW_staticbuff_storetype:bytes)
+		XCTAssertEqual(value, 512)
 	}
 }

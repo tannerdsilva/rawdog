@@ -5,16 +5,9 @@ import func CRAW.memcmp;
 // extend the unsigned 64 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
 extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
-	public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_size: size_t, rhs_data: UnsafeRawPointer, rhs_size: size_t) -> Int32 {
-				
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
-		
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
 		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
-		
 		if (lhsVal < rhsVal) {
 			return -1
 		} else if (lhsVal > rhsVal) {
@@ -23,7 +16,7 @@ extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 			return 0
 		}
 	}
-
+	
 	/// initialize afrom the given raw buffer representation.
 	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
 		ptr.assumingMemoryBound(to:Self.self).pointee = self.bigEndian
@@ -42,16 +35,9 @@ extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 // extend the unsigned 32 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
 extension UInt32:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
-	public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_size: size_t, rhs_data: UnsafeRawPointer, rhs_size: size_t) -> Int32 {
-				
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
-		
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
 		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
-		
 		if (lhsVal < rhsVal) {
 			return -1
 		} else if (lhsVal > rhsVal) {
@@ -79,16 +65,9 @@ extension UInt32:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 // extend the unsigned 16 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
 extension UInt16:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
-	public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_size: size_t, rhs_data: UnsafeRawPointer, rhs_size: size_t) -> Int32 {
-				
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
-		
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
 		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
-		
 		if (lhsVal < rhsVal) {
 			return -1
 		} else if (lhsVal > rhsVal) {
@@ -116,16 +95,9 @@ extension UInt16:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 // extend the unsigned 8 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
 extension UInt8:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
-	public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_size: size_t, rhs_data: UnsafeRawPointer, rhs_size: size_t) -> Int32 {
-				
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
-		
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
 		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
-		
 		if (lhsVal < rhsVal) {
 			return -1
 		} else if (lhsVal > rhsVal) {
@@ -153,16 +125,9 @@ extension UInt8:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 // extend the unsigned integer to conform to the raw static buffer protocol, as it is a fixed size type.
 extension UInt:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
-	public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_size: size_t, rhs_data: UnsafeRawPointer, rhs_size: size_t) -> Int32 {
-				
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
-		
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
 		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
-		
 		if (lhsVal < rhsVal) {
 			return -1
 		} else if (lhsVal > rhsVal) {

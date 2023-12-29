@@ -3,16 +3,9 @@ import func CRAW.memcpy;
 // extend the signed 64 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
 extension Int64:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
-	public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_size: size_t, rhs_data: UnsafeRawPointer, rhs_size: size_t) -> Int32 {
-				
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
-		
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
 		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
-		
 		if (lhsVal < rhsVal) {
 			return -1
 		} else if (lhsVal > rhsVal) {
@@ -21,7 +14,7 @@ extension Int64:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 			return 0
 		}
 	}
-
+	
 	/// initialize afrom the given raw buffer representation.
 	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
 		ptr.assumingMemoryBound(to:Self.self).pointee = self.bigEndian
@@ -40,16 +33,9 @@ extension Int64:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 // extend the signed 32 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
 extension Int32:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
-	public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_size: size_t, rhs_data: UnsafeRawPointer, rhs_size: size_t) -> Int32 {
-				
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
-		
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
 		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
-		
 		if (lhsVal < rhsVal) {
 			return -1
 		} else if (lhsVal > rhsVal) {
@@ -78,16 +64,9 @@ extension Int32:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 // extend the signed 16 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
 extension Int16:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
-	public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_size: size_t, rhs_data: UnsafeRawPointer, rhs_size: size_t) -> Int32 {
-				
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
-		
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
 		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
-		
 		if (lhsVal < rhsVal) {
 			return -1
 		} else if (lhsVal > rhsVal) {
@@ -115,16 +94,9 @@ extension Int16:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 // extend the signed 8 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
 extension Int8:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
-	public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_size: size_t, rhs_data: UnsafeRawPointer, rhs_size: size_t) -> Int32 {
-				
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
-		
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
 		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
-		
 		if (lhsVal < rhsVal) {
 			return -1
 		} else if (lhsVal > rhsVal) {
@@ -152,16 +124,9 @@ extension Int8:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 // extend the signed integer to conform to the raw static buffer protocol, as it is a fixed size type.
 extension Int:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
-	public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_size: size_t, rhs_data: UnsafeRawPointer, rhs_size: size_t) -> Int32 {
-				
-		#if DEBUG
-		assert(lhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_size == MemoryLayout<RAW_staticbuff_storetype>.size)
-		#endif
-		
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
 		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
-		
 		if (lhsVal < rhsVal) {
 			return -1
 		} else if (lhsVal > rhsVal) {
