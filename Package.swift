@@ -15,6 +15,21 @@ let rawTargetDependencies:[Target.Dependency] = [
 ]
 #endif
 
+fileprivate func rawHexDependencies() -> [Target.Dependency] {
+	#if RAWDOG_HEX_LOG
+	return [
+		"RAW",
+		"CRAW_hex",
+		.product(name: "Logging", package:"swift-log")
+	]
+	#else
+	return [
+		"RAW",
+		"CRAW_hex"
+	]
+	#endif
+}
+
 
 let package = Package(
 	name: "rawdog",
@@ -46,12 +61,12 @@ let package = Package(
 			.product(name: "SwiftParserDiagnostics", package: "swift-syntax"),
 			.product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
 			.product(name: "Logging", package:"swift-log")
-		], swiftSettings: [.define("RAWDOG_MACRO_LOG")]),
+		]),
 
 		// raw targets
 		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2", "CRAW"]),
 		.target(name:"RAW_base64", dependencies:["CRAW", "RAW", "CRAW_base64"]),
-		.target(name:"RAW_hex", dependencies:["CRAW", "RAW", "CRAW_hex"]),
+		.target(name:"RAW_hex", dependencies:rawHexDependencies(), swiftSettings: [.define("RAWDOG_HEX_LOG")]),
 		.target(name:"RAW", dependencies:rawTargetDependencies),
 
 		// c implementations
@@ -61,6 +76,6 @@ let package = Package(
 		.target(name:"cblake2"),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "CRAW_hex"], resources:[.process("blake2-kat.json")]),
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "CRAW_hex", "RAW_hex"], resources:[.process("blake2-kat.json")]),
 	]
 )
