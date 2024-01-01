@@ -245,7 +245,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 
 		// create the primary initializer for the attached declaration
 		var initializerParamList = FunctionParameterListSyntax()
-		var typeTypeBuild:[String] = []
+		// var typeTypeBuild:[String] = []
 		for (i, (curVarName, curVarType)) in memberVariableNamesAndTypes.reversed().enumerated().reversed() {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("found member '\(curVarName)' of type '\(curVarType)'", metadata:["index":"\(i)", "comma_placed":(i == 0) ? "false" : "true"])
@@ -259,17 +259,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 				thisFParam = FunctionParameterSyntax("\(raw:curVarName):\(raw:curVarType), ")
 			}
 			initializerParamList.append(thisFParam)
-			typeTypeBuild.append(curVarType)
 		}
-
-		// assemble components for the primary raw initializer
-		let rawInitDecl = DeclSyntax("""
-			/// initializes a new RAW_staticbuff from a given pointer. the length of the data is determined by the memory size of the ``RAW_staticbuff_storetype``.
-			\(raw:localModifiers) init(RAW_data:UnsafeRawPointer) {
-				var i = 0
-				\(raw:memberVariableNamesAndTypes.map { "self.\($0.0) = \($0.1)(RAW_data:RAW_data.advanced(by:i))\ni += MemoryLayout<\($0.1)>.size" }.joined(separator:"\n"))
-			}
-		""")
 		
 		// declare the primary initializer where each member is directly passed and stored in the new instance.
 		let initDecl = DeclSyntax("""
@@ -278,7 +268,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		}
 		""")
 
-		return [initDecl, rawInitDecl]
+		return [initDecl]
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
@@ -316,24 +306,10 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 			} else {
 				typeSizeSum += ", "
 			}
-
 			let appSyntax = """
-			// compare member \(i): \(curVarName). proceed to compare other members if this comparison is equal.
-			let compareResult_\(curVarName) = rhs.asRAW_val { (rhsPtr, rhsSizePtr) in
-				let rhsVal = val(RAW_data:rhsPtr, RAW_size:rhsSizePtr)
-				return lhs.asRAW_val { (lhsPtr, lhsSizePtr) in
-					let lhsVal = val(RAW_data:lhsPtr, RAW_size:lhsSizePtr)
-					return \(curVarType).RAW_compare(lhsVal, rhsVal)
-				}
-			}
-
-			switch compareResult_\(curVarName) {
-				case 0:
-					// this member is equal. continue to the next member.
-					break
-				default:
-					// this member is not equal. return the result.
-					return compareResult_\(curVarName)
+			compareResult += \(curVarType).RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
+			guard compareResult == 0 else {
+				return compareResult
 			}
 			"""
 			compareConditionSteps.append(appSyntax)
@@ -347,7 +323,7 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		// build the initializer lines that will allow the macro type to implement RAW_staticbuff based on the underlying implementation of each member.
 		var initializerLines:[String] = []
 		for (i, (curVarName, curVarType)) in memberVariableNamesAndTypes.enumerated() {
-			initializerLines.append("self.\(curVarName) = \(curVarType)(RAW_staticbuff_storetype:RAW_staticbuff_storetype.\(i))")
+			initializerLines.append("self.\(curVarName) = \(curVarType)(RAW_staticbuff_storetype_seeking:&seeker)\n")
 		}
 
 		// extend conformance to RAW_staticbuff since each of the children already conform to it.
@@ -356,15 +332,14 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 				\(raw:localModifiers) typealias RAW_staticbuff_storetype = \(raw:typeSizeSum)
 
 				/// exports the value to its raw byte representation.
-				\(raw:localModifiers) func asRAW_val<R>(_ valFunc:(UnsafeRawPointer, UnsafePointer<size_t>) throws -> R) rethrows -> R {
-					return try withUnsafePointer(to:self) { ptr in
-						return try withUnsafePointer(to:MemoryLayout<Self>.size) { sizePtr in
-							return try valFunc(ptr, sizePtr)
-						}
-					}
+				\(raw:localModifiers) func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+					var seeker = dest
+					\(raw:memberVariableNamesAndTypes.map { "seeker = self.\($0.0).RAW_encode(dest:seeker)" }.joined(separator:"\n"))
+					return seeker
 				}
 
-				\(raw:localModifiers) init(RAW_staticbuff_storetype:RAW_staticbuff_storetype) {
+				\(raw:localModifiers) init(RAW_staticbuff_storetype ptr:UnsafeRawPointer) {
+					var seeker = ptr
 					\(raw:initializerLines.joined(separator:"\n"))
 				}
 			}
@@ -374,9 +349,12 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 		let extensionDecl = try ExtensionDeclSyntax("""
 			extension \(raw:parsedName):RAW_comparable {
 				/// sorts based on its native IEEE 754 representation and not its lexical representation.
-				\(raw:localModifiers) static func RAW_compare(_ lhs:val, _ rhs:val) -> Int32 {
+				\(raw:localModifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+					var lhs_seeker = lhs_data
+					var rhs_seeker = rhs_data
+					var compareResult:Int32 = 0
 					\(raw:compareConditionSteps.joined(separator:"\n"))
-					return 0
+					return compareResult
 				}
 			}
 

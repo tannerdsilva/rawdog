@@ -23,14 +23,14 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 
 		// the only non-optional protocol that is implemented with this macro is RAW_staticbuff. for the functions that this protocol requires, the user may override all but the RAW_staticbuff_storetype.
 		internal enum ImplementedFunctions:UInt8, Hashable, Equatable {
-			case decode
-			case encode
+			// case decode
+			// case encode
 			case raw_compare
 		}
 
 		internal enum ImplementOrExisting<T> {
 			case implement(T)
-			case existing(T)
+			// case existing(T)
 		}
 		
 		internal let modifiers:DeclModifierListSyntax
@@ -41,8 +41,8 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 				switch storageSituation {
 					case .implement(let name):
 						return name.text
-					case .existing(let name):
-						return name.text
+					// case .existing(let name):
+					// 	return name.text
 				}
 			}
 		}
@@ -56,7 +56,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 		internal let specifiedConforms:Set<SpecifiedProtocol>
 		internal let implementedFunctions:Set<ImplementedFunctions>
 
-		fileprivate init(modifiers:DeclModifierListSyntax, structName:String, storageSituation:ImplementOrExisting<TokenSyntax>, useUnsigned:Bool, byteCount:UInt16, specifiedConforms:Set<SpecifiedProtocol> = Set(), implementedFunctions:Set<ImplementedFunctions> = Set()) {
+		fileprivate init(modifiers:DeclModifierListSyntax, structName:String, storageSituation:ImplementOrExisting<TokenSyntax>, useUnsigned:Bool, byteCount:UInt16, specifiedConforms:Set<SpecifiedProtocol>, implementedFunctions:Set<ImplementedFunctions>) {
 			self.modifiers = modifiers
 			self.structName = structName
 			self.storageSituation = storageSituation
@@ -145,64 +145,64 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 		func parseImplementedFunctionsAndVariables(_ memberBlockItemList:MemberBlockItemListSyntax) throws {
 			for member in memberBlockItemList {
 				switch member.decl.syntaxNodeType {
-					case is InitializerDeclSyntax.Type:
-						// goal: seek the only possible initializer declaration type, if it is implemented (it is ok to not be implemented). the initializer should be non-optional.
-						#if RAWDOG_MACRO_LOG
-						mainLogger.info("found initializer declaration")
-						#endif
+					// case is InitializerDeclSyntax.Type:
+					// 	// goal: seek the only possible initializer declaration type, if it is implemented (it is ok to not be implemented). the initializer should be non-optional.
+					// 	#if RAWDOG_MACRO_LOG
+					// 	mainLogger.info("found initializer declaration")
+					// 	#endif
 
-						let initDecl = member.as(InitializerDeclSyntax.self)!
+					// 	let initDecl = member.as(InitializerDeclSyntax.self)!
 
-						// validate that the initializer is not optional.
-						guard initDecl.optionalMark == nil else {
-							#if RAWDOG_MACRO_LOG
-							mainLogger.info("found initializer declaration")
-							#endif
-							break
-						}
+					// 	// validate that the initializer is not optional.
+					// 	guard initDecl.optionalMark == nil else {
+					// 		#if RAWDOG_MACRO_LOG
+					// 		mainLogger.info("found initializer declaration")
+					// 		#endif
+					// 		break
+					// 	}
 
-						// validate that the function signature perfectly matches 'init(RAW_staticbuff_storetype:UnsafeRawPointer)'
-						let parameterList = initDecl.signature.parameterClause.parameters
-						guard parameterList.count == 1 else {
-							#if RAWDOG_MACRO_LOG
-							mainLogger.critical("expected one parameter in initializer declaration")
-							#endif
-							throw Diagnostics.invalidFunctionOverride("init(RAW_staticbuff_storetype:UnsafeRawPointer)")
-						}
+					// 	// validate that the function signature perfectly matches 'init(RAW_staticbuff_storetype:UnsafeRawPointer)'
+					// 	let parameterList = initDecl.signature.parameterClause.parameters
+					// 	guard parameterList.count == 1 else {
+					// 		#if RAWDOG_MACRO_LOG
+					// 		mainLogger.critical("expected one parameter in initializer declaration")
+					// 		#endif
+					// 		throw Diagnostics.invalidFunctionOverride("init(RAW_staticbuff_storetype:UnsafeRawPointer)")
+					// 	}
 
-						guard let firstParam = parameterList.first!.as(FunctionParameterSyntax.self) else {
-							#if RAWDOG_MACRO_LOG
-							mainLogger.critical("expected parameter in initializer declaration")
-							#endif
-							throw Diagnostics.invalidFunctionOverride("init(RAW_staticbuff_storetype:UnsafeRawPointer)")
-						}
+					// 	guard let firstParam = parameterList.first?.as(FunctionParameterSyntax.self) else {
+					// 		#if RAWDOG_MACRO_LOG
+					// 		mainLogger.critical("expected parameter in initializer declaration")
+					// 		#endif
+					// 		throw Diagnostics.invalidFunctionOverride("init(RAW_staticbuff_storetype:UnsafeRawPointer)")
+					// 	}
 						
-						guard firstParam.firstName.text == "RAW_staticbuff_storetype" else {
-							#if RAWDOG_MACRO_LOG
-							mainLogger.critical("expected parameter name in initializer declaration")
-							#endif
-							throw Diagnostics.invalidFunctionOverride("init(RAW_staticbuff_storetype:UnsafeRawPointer)")
-						}
+					// 	guard firstParam.firstName.text == "RAW_staticbuff_storetype" else {
+					// 		#if RAWDOG_MACRO_LOG
+					// 		mainLogger.critical("expected parameter name in initializer declaration")
+					// 		#endif
+					// 		throw Diagnostics.invalidFunctionOverride("init(RAW_staticbuff_storetype:UnsafeRawPointer)")
+					// 	}
 
-						guard let firstParamType = firstParam.type.as(IdentifierTypeSyntax.self) else {
-							#if RAWDOG_MACRO_LOG
-							mainLogger.critical("expected parameter type in initializer declaration")
-							#endif
-							throw Diagnostics.invalidFunctionOverride("init(RAW_staticbuff_storetype:UnsafeRawPointer)")
-						}
+					// 	guard let firstParamType = firstParam.type.as(IdentifierTypeSyntax.self) else {
+					// 		#if RAWDOG_MACRO_LOG
+					// 		mainLogger.critical("expected parameter type in initializer declaration")
+					// 		#endif
+					// 		throw Diagnostics.invalidFunctionOverride("init(RAW_staticbuff_storetype:UnsafeRawPointer)")
+					// 	}
 
-						guard firstParamType.name.text == "UnsafeRawPointer" else {
-							#if RAWDOG_MACRO_LOG
-							mainLogger.critical("expected parameter type in initializer declaration")
-							#endif
-							throw Diagnostics.invalidFunctionOverride("init(RAW_staticbuff_storetype:UnsafeRawPointer)")
-						}
+					// 	guard firstParamType.name.text == "UnsafeRawPointer" else {
+					// 		#if RAWDOG_MACRO_LOG
+					// 		mainLogger.critical("expected parameter type in initializer declaration")
+					// 		#endif
+					// 		throw Diagnostics.invalidFunctionOverride("init(RAW_staticbuff_storetype:UnsafeRawPointer)")
+					// 	}
 
-						#if RAWDOG_MACRO_LOG
-						mainLogger.info("found initializer declaration")
-						#endif
+					// 	#if RAWDOG_MACRO_LOG
+					// 	mainLogger.info("found initializer declaration")
+					// 	#endif
 
-						overrideFuncs.insert(.decode)
+					// 	overrideFuncs.insert(.decode)
 
 					case is FunctionDeclSyntax.Type:
 						// goal: seek the one of two possible function declaration types.
@@ -210,7 +210,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 						mainLogger.info("found function declaration")
 						#endif
 
-						let funcDecl = member.as(FunctionDeclSyntax.self)!
+						let funcDecl = member.decl.as(FunctionDeclSyntax.self)!
 						switch funcDecl.name.text {
 							case "RAW_compare":
 								#if RAWDOG_MACRO_LOG
@@ -262,56 +262,56 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 								
 								overrideFuncs.insert(.raw_compare)
 
-							case "RAW_encode":
-								#if RAWDOG_MACRO_LOG
-								mainLogger.info("found RAW_encode function declaration")
-								#endif
+							// case "RAW_encode":
+							// 	#if RAWDOG_MACRO_LOG
+							// 	mainLogger.info("found RAW_encode function declaration")
+							// 	#endif
 
-								// validate that there is only one argument in the function declaration and that the argument is of type UnsafeMutableRawPointer.
-								let paramList = funcDecl.signature.parameterClause.parameters
+							// 	// validate that there is only one argument in the function declaration and that the argument is of type UnsafeMutableRawPointer.
+							// 	let paramList = funcDecl.signature.parameterClause.parameters
 
-								// validate that the function is NOT static
-								guard funcDecl.modifiers.contains(where: { $0.name.text == "static" }) == false else {
-									#if RAWDOG_MACRO_LOG
-									mainLogger.critical("found static RAW_encode function declaration. this function should be non-static.")
-									#endif
-									throw Diagnostics.invalidFunctionOverride("RAW_encode")
-								}
+							// 	// validate that the function is NOT static
+							// 	guard funcDecl.modifiers.contains(where: { $0.name.text == "static" }) == false else {
+							// 		#if RAWDOG_MACRO_LOG
+							// 		mainLogger.critical("found static RAW_encode function declaration. this function should be non-static.")
+							// 		#endif
+							// 		throw Diagnostics.invalidFunctionOverride("RAW_encode")
+							// 	}
 
-								// validate that the function has one argument.
-								guard paramList.count == 1 else {
-									#if RAWDOG_MACRO_LOG
-									mainLogger.critical("found invalid number of arguments in RAW_encode function declaration")
-									#endif
-									throw Diagnostics.invalidFunctionOverride("RAW_encode")
-								}
+							// 	// validate that the function has one argument.
+							// 	guard paramList.count == 1 else {
+							// 		#if RAWDOG_MACRO_LOG
+							// 		mainLogger.critical("found invalid number of arguments in RAW_encode function declaration")
+							// 		#endif
+							// 		throw Diagnostics.invalidFunctionOverride("RAW_encode")
+							// 	}
 
-								guard let destParam = paramList.first!.as(FunctionParameterSyntax.self), let destType = destParam.type.as(IdentifierTypeSyntax.self) else {
-									#if RAWDOG_MACRO_LOG
-									mainLogger.critical("found invalid argument type in RAW_encode function declaration")
-									#endif
-									throw Diagnostics.invalidFunctionOverride("RAW_encode")
-								}
+							// 	guard let destParam = paramList.first!.as(FunctionParameterSyntax.self), let destType = destParam.type.as(IdentifierTypeSyntax.self) else {
+							// 		#if RAWDOG_MACRO_LOG
+							// 		mainLogger.critical("found invalid argument type in RAW_encode function declaration")
+							// 		#endif
+							// 		throw Diagnostics.invalidFunctionOverride("RAW_encode")
+							// 	}
 
-								guard destParam.firstName.text == "dest" else {
-									#if RAWDOG_MACRO_LOG
-									mainLogger.critical("found invalid argument name in RAW_encode function declaration")
-									#endif
-									throw Diagnostics.invalidFunctionOverride("RAW_encode")
-								}
+							// 	guard destParam.firstName.text == "dest" else {
+							// 		#if RAWDOG_MACRO_LOG
+							// 		mainLogger.critical("found invalid argument name in RAW_encode function declaration")
+							// 		#endif
+							// 		throw Diagnostics.invalidFunctionOverride("RAW_encode")
+							// 	}
 
-								guard destType.name.text == "UnsafeMutableRawPointer" else {
-									#if RAWDOG_MACRO_LOG
-									mainLogger.critical("found invalid argument type in RAW_encode function declaration")
-									#endif
-									throw Diagnostics.invalidFunctionOverride("RAW_encode")
-								}
+							// 	guard destType.name.text == "UnsafeMutableRawPointer" else {
+							// 		#if RAWDOG_MACRO_LOG
+							// 		mainLogger.critical("found invalid argument type in RAW_encode function declaration")
+							// 		#endif
+							// 		throw Diagnostics.invalidFunctionOverride("RAW_encode")
+							// 	}
 
-								#if RAWDOG_MACRO_LOG
-								mainLogger.info("found valid RAW_encode function declaration")
-								#endif
+							// 	#if RAWDOG_MACRO_LOG
+							// 	mainLogger.info("found valid RAW_encode function declaration")
+							// 	#endif
 
-								overrideFuncs.insert(.encode)		
+							// 	overrideFuncs.insert(.encode)		
 
 							default:
 								#if RAWDOG_MACRO_LOG
@@ -394,14 +394,9 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 				#endif
 				throw Diagnostics.mustBeStructOrClassDeclaration(declaration.syntaxNodeType)
 		}
-		let calculateStorageSituation:StaticBuffImplConfiguration.ImplementOrExisting<TokenSyntax>
-		if let storageIdentifierName = storageIdentifierName {
-			calculateStorageSituation = .existing(storageIdentifierName.identifier)
-		} else {
-			calculateStorageSituation = .implement(TokenSyntax.identifier("storage"))
-		}
+		let calculateStorageSituation:StaticBuffImplConfiguration.ImplementOrExisting<TokenSyntax> = .implement(TokenSyntax.identifier("storage"))
 
-		return StaticBuffImplConfiguration(modifiers:structureModifiers, structName:structureName.text, storageSituation:calculateStorageSituation, useUnsigned:isUnsigned, byteCount:byteCount)
+		return StaticBuffImplConfiguration(modifiers:structureModifiers, structName:structureName.text, storageSituation:calculateStorageSituation, useUnsigned:isUnsigned, byteCount:byteCount, specifiedConforms:inheritedTypes, implementedFunctions:overrideFuncs)
 	}
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingAttributesFor member: some SwiftSyntax.DeclSyntaxProtocol, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.AttributeSyntax] {
 		return []
@@ -436,51 +431,6 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 			\(raw:config.modifiers) typealias RAW_staticbuff_storetype = \(generateTypeExpression(useUnsigned:config.useUnsigned, byteCount:config.byteCount))
 		}
 		""")]
-
-
-		// let comparableConformance = try ExtensionDeclSyntax("""
-		// 	// declares comparable conformance on the type.
-		// 	extension \(structureName):Comparable {
-		// 		/// default implementation that compares the raw representation of the type.
-		// 		\(structureModifiers) static func < (lhs:Self, rhs:Self) -> Bool {
-		// 			withUnsafePointer(to:lhs.fixedBuffer) { lhsPtr in
-		// 				withUnsafePointer(to:rhs.fixedBuffer) { rhsPtr in
-		// 					return memcmp(lhsPtr, rhsPtr, MemoryLayout<RAW_staticbuff_storetype>.size) < 0
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		// """)
-		// returnResult.append(comparableConformance)
-		
-		// // extend the structure to conform to equatable if it does not already.
-		// let equatableConformance = try ExtensionDeclSyntax("""
-		// 	// declares equatable conformance on the type.
-		// 	extension \(structureName):Equatable {
-		// 		/// default implementation that compares the raw representation of the type.
-		// 		\(structureModifiers) static func == (lhs:Self, rhs:Self) -> Bool {
-		// 			return ( \(raw:buildEqualities.joined(separator:" && ")) )
-		// 		}
-		// 	}
-		// """)
-		// returnResult.append(equatableConformance)
-
-
-		// returnResult.append(try ExtensionDeclSyntax("""
-		// 	// declares array literal conformance on the type.
-		// 	extension \(structureName):ExpressibleByArrayLiteral {
-		// 		/// this type uses \(byteType) as its array literal element type.
-		// 		\(structureModifiers) typealias ArrayLiteralElement = \(byteType)
-
-		// 		/// initializer for array literal expressions of the byte buffer.
-		// 		\(structureModifiers) init(arrayLiteral elements: \(byteType)...) {
-		// 			guard elements.count == MemoryLayout<Self.RAW_staticbuff_storetype>.size else {
-		// 				fatalError("invalid array literal. the number of elements must match the size of the buffer. expected elements: \\(MemoryLayout<Self.RAW_staticbuff_storetype>.size), found: \\(elements.count)")
-		// 			}
-		// 			self = Self.init(RAW_data:elements)
-		// 		}
-		// 	}
-		// """))
 
 		return returnResult
 	}
@@ -520,32 +470,28 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 		}
 
 		// insert the default implementation for the encode function if it is not implemented already.
-		if config.implementedFunctions.contains(.encode) == false {
-			#if RAWDOG_MACRO_LOG
-			logger.notice("did not find existing RAW_encode function in declaration. a default implementation will be provided.")
-			#endif
-			declString.append(DeclSyntax("""
-				/// encodes the type into the given destination pointer.
-				\(config.modifiers) func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-					return withUnsafePointer(to:value) { valPtr in
-						return RAW_memcpy(dest, valPtr, MemoryLayout<RAW_staticbuff_storetype>.size)!
-					}
+		#if RAWDOG_MACRO_LOG
+		logger.notice("did not find existing RAW_encode function in declaration. a default implementation will be provided.")
+		#endif
+		declString.append(DeclSyntax("""
+			/// encodes the type into the given destination pointer.
+			\(config.modifiers) func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+				return withUnsafePointer(to:\(raw:config.storageVariableName)) { valPtr in
+					return RAW_memcpy(dest, valPtr, MemoryLayout<RAW_staticbuff_storetype>.size)!
 				}
-			"""))
-		}
+			}
+		"""))
 
 		// insert the default implementation for the decode initializer if it is not implemented already.
-		if config.implementedFunctions.contains(.decode) == false {
-			#if RAWDOG_MACRO_LOG
-			logger.notice("did not find existing initializer in declaration. a default implementation will be provided.")
-			#endif
-			declString.append(DeclSyntax("""
-				/// initializes the type from a raw pointer. it is assumed that the contents of the pointer are of correct size.
-				\(config.modifiers) init(RAW_staticbuff_storetype ptr:UnsafeRawPointer) {
-					storage = ptr.load(as:RAW_staticbuff_storetype.self)
-				}
-			"""))
-		}
+		#if RAWDOG_MACRO_LOG
+		logger.notice("did not find existing initializer in declaration. a default implementation will be provided.")
+		#endif
+		declString.append(DeclSyntax("""
+			/// initializes the type from a raw pointer. it is assumed that the contents of the pointer are of correct size.
+			\(config.modifiers) init(RAW_staticbuff_storetype ptr:UnsafeRawPointer) {
+				storage = ptr.load(as:RAW_staticbuff_storetype.self)
+			}
+		"""))
 
 		// insert the default implementation for the byte storage variable if it is not implemented already.
 		switch config.storageSituation {
@@ -558,11 +504,105 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 					/// the byte storage of the type.
 					private var \(name):RAW_staticbuff_storetype
 				"""))
-			case .existing(let name):
-				#if RAWDOG_MACRO_LOG
-				logger.notice("found existing storage variable in declaration. a storage variable will not be implemented.", metadata:["name": "\(name)"])
-				#endif
 		}
+
+		if config.specifiedConforms.contains(.hashable) {
+			#if RAWDOG_MACRO_LOG
+			logger.notice("hashable conformance defined in base declaration. this invokes a default implementation.")
+			#endif
+			declString.append(DeclSyntax("""
+				/// implements the raw memory of this type to the swift native hashing protocol.
+				\(config.modifiers) func hash(into hasher:inout Swift.Hasher) {
+					withUnsafePointer(to:\(raw:config.storageVariableName)) { valPtr in
+						let asBufferPointer = UnsafeRawBufferPointer(start:valPtr, count:MemoryLayout<RAW_staticbuff_storetype>.size)
+						hasher.combine(bytes:asBufferPointer)
+					}
+				}
+			"""))
+		}
+		if config.specifiedConforms.contains(.equatable) {
+			#if RAWDOG_MACRO_LOG
+			logger.notice("equatable conformance defined in base declaration. this invokes a default implementation.")
+			#endif
+			declString.append(DeclSyntax("""
+				/// implements native equality checking based on `RAW_compare`.
+				\(config.modifiers) static func == (lhs:Self, rhs:Self) -> Bool {
+					return withUnsafePointer(to:lhs) { lhsPtr in 
+						return withUnsafePointer(to:rhs) { rhsPtr in
+							return RAW_compare(lhs_data:lhsPtr, rhs_data:rhsPtr) == 0
+						}
+					}
+				}
+			"""))
+		}
+		if config.specifiedConforms.contains(.sequence) {
+			#if RAWDOG_MACRO_LOG
+			logger.notice("sequence conformance defined in base declaration. this invokes a default implementation.")
+			#endif
+			declString.append(DeclSyntax("""
+				/// implements the sequence protocol by iterating over the bytes of the type.
+				\(config.modifiers) func makeIterator() -> AnyIterator<UInt8> {
+					var i:UInt16 = 0
+					return AnyIterator {
+						defer {
+							i += 1
+						}
+						guard i < \(raw:config.byteCount) else {
+							return nil
+						}
+						return withUnsafePointer(to:\(raw:config.storageVariableName)) { valPtr in
+							return valPtr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<UInt8>.size) { bytePtr in
+								return bytePtr.advanced(by:Int(i)).pointee
+							}
+						}
+					}
+				}
+			"""))
+		}
+
+		if config.specifiedConforms.contains(.collection) {
+			#if RAWDOG_MACRO_LOG
+			logger.notice("collection conformance defined in base declaration. this invokes a default implementation.")
+			#endif
+			declString.append(DeclSyntax("""
+				/// implements the collection protocol by iterating over the bytes of the type.
+				\(config.modifiers) var startIndex:size_t {
+					return 0
+				}
+				\(config.modifiers) var endIndex:size_t {
+					return \(raw:config.byteCount)
+				}
+				\(config.modifiers) subscript(position:size_t) -> UInt8 {
+					get {
+						return withUnsafePointer(to:\(raw:config.storageVariableName)) { valPtr in
+							return valPtr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<UInt8>.size) { bytePtr in
+								return bytePtr.advanced(by:position).pointee
+							}
+						}
+					}
+				}
+				\(config.modifiers) func index(after i:size_t) -> size_t {
+					return i + 1
+				}
+			"""))
+		}
+
+		if config.specifiedConforms.contains(.expressibleByArrayLiteral) {
+			#if RAWDOG_MACRO_LOG
+			logger.notice("expressibleByArrayLiteral conformance defined in base declaration. this invokes a default implementation.")
+			#endif
+			declString.append(DeclSyntax("""
+				/// implements the expressibleByArrayLiteral protocol by initializing the type from an array of bytes.
+				\(config.modifiers) init(arrayLiteral elements:UInt8...) {
+					let asArray = Array(elements)
+					guard asArray.count == \(raw:config.byteCount) else {
+						fatalError("invalid number of elements in array literal.")
+					}
+					self.init(RAW_staticbuff_storetype:asArray)
+				}
+			"""))
+		}
+
 
 		return declString
 	}

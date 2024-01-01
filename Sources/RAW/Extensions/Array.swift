@@ -3,9 +3,9 @@ extension Array where Element == UInt8 {
 		let encSize = encodableVar.RAW_encoded_size()
 		self = Self(unsafeUninitializedCapacity:encSize, initializingWith: { buff, size in
 			let startPtr = UnsafeMutableRawPointer(buff.baseAddress!)
-			let stridePtr = encodableVar.RAW_encode(dest:buff.baseAddress!)
+			let stridePtr = encodableVar.RAW_encode(dest:startPtr)
 			#if DEBUG
-			assert(startPtr.distance(to:stridePtr) == encSize)
+			assert(abs(startPtr.distance(to:stridePtr)) == encSize, "encodableVar.RAW_encode(dest:) did not return a pointer that is the correct distance from the start pointer. expected: \(encSize), actual: \(abs(startPtr.distance(to:stridePtr))). type was: \(type(of:encodableVar))")
 			#endif
 			size = encSize
 		})

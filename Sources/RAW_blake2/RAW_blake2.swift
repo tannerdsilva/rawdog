@@ -139,6 +139,12 @@ public struct Hasher<H:RAW_blake2_func_impl, O> {
 	// finishing processes for this struct will vary based on the output type
 }
 
+extension Hasher {
+	public mutating func update(_ input:[UInt8]) throws {
+		try update(input_data_ptr:input, input_data_size:input.count)
+	}
+}
+
 extension Hasher where O == Array<UInt8> {
 	/// finish the hashing process and return the result as a byte array.
 	public mutating func finish() throws -> RAW_blake2_out_type {

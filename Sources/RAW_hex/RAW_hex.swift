@@ -1,332 +1,156 @@
 import RAW
 
+#if RAWDOG_HEX_LOG
+import Logging
+internal func makeDefaultLogger() -> Logger {
+	var logger = Logger(label:"RAW_hex")
+	logger.logLevel = .debug
+	return logger
+}
+internal let logger = makeDefaultLogger()
+#endif
+
+/// errors related to hex encoding and decoding.
 public enum Error:Swift.Error {
 	/// general error that is thrown when a function returns false
 	case hexDecodeFailed
 	/// general error that is thrown when a function returns false
 	case hexEncodeFailed
 	/// thrown when the hex string is not a valid hex string.
-	case invalidHexCharacter(UInt8)
+	case invalidHexEncodingCharacter(UInt8)
+	/// thrown when a hex encoded string is not a valid size for the decoding algorithm. encoded strings must be an even number of characters, since they are represented with twice as many bytes.
+	case invalidEncodingSize(size_t)
 }
 
-public typealias HexValue = Value
-
-extension Value {
-	internal init(hexchar indexValue:UInt8) {
-		switch indexValue {
-		case 0:
-			self = .zero
-		case 1:
-			self = .one
-		case 2:
-			self = .two
-		case 3:
-			self = .three
-		case 4:
-			self = .four
-		case 5:
-			self = .five
-		case 6:
-			self = .six
-		case 7:
-			self = .seven
-		case 8:
-			self = .eight
-		case 9:
-			self = .nine
-
-		case 10:
-			self = .a
-		case 11:
-			self = .b
-		case 12:
-			self = .c
-		case 13:
-			self = .d
-		case 14:
-			self = .e
-		case 15:
-			self = .f
-
-		default: fatalError()
-		}
-	}
-}
-
-extension Value {
-	public func asciiValue() -> UInt8 {
-		switch self {
-		case .zero:
-			return 0x30 // ASCII value for '0'
-		case .one:
-			return 0x31 // ASCII value for '1'
-		case .two:
-			return 0x32 // ASCII value for '2'
-		case .three:
-			return 0x33 // ASCII value for '3'
-		case .four:
-			return 0x34 // ASCII value for '4'
-		case .five:
-			return 0x35 // ASCII value for '5'
-		case .six:
-			return 0x36 // ASCII value for '6'
-		case .seven:
-			return 0x37 // ASCII value for '7'
-		case .eight:
-			return 0x38 // ASCII value for '8'
-		case .nine:
-			return 0x39 // ASCII value for '9'
-		case .a:
-			return 0x61 // ASCII value for 'a'
-		case .b:
-			return 0x62 // ASCII value for 'b'
-		case .c:
-			return 0x63 // ASCII value for 'c'
-		case .d:
-			return 0x64 // ASCII value for 'd'
-		case .e:
-			return 0x65 // ASCII value for 'e'
-		case .f:
-			return 0x66 // ASCII value for 'f'
-		}
-	}
-}
-
-extension Value:ExpressibleByExtendedGraphemeClusterLiteral {
-	public typealias ExtendedGraphemeClusterLiteralType = Character
-	public init(extendedGraphemeClusterLiteral: Character) {
-		self = try! Self.init(validate:extendedGraphemeClusterLiteral)
-	}
-}
-
-extension Value {
-	/// initialize a hex value from a character value representing a hex-encoded value.
-	/// - throws: `Error.invalidHexCharacter` if the character is not a valid hex character.
-	public init(validate char:Character) throws {
-		switch char {
-			case "0":
-				self = .zero
-			case "1":
-				self = .one
-			case "2":
-				self = .two
-			case "3":
-				self = .three
-			case "4":
-				self = .four
-			case "5":
-				self = .five
-			case "6":
-				self = .six
-			case "7":
-				self = .seven
-			case "8":
-				self = .eight
-			case "9":
-				self = .nine
-			case "a", "A":
-				self = .a
-			case "b", "B":
-				self = .b
-			case "c", "C":
-				self = .c
-			case "d", "D":
-				self = .d
-			case "e", "E":
-				self = .e
-			case "f", "F":
-				self = .f
-		default:
-			throw Error.invalidHexCharacter(char.asciiValue!)
-		}
+extension Array where Element == Value {
+	/// initialize a new array of hex values from a hex string.
+	/// validates the contents of the string to ensure that it is a valid hex string.
+	/// - parameter RAW_hex_validate_encoded: the hex string to initialize the array from.
+	/// - throws: assorted errors if the hex string is not valid.
+	public init(validate hexString:String) throws {
+		let utf8Bytes = [UInt8](hexString.utf8)
+		let getCount = utf8Bytes.count
+		self = try Self(validate:utf8Bytes, size:getCount)
 	}
 
-	/// initialize a hex value from a pre-validated character representing a hex-encoded value.
-	/// - WARNING: this initializer does not validate the character. it is the caller's responsibility to ensure that the character is a valid hex character. undefined behavior will result if the character is not a valid hex character.
-	init(validated char:Character) {
-		switch char {
-
-		case "0":
-			self = .zero
-		case "1":
-			self = .one
-		case "2":
-			self = .two
-		case "3":
-			self = .three
-		case "4":
-			self = .four
-		case "5":
-			self = .five
-		case "6":
-			self = .six
-		case "7":
-			self = .seven
-		case "8":
-			self = .eight
-		case "9":
-			self = .nine
-
-		case "a", "A":
-			self = .a
-		case "b", "B":
-			self = .b
-		case "c", "C":
-			self = .c
-		case "d", "D":
-			self = .d
-		case "e", "E":
-			self = .e
-		case "f", "F":
-			self = .f
-
-		default: fatalError()
+	/// initialize a new array of hex values from a byte buffer.
+	public init(validate data:UnsafePointer<UInt8>, size:size_t) throws {
+		let getCount = size
+		guard Self.isEncodingSizeValid(getCount) else {
+			throw Error.invalidEncodingSize(getCount)
 		}
-	}
-
-	/// initialize a hex value from an ascii value representing a hex-encoded value.
-	/// - throws: `Error.invalidHexCharacter` if the character is not a valid hex character.
-	init(validate byte:UInt8) throws {
-		switch byte {
-
-		case 0x30:
-			self = .zero
-		case 0x31:
-			self = .one
-		case 0x32:
-			self = .two
-		case 0x33:
-			self = .three
-		case 0x34:
-			self = .four
-		case 0x35:
-			self = .five
-		case 0x36:
-			self = .six
-		case 0x37:
-			self = .seven
-		case 0x38:
-			self = .eight
-		case 0x39:
-			self = .nine
-
-		case 0x61, 0x41:
-			self = .a
-		case 0x62, 0x42:
-			self = .b
-		case 0x63, 0x43:
-			self = .c
-		case 0x64, 0x44:
-			self = .d
-		case 0x65, 0x45:
-			self = .e
-		case 0x66, 0x46:
-			self = .f
-
-		default:
-			throw Error.invalidHexCharacter(byte)
-		}
-	}
-
-	/// initialize a hex value from a pre-validated ascii value representing a hex-encoded value.
-	/// - WARNING: this initializer does not validate the character. it is the caller's responsibility to ensure that the character is a valid hex character. undefined behavior will result if the character is not a valid hex character.
-	init(validated byte:UInt8) {
-		switch byte {
-		case 0x30:
-			self = .zero
-		case 0x31:
-			self = .one
-		case 0x32:
-			self = .two
-		case 0x33:
-			self = .three
-		case 0x34:
-			self = .four
-		case 0x35:
-			self = .five
-		case 0x36:
-			self = .six
-		case 0x37:
-			self = .seven
-		case 0x38:
-			self = .eight
-		case 0x39:
-			self = .nine
-		case 0x61, 0x41:
-			self = .a
-		case 0x62, 0x42:
-			self = .b
-		case 0x63, 0x43:
-			self = .c
-		case 0x64, 0x44:
-			self = .d
-		case 0x65, 0x45:
-			self = .e
-		case 0x66, 0x46:
-			self = .f
-		default: fatalError()
-		}
+		self = try Self(unsafeUninitializedCapacity:getCount, initializingWith: { valueBuffer, valueCount in
+			valueCount = 0
+			while valueCount < getCount {
+				valueBuffer[valueCount] = try Value(validate:data[valueCount])
+				valueCount += 1
+			}
+		})
 	}
 }
 
 /// encode a byte buffer into a hex representation.
-public func hex_encode(_ data:UnsafeRawPointer, _ data_size:size_t) -> [Value] {
+internal func RAW_hex_encode(_ data:UnsafePointer<UInt8>, _ data_size:size_t) -> [Value] {
 	// determine the size of the output buffer. this is referenced a few times, so we'll just calculate it once.
 	let encodingSize = [Value].encodingSize(forUnencodedByteCount:data_size)
 
 	// assemble the output buffer. we'll use the unsafe initializer to avoid initializing the buffer twice. return the buffer.
 	return [Value](unsafeUninitializedCapacity:encodingSize, initializingWith: { valueBuffer, valueCount in
 		valueCount = 0
-		let byteInputBuffer = UnsafeBufferPointer<UInt8>(start:data.assumingMemoryBound(to:UInt8.self), count:data_size)
+		let byteInputBuffer = UnsafeBufferPointer<UInt8>(start:data, count:data_size)
 		for byte in byteInputBuffer {
 			let high = byte >> 4
 			let low = byte & 0x0F
-			valueBuffer[valueCount] = Value(hexchar:high)
+			valueBuffer[valueCount] = Value(hexcharIndexValue:high)
 			valueCount += 1
-			valueBuffer[valueCount] = Value(hexchar:low)
+			valueBuffer[valueCount] = Value(hexcharIndexValue:low)
 			valueCount += 1
 		}
 		valueCount = encodingSize
 	})
 }
 
+internal func RAW_hex_encode_inline(decoded_data:UnsafePointer<UInt8>, encoded_index:size_t) -> (Value, Value) {
+	#if RAWDOG_HEX_LOG
+	logger.debug("encoding byte at index \(encoded_index).", metadata:["output_index": "\(encoded_index)"])
+	#endif
+	let byte = decoded_data[encoded_index / 2]
+	let high = byte >> 4
+	let low = byte & 0x0F
+	return (Value(hexcharIndexValue:high), Value(hexcharIndexValue:low))
+}
 
-public func hex_decode(encoded:UnsafePointer<Value>, valueCount:size_t) throws -> [UInt8] {
+internal func RAW_hex_decode(encoded:UnsafePointer<Value>, value_size:size_t) throws -> [UInt8] {
 	// compute the length of the input buffer. if it's less than 2, we can't decode it.
-	let inputLength:size_t = valueCount
-	guard inputLength > 1 else {
-		throw Error.hexDecodeFailed
+	let inputLength:size_t = value_size
+	guard [Value].isEncodingSizeValid(inputLength) else {
+		throw Error.invalidEncodingSize(inputLength)
 	}
+	
+	#if RAWDOG_HEX_LOG
+	logger.info("initiating decode of \(inputLength) encoded bytes.", metadata:["output_length": "\(inputLength / 2)"])
+	#endif
+
 	let outputTheoreticalLength:size_t = [Value].decodedSize(forEncodedByteCount:inputLength)
+
+	#if RAWDOG_HEX_LOG
+	logger.debug("theoretical output length is \(outputTheoreticalLength) bytes.", metadata:["output_length": "\(outputTheoreticalLength)"])
+	#endif
+
 	let outputBytes = [UInt8](unsafeUninitializedCapacity:outputTheoreticalLength, initializingWith: { outputBuffer, outStrided in
 		outStrided = 0
 		var inputScan:size_t = 0
 		while ((inputLength - inputScan) > 1) {
+			#if RAWDOG_HEX_LOG
+			logger.debug("decoding byte at index \(inputScan).", metadata:["input_index": "\(inputScan)"])
+			#endif
+			
 			defer {
 				outStrided += 1
 				inputScan += 2
 			}
 
 			// read two bytes
-			let v1 = encoded[inputScan]
-			let v2 = encoded[inputScan + 1]
-			
+			#if RAWDOG_HEX_LOG
+			logger.debug("got v1 value \(encoded[inputScan]) | \(encoded[inputScan].asciiValue()).", metadata:["input_index": "\(inputScan)"])
+			logger.debug("got v2 value \(encoded[inputScan + 1]) | \(encoded[inputScan].asciiValue()).", metadata:["input_index": "\(inputScan + 1)"])
+			#endif
+
+			let v1 = encoded[inputScan].hexcharIndexValue()
+			let v2 = encoded[inputScan + 1].hexcharIndexValue()
+
+			#if RAWDOG_HEX_LOG
+			logger.debug("v1 value is \(v1).", metadata:["input_index": "\(inputScan)", "v1": "\(v1)"])
+			logger.debug("v2 value is \(v2).", metadata:["input_index": "\(inputScan + 1)", "v2": "\(v2)"])
+			#endif
+
 			// write one byte
-			outputBuffer[outStrided] = (v1.asciiValue() << 4) | v2.asciiValue()
+			outputBuffer[outStrided] = (v1 << 4) | v2
 		}
-		assert(inputLength == 0)
+		#if DEBUG
+		assert((inputLength - inputScan) == 0, "input length should be zero at this point. if it's not, we have a bug. \((inputLength - inputScan))")
+		#endif
 	})
+	#if RAWDOG_HEX_LOG
+	for (index, byte) in outputBytes.enumerated() {
+		logger.notice("decoded byte at index \(index) is \(byte).", metadata:["output_index": "\(index)", "byte": "\(byte)"])
+	}
+	#endif
 	return outputBytes
 }
 
 extension [Value] {
+	internal static func isEncodingSizeValid(_ size:size_t) -> Bool {
+		return size % 2 == 0
+	}
+
 	/// returns the number of encoded bytes that would be required to encode the given number of unencoded bytes.
-	public static func encodingSize(forUnencodedByteCount byteCount:size_t) -> size_t {
+	internal static func encodingSize(forUnencodedByteCount byteCount:size_t) -> size_t {
 		return byteCount * 2
 	}
 
 	/// returns the number of unencoded bytes that would be required to decode the current instance of ``Value`` values.
-	public static func decodedSize(forEncodedByteCount byteCount:size_t) -> size_t {
+	internal static func decodedSize(forEncodedByteCount byteCount:size_t) -> size_t {
 		return byteCount / 2
 	}
 }

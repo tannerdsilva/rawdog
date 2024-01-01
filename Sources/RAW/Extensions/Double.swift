@@ -44,7 +44,7 @@ extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
 		return withUnsafePointer(to:self.bitPattern) { bitPatternPtr in
 			// copy the bits of the UInt64
-			let writeSize = MemoryLayout<UInt64.RAW_staticbuff_storetype>.size
+			let writeSize = MemoryLayout<UInt32.RAW_staticbuff_storetype>.size
 			ptr.copyMemory(from:bitPatternPtr, byteCount:writeSize)
 			return ptr.advanced(by:writeSize)
 		}

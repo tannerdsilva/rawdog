@@ -1,3 +1,5 @@
+public typealias RAW_convertible = RAW_encodable & RAW_decodable;
+
 /// protocol that represents a type that can initialize from a raw representation.
 public protocol RAW_decodable {
 

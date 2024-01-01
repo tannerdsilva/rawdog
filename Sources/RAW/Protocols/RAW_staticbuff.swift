@@ -17,7 +17,6 @@ extension RAW_staticbuff {
 		#if DEBUG
 		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		#endif
-
 		self = withUnsafePointer(to:storeVal, {
 			return Self.init(RAW_staticbuff_storetype:$0)
 		})
@@ -50,7 +49,7 @@ extension RAW_staticbuff {
 		guard size == MemoryLayout<RAW_staticbuff_storetype>.size else {
 			return nil
 		}
-		
+
 		self.init(RAW_staticbuff_storetype:bytes.assumingMemoryBound(to:RAW_staticbuff_storetype.self))
 	}
 
@@ -115,31 +114,35 @@ struct MyConcatThing:RAW_staticbuff {
 			Double(RAW_staticbuff_storetype_seeking:&seekPtr),
 			UInt32(RAW_staticbuff_storetype_seeking:&seekPtr)
 		)
+
+		#if DEBUG
+		assert(seekPtr == ptr.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size))
+		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
+		#endif
 	}
 
 	static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		var lhs_seeker = lhs_data
 		var rhs_seeker = rhs_data
-		let compareResult_0 = Double.RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
-		switch compareResult_0 {
-			case 0:
-				// this member is equal. continue to the next member.
-				break
-			default:
-				// this member is not equal. return the result.
-				return compareResult_0
+		var compareResult:Int32 = 0
+
+		compareResult += Double.RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
+		guard compareResult == 0 else {
+			return compareResult
 		}
 
-		let compareResult_1 = UInt32.RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
-		switch UInt32.RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker) {
-			case 0:
-				// this member is equal. continue to the next member.
-				break
-			default:
-				// this member is not equal. return the result.
-				return compareResult_1
+		compareResult += UInt32.RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
+		guard compareResult == 0 else {
+			return compareResult
 		}
-				return 0
 
+		#if DEBUG
+		assert(lhs_seeker == lhs_data.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size))
+		assert(rhs_seeker == rhs_data.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size))
+		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
+		#endif
+
+		// all members are equal. return the compare result, which should be 0.
+		return compareResult
 	}
 }
