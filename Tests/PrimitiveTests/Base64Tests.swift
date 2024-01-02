@@ -1,19 +1,85 @@
 import XCTest
-import CRAW_base64
 import RAW
+import CRAW_base64 // used as reference
 @testable import RAW_base64
 @testable import RAW
 
-// class Base64Tests: XCTestCase {
+class Base64Tests: XCTestCase {
 
-// 	// used to compare the swift encoding map to the C implementation.
-// 	@RAW_staticbuff(64, isUnsigned:false)
-// 	fileprivate struct Base64EncodeMap:Collection {}
+	func testBase64LengthTests() {
+		// test that padding deltas are zero for sizes that are multiples of 3.
+		for i in 0..<64 {
 
-// 	// used to compare the swift decoding map to the C implementation.
-// 	@RAW_staticbuff(256, isUnsigned:false)
-// 	fileprivate struct Base64DecodeMap:Collection {}
+			// verify aligned lengths
+			let alignedSize = i * 3
+			let alignedReferenceImplEncLen = base64_encoded_length(alignedSize)
+			let alignedReferenceImplDecLen = base64_decoded_length(alignedReferenceImplEncLen)
+			let alignedEncodingByteLengthPadded = RAW_base64.Encode.padded_encoding_byte_length(unencoded_byte_count:alignedSize)
+			let alignedEncodingByteLengthUnpadded = RAW_base64.Encode.unpadded_encoding_byte_length(unencoded_byte_count:alignedSize)
+			let alignedDecodedByteLengthFromUnpadded = try! RAW_base64.Decode.decoded_byte_length(unpadded_encoding_byte_length:alignedEncodingByteLengthUnpadded)
+			let alignedDecodedByteLengthFromPadded = try! RAW_base64.Decode.decoded_byte_length(padded_encoding_byte_length:alignedEncodingByteLengthPadded)
+			
+			// verify that the padded encoding byte length is the same as the reference implementation.
+			XCTAssertEqual(alignedReferenceImplEncLen, alignedEncodingByteLengthPadded)
+			// verify that the unpadded encoding byte length is the same as the padded encoding byte length, since we are working with aligned sizes atm.
+			XCTAssertEqual(alignedEncodingByteLengthPadded, alignedEncodingByteLengthUnpadded)
+			// verify that the computed length for the decoded values are the same as the aligned size (based on the unpadded encoding byte length)
+			XCTAssertEqual(alignedDecodedByteLengthFromUnpadded, alignedSize)
+			// verify that the computed length for the decoded values are the same as the aligned size (based on the padded encoding byte length)
+			XCTAssertEqual(alignedDecodedByteLengthFromPadded, alignedReferenceImplDecLen)
 
+			// verify unaligned lengths
+			// - unaligned +1
+			let misalignByOne = (i * 3) + 1
+			let misalignedByOneReferenceImplEncLen = base64_encoded_length(misalignByOne)
+			let misalignedByOneReferenceImplDecLen = base64_decoded_length(misalignedByOneReferenceImplEncLen)
+
+			let misalignedByOneEncodingByteLengthPadded = RAW_base64.Encode.padded_encoding_byte_length(unencoded_byte_count:misalignByOne)
+			// verify that the +1 misaligned padded encoding byte length is the same as the reference implementation.
+			XCTAssertEqual(misalignedByOneReferenceImplEncLen, misalignedByOneEncodingByteLengthPadded)
+			// verify that the +1 misaligned padded encoding byte length is 4 greater than the aligned encoding byte length.
+			XCTAssertEqual(misalignedByOneEncodingByteLengthPadded, alignedEncodingByteLengthPadded + 4)
+
+			let misalignedByOneEncodingByteLengthUnpadded = RAW_base64.Encode.unpadded_encoding_byte_length(unencoded_byte_count:misalignByOne)
+			// verify that the unpadded encoding length is 2 less than the aligned encoding byte length
+			XCTAssertEqual(misalignedByOneEncodingByteLengthPadded, misalignedByOneEncodingByteLengthUnpadded + 2)
+
+			let misalignedByOneDecodedByteLengthFromUnpadded = try! RAW_base64.Decode.decoded_byte_length(unpadded_encoding_byte_length:misalignedByOneEncodingByteLengthUnpadded)
+			// verify that the computed length for the decoded values are the same as the misaligned (by one) size (based on the unpadded encoding byte length for the same misalignment)
+			XCTAssertEqual(misalignedByOneDecodedByteLengthFromUnpadded, misalignByOne)
+
+			let misalignedByOneDecodedByteLengthFromPadded = try! RAW_base64.Decode.decoded_byte_length(padded_encoding_byte_length:misalignedByOneEncodingByteLengthPadded)
+			// verify that the computed length for the decoded values are the same as the reference implementation (for padded encoding byte length)
+			XCTAssertEqual(misalignedByOneDecodedByteLengthFromPadded, misalignedByOneReferenceImplDecLen)
+
+			// - unaligned +2
+			let misalignByTwo = (i * 3) + 2
+			let misalignedByTwoReferenceImplEncLen = base64_encoded_length(misalignByTwo)
+			let misalignedByTwoReferenceImplDecLen = base64_decoded_length(misalignedByTwoReferenceImplEncLen)
+
+			let misalignedByTwoEncodingByteLengthPadded = RAW_base64.Encode.padded_encoding_byte_length(unencoded_byte_count:misalignByTwo)
+			// verify that the +2 misaligned padded encoding byte length is the same as the reference implementation.
+			XCTAssertEqual(misalignedByTwoReferenceImplEncLen, misalignedByTwoEncodingByteLengthPadded)
+			// verify that the +2 misaligned padded encoding byte length is the same length as the +1 misaligned padded encoding byte length.
+			XCTAssertEqual(misalignedByTwoEncodingByteLengthPadded, misalignedByOneEncodingByteLengthPadded)
+
+			let misalignedByTwoEncodingByteLengthUnpadded = RAW_base64.Encode.unpadded_encoding_byte_length(unencoded_byte_count:misalignByTwo)
+			// verify that the unpadded encoding length is 1 less than the aligned encoding byte length
+			XCTAssertEqual(misalignedByTwoEncodingByteLengthPadded, misalignedByTwoEncodingByteLengthUnpadded + 1)
+
+			let misalignedByTwoDecodedByteLengthFromUnpadded = try! RAW_base64.Decode.decoded_byte_length(unpadded_encoding_byte_length:misalignedByTwoEncodingByteLengthUnpadded)
+			// verify that the computed length for the decoded values are the same as the misaligned (by two) size (based on the unpadded encoding byte length for the same misalignment)
+			XCTAssertEqual(misalignedByTwoDecodedByteLengthFromUnpadded, misalignByTwo)
+
+			let misalignedByTwoDecodedByteLengthFromPadded = try! RAW_base64.Decode.decoded_byte_length(padded_encoding_byte_length:misalignedByTwoEncodingByteLengthPadded)
+			// verify that the computed length for the decoded values are the same as the reference implementation (for padded encoding byte length)
+			XCTAssertEqual(misalignedByTwoDecodedByteLengthFromPadded, misalignedByTwoReferenceImplDecLen)
+		}
+	}
+
+	func testBase64EncodingFromRaw() {
+	}
+}
 // 	// test that the encoding map is the same as the C implementation.
 //     func testBase64EncodingMap() throws {
 // 		let cEncodingMap = Base64EncodeMap(RAW_staticbuff_storetype:CRAW_base64.base64_maps_rfc4648.encode_map)

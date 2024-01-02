@@ -1,21 +1,26 @@
 import RAW
 
-internal struct Decoding {
+internal struct Decode {
 
-	// returns the number of bytes that are required to stored the specified encoded data in decoded form.
+	/// returns the number of bytes that are required to stored the specified encoded data in decoded form.
 	internal static func decoded_byte_length(unpadded_encoding_byte_length base64Length:size_t) throws -> size_t {
-		let fullBlocks = base64Length / 4
 		let remainingBytes = switch base64Length % 4 {
 			case 3: 2
 			case 2: 1
 			case 1: throw Error.invalidEncodingLength(base64Length)
 			default: 0
 		}
+		let fullBlocks = (base64Length) / 4
 		return (fullBlocks * 3) + remainingBytes
 	}
 
-	// decode a chunk of data
-	internal static func chunk_parse(dest_head:inout UnsafeMutablePointer<UInt8>, dest_length:inout size_t, src_head:inout UnsafePointer<Value>, src_length:inout size_t, tail_audit:inout Encoded.Tail) {
+	/// returns the number of bytes that are required to store the specified encoded data in decoded form.
+	internal static func decoded_byte_length(padded_encoding_byte_length base64LengthPadded: size_t) -> size_t {
+		return ((base64LengthPadded+3)/4*3)
+	}
+
+	/// decode a chunk of data. this function will usually stride the source pointer by 4 bytes and the destination pointer by 3 bytes, but will also handle partial encodings
+	internal static func chunk_parse(dest_head:inout UnsafeMutablePointer<UInt8>, dest_length:inout size_t, src_head:inout UnsafePointer<Value>, src_length:inout size_t, tail_audit:inout Encoded.Padding) {
 		switch src_length {
 			case 4...:
 				// store the data that is referenced mutliple times
@@ -31,7 +36,7 @@ internal struct Decoding {
 				dest_head += 3
 				dest_length += 3
 				
-				// step the source variables
+				// step the source variables 
 				src_head += 4
 				src_length -= 4
 
@@ -81,14 +86,19 @@ internal struct Decoding {
 		}
 	}
 
-	internal static func base64_decode(values:UnsafePointer<Value>, value_count:size_t, padding:Encoded.Tail) throws -> [UInt8] {
+	/// decode a series of unpadded base64 values into a series of bytes.
+	/// - parameter values: the base64 values to decode
+	/// - parameter value_count: the number of values to decode
+	/// - parameter padding: the padding that was used to encode the data
+	/// - returns: the decoded data
+	internal static func process(values:UnsafePointer<Value>, value_count:size_t, padding:Encoded.Padding) throws -> [UInt8] {
 		let decodingSize = try decoded_byte_length(unpadded_encoding_byte_length:value_count)
 		return try [UInt8](unsafeUninitializedCapacity:decodingSize, initializingWith: { writeBuffer, write_countup in
 			write_countup = 0
 			var src_countdown = value_count
 			var readSeeker = values
 			var writeSeeker = writeBuffer.baseAddress!
-			var paddingAudit:Encoded.Tail = .zero
+			var paddingAudit:Encoded.Padding = .zero
 
 			// process the data chunks
 			while src_countdown > 0 {

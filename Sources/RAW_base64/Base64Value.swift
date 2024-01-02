@@ -1,6 +1,6 @@
 /// represents one of the 64 possible base64 encoding values
 @frozen public enum Value {
-	// uppercase alphas
+	// uppercase alphas (26 values)
 	case A
 	case B
 	case C
@@ -28,7 +28,7 @@
 	case Y
 	case Z
 	
-	// lowercase alphas
+	// lowercase alphas (26 values)
 	case a
 	case b
 	case c
@@ -56,7 +56,7 @@
 	case y
 	case z
 	
-	// numerical bytes
+	// numerical bytes (10 values)
 	case zero
 	case one
 	case two
@@ -68,7 +68,7 @@
 	case eight
 	case nine
 	
-	// special bytes
+	// special bytes (2 values)
 	case plus
 	case slash
 }

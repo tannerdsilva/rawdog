@@ -1,10 +1,10 @@
 import RAW
 
-internal struct Encoding {
+internal struct Encode {
 
 	/// computes the padding size for the given number of unencoded bytes.
-	/// - returns: the corresponding ``Encoded.Tail`` value.
-	internal static func computePadding(forUnencodedByteCount byteCount:size_t) -> Encoded.Tail {
+	/// - returns: the corresponding ``Encoded.Padding`` value.
+	internal static func compute_padding(unencoded_byte_count byteCount:size_t) -> Encoded.Padding {
 		return switch byteCount % 3 {
 			case 0: .zero
 			case 1: .two
@@ -14,12 +14,12 @@ internal struct Encoding {
 	}
 
 	/// computes the number of encoded bytes that would be required to encode the given number of unencoded bytes.
-	internal static func encoded_byte_length_padded(forUnencodedByteCount bytes:size_t) -> size_t {
+	internal static func padded_encoding_byte_length(unencoded_byte_count bytes:size_t) -> size_t {
 		return ((bytes + 2) / 3) * 4
 	}
 
 	/// computes the number of encoded bytes that would be required to encode the given number of unencoded bytes.
-	internal static func encoded_byte_length_unpadded(forUnencodedByteCount bytes:size_t) -> size_t {
+	internal static func unpadded_encoding_byte_length(unencoded_byte_count bytes:size_t) -> size_t {
 		let remainingBytes = bytes % 3
 		// calculate the length contribution of the remaining bytes
 		let remainingBlockLength = switch remainingBytes {
@@ -31,7 +31,7 @@ internal struct Encoding {
 
 	// triplets in
 	// quadruplets out
-	fileprivate static func chunk_parse(_ dest_ptr:inout UnsafeMutablePointer<Value>, _ dest_len:inout size_t, _ src:inout UnsafePointer<UInt8>, _ src_len:inout size_t, _ encoded_tail:inout Encoded.Tail) {
+	internal static func chunk_parse(_ dest_ptr:inout UnsafeMutablePointer<Value>, _ dest_len:inout size_t, _ src:inout UnsafePointer<UInt8>, _ src_len:inout size_t, _ encoded_tail:inout Encoded.Padding) {
 		switch src_len {
 			case 1:
 				// write the tail
@@ -88,18 +88,18 @@ internal struct Encoding {
 	}
 
 	/// - note: this function assumes that the destination buffer is large enough to hold the encoded data. despite taking the destination buffer size as a parameter, this function does not check that the destination buffer is large enough to hold the encoded data.
-	internal static func encode(bytes data:UnsafePointer<UInt8>, byte_size:size_t) -> Encoded {
+	internal static func process(bytes data:UnsafePointer<UInt8>, byte_count:size_t) -> Encoded {
 		// mutable copy of the size, this will be counted down as we process the data
-		var source_byte_countdown = byte_size
+		var source_byte_countdown = byte_count
 		// compute the unpadded length of the encoded data
-		let encodedLengthWithoutPadding = Encoding.encoded_byte_length_unpadded(forUnencodedByteCount:source_byte_countdown)
+		let encodedLengthWithoutPadding = Encode.unpadded_encoding_byte_length(unencoded_byte_count:source_byte_countdown)
 
 		#if DEBUG
 		// when in debug mode, validate that the also store the expected length with padding. this will be audited later.
-		let withPadding = Encoding.encoded_byte_length_padded(forUnencodedByteCount:source_byte_countdown)
+		let withPadding = Encode.padded_encoding_byte_length(unencoded_byte_count:source_byte_countdown)
 		#endif
 
-		var destPadding:Encoded.Tail = .zero
+		var destPadding:Encoded.Padding = .zero
 
 		// initialize the [Value] buffer with the encoded length without padding.
 		let byteValues = [Value](unsafeUninitializedCapacity:encodedLengthWithoutPadding, initializingWith: { writeBuffer, writeSize in
@@ -120,7 +120,7 @@ internal struct Encoding {
 				}
 				#endif
 
-				Encoding.chunk_parse(&writeseeker, &writeSize, &srcPtr, &source_byte_countdown, &destPadding)
+				Encode.chunk_parse(&writeseeker, &writeSize, &srcPtr, &source_byte_countdown, &destPadding)
 				
 				#if DEBUG
 				assert(writeseeker - deltaAudit == expectedStepSize, "the write buffer should have advanced by \(expectedStepSize) bytes but was stepped by \(writeseeker - deltaAudit)")

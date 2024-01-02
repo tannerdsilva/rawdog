@@ -1,21 +1,29 @@
 import RAW
 
-/// represents a base64 encoded byte buffer
+/// represents a base64 encoded data buffer.
 @frozen public struct Encoded {
 
-	/// represents the tail encoding of a base64 encoded value.
-	@frozen public enum Tail {
+	/// represents the tail encoding length of a base64 encoded value. this is the number of '=' padding characters that are present at the end of the encoded value.
+	@frozen public enum Padding {
 		case zero
 		case one
 		case two
 	}
 
-	// value buffer
+	// count of 7-bit values
 	public let value_count:size_t
+	// value buffer of 7-bit values
 	public let values:[Value]
 
 	// encoding tail
-	public let tail:Tail
+	public let tail:Padding
+}
+
+extension Encoded {
+	/// returns a byte array representing the decoded value of the current instance.
+	public func decoded() throws -> [UInt8] {
+		return try Decode.process(values:values, value_count:value_count, padding:tail)
+	}
 }
 
 extension Encoded {
@@ -32,14 +40,14 @@ extension Encoded {
 	/// - note: this is a validating initializer, meaning that it will throw an error if the byte buffer is not a valid base64 encoding.
 	public init(validate bytes:UnsafePointer<UInt8>, size:size_t) throws {
 		// parse for the padding characters
-		let getTail = try Encoded.Tail.parse(from:bytes, byte_size:size)
+		let getTail = try Encoded.Padding.parse(from:bytes, byte_size:size)
 
 		// compute the number of encoded bytes
 		let encoded_byte_count = size - getTail.asSize()
 
 		// compute the number of decoded bytes and then validate the padding length against the computed value
-		let decoded_byte_count = try Decoding.decoded_byte_length(unpadded_encoding_byte_length:encoded_byte_count)
-		guard Encoding.computePadding(forUnencodedByteCount:decoded_byte_count) == getTail else {
+		let decoded_byte_count = try Decode.decoded_byte_length(unpadded_encoding_byte_length:encoded_byte_count)
+		guard Encode.compute_padding(unencoded_byte_count:decoded_byte_count) == getTail else {
 			throw Error.invalidPaddingLength
 		}
 
@@ -135,9 +143,9 @@ extension Encoded:Sequence {
 		private let value_count:size_t
 		private let values:[Value]
 		private var position:size_t
-		private let tail:Tail
+		private let tail:Padding
 
-		fileprivate init(value_count:size_t, values:[Value], tail:Tail) {
+		fileprivate init(value_count:size_t, values:[Value], tail:Padding) {
 			self.value_count = value_count
 			self.values = values
 			self.position = 0
@@ -149,7 +157,7 @@ extension Encoded:Sequence {
 	}
 }
 
-extension Encoded.Tail {
+extension Encoded.Padding {
 
 	/// initialize a tail from a Value.
 	internal static func parse(from bytes:UnsafePointer<UInt8>, byte_size:size_t) throws -> Self {
@@ -183,12 +191,11 @@ extension Encoded.Tail {
 					fatalError("stepLength should never be greater than 2")
 			}
 		}
-		let padding = Encoded.Tail(validated:stepLength)
 		// ensure that there are still normal encoding bytes to process
 		guard byte_size - stepLength > 0 else {
 			throw Error.invalidPaddingLength
 		}
-		return padding
+		return Self(validated:stepLength)
 	}
 
 	/// initialize a tail from a size_t value.
@@ -218,7 +225,7 @@ extension Encoded.Tail {
 		}
 	}
 
-	/// returns the size_t value of the tail
+	/// returns the size_t value of the padding
 	internal func asSize() -> size_t {
 		switch self {
 		case .zero:
@@ -231,10 +238,10 @@ extension Encoded.Tail {
 	}	
 }
 
-extension Encoded.Tail:Equatable, Hashable {
+extension Encoded.Padding:Equatable, Hashable {
 
-	/// equality operator for tail values.
-	public static func == (lhs:Encoded.Tail, rhs:Encoded.Tail) -> Bool {
+	/// equality operator for padding values.
+	public static func == (lhs:Encoded.Padding, rhs:Encoded.Padding) -> Bool {
 		switch (lhs, rhs) {
 		case (.zero, .zero):
 			return true
@@ -247,7 +254,7 @@ extension Encoded.Tail:Equatable, Hashable {
 		}
 	}
 
-	/// hash function for tail values.
+	/// hash function for padding values.
 	public func hash(into hasher:inout Hasher) {
 		hasher.combine(self.asSize())
 	}
@@ -257,5 +264,16 @@ extension Encoded:Equatable {
 	/// equality operator for encoded values.
 	public static func == (lhs:Encoded, rhs:Encoded) -> Bool {
 		return lhs.value_count == rhs.value_count && lhs.values == rhs.values && lhs.tail == rhs.tail
+	}
+}
+
+extension Encoded:ExpressibleByStringLiteral {
+	public typealias StringLiteralType = String
+	public init(stringLiteral value:String) {
+		do {
+			self = try Encoded(validate:value)
+		} catch {
+			fatalError("invalid string literal: \(value)")
+		}
 	}
 }
