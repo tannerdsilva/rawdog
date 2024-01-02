@@ -15,7 +15,7 @@ internal struct Decoding {
 	}
 
 	// decode a chunk of data
-	internal static func decode_chunk(dest_head:inout UnsafeMutablePointer<UInt8>, dest_length:inout size_t, src_head:inout UnsafePointer<Value>, src_length:inout size_t, tail_audit:inout Encoded.Tail) {
+	internal static func chunk_parse(dest_head:inout UnsafeMutablePointer<UInt8>, dest_length:inout size_t, src_head:inout UnsafePointer<Value>, src_length:inout size_t, tail_audit:inout Encoded.Tail) {
 		switch src_length {
 			case 4...:
 				// store the data that is referenced mutliple times
@@ -83,7 +83,7 @@ internal struct Decoding {
 
 	internal static func base64_decode(values:UnsafePointer<Value>, value_count:size_t, padding:Encoded.Tail) throws -> [UInt8] {
 		let decodingSize = try decoded_byte_length(unpadded_encoding_byte_length:value_count)
-		return [UInt8](unsafeUninitializedCapacity:decodingSize, initializingWith: { writeBuffer, write_countup in
+		return try [UInt8](unsafeUninitializedCapacity:decodingSize, initializingWith: { writeBuffer, write_countup in
 			write_countup = 0
 			var src_countdown = value_count
 			var readSeeker = values
@@ -92,13 +92,18 @@ internal struct Decoding {
 
 			// process the data chunks
 			while src_countdown > 0 {
-				decode_chunk(dest_head:&writeSeeker, dest_length:&write_countup, src_head:&readSeeker, src_length:&src_countdown, tail_audit:&paddingAudit)
+				chunk_parse(dest_head:&writeSeeker, dest_length:&write_countup, src_head:&readSeeker, src_length:&src_countdown, tail_audit:&paddingAudit)
 			}
 
 			#if DEBUG
 			assert(src_countdown == 0, "the source length (countdown) should be zero at this point. if it's not, we have a bug. the countdown value is \(src_countdown)")
 			assert(write_countup == decodingSize, "the size of the decoded data should be equal to the expected size. if it's not, we have a bug. \((write_countup - decodingSize))")
 			#endif
+
+			// verify the padding
+			guard paddingAudit == padding else {
+				throw Error.invalidPaddingLength
+			}
 		})
 	}
 }

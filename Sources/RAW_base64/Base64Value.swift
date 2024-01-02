@@ -1,5 +1,5 @@
 /// represents one of the 64 possible base64 encoding values
-public enum Value {
+@frozen public enum Value {
 	// uppercase alphas
 	case A
 	case B
@@ -611,17 +611,6 @@ extension Value {
 			case 0x2F: self = .slash
 			default: fatalError()
 		}
-	}
-}
-
-// value shall be expressible by an integer literal.
-extension Value:ExpressibleByIntegerLiteral {
-	/// the type of integer that is used for literal expressions.
-	public typealias IntegerLiteralType = UInt8
-
-	/// create a new value from an integer literal.
-	public init(integerLiteral value: UInt8) {
-		self = try! Self(validate:value)
 	}
 }
 

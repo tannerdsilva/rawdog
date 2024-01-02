@@ -4,7 +4,7 @@ internal struct Encoding {
 
 	/// computes the padding size for the given number of unencoded bytes.
 	/// - returns: the corresponding ``Encoded.Tail`` value.
-	internal func computePadding(forUnencodedByteCount byteCount:size_t) -> Encoded.Tail {
+	internal static func computePadding(forUnencodedByteCount byteCount:size_t) -> Encoded.Tail {
 		return switch byteCount % 3 {
 			case 0: .zero
 			case 1: .two
@@ -135,6 +135,6 @@ internal struct Encoding {
 		assert(encodedLengthWithoutPadding == withPadding - destPadding.asSize(), "the encoded length without padding should be equal to the encoded length with padding minus the padding size")
 		#endif
 
-		return Encoded(bytes:byteValues, tail:destPadding)
+		return Encoded(value_count:encodedLengthWithoutPadding, values:byteValues, tail:destPadding)
 	}
 }
