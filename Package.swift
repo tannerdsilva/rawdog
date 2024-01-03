@@ -66,7 +66,7 @@ let package = Package(
 		// raw targets
 		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2", "CRAW"]),
 		.target(name:"RAW_base64", dependencies:["CRAW", "RAW", "CRAW_base64"]),
-		.target(name:"RAW_hex", dependencies:rawHexDependencies(), swiftSettings: [.define("RAWDOG_HEX_LOG")]),
+		.target(name:"RAW_hex", dependencies:rawHexDependencies(), swiftSettings: []),
 		.target(name:"RAW", dependencies:rawTargetDependencies),
 
 		// c implementations
