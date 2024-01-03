@@ -7,12 +7,12 @@ internal struct Encode {
 	}
 
 	/// encode a byte buffer into a hex representation.
-	internal static func process(bytes:UnsafePointer<UInt8>, byte_count:size_t) -> Encoded {
+	internal static func process(bytes:UnsafePointer<UInt8>, byte_count:size_t) -> [Value] {
 		// determine the size of the output buffer. this is referenced a few times, so we'll just calculate it once.
 		let encodingSize = Encode.length(byte_count)
 
 		// assemble the output buffer. we'll use the unsafe initializer to avoid initializing the buffer twice. return the buffer.
-		let values = [Value](unsafeUninitializedCapacity:encodingSize, initializingWith: { valueBuffer, valueCount in
+		return [Value](unsafeUninitializedCapacity:encodingSize, initializingWith: { valueBuffer, valueCount in
 			valueCount = 0
 			for byte in UnsafeBufferPointer<UInt8>(start:bytes, count:byte_count) {
 				let high = byte >> 4
@@ -24,8 +24,6 @@ internal struct Encode {
 			}
 			valueCount = encodingSize
 		})
-
-		return Encoded()
 	}
 
 	internal static func process_inline(decoded_data:UnsafePointer<UInt8>, encoded_index:size_t) -> (Value, Value) {

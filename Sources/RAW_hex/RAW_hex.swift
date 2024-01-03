@@ -42,33 +42,36 @@ extension Array where Element == Value {
 				valueBuffer[valueCount] = try Value(validate:data[valueCount])
 				valueCount += 1
 			}
+			#if DEBUG
+			assert(valueCount == getCount)
+			#endif
 		})
 	}
 }
 
 
-public func encode(bytes:[UInt8], byte_count:size_t) throws -> Encoded {
-	return try Encoded(validate:bytes, size:byte_count)
+public func encode(bytes:[UInt8], byte_count:size_t) -> Encoded {
+	return Encoded.from(decoded:bytes, size:byte_count)
 }
 
-public func encode(bytes:[UInt8]) throws -> Encoded {
-	return try Encoded(validate:bytes, size:bytes.count)
+public func encode(bytes:[UInt8]) -> Encoded {
+	return Encoded.from(decoded:bytes)
 }
 
-// public func decode(values:UnsafePointer<Value>, value_count:size_t, padding:Encoded.Padding) throws -> [UInt8] {
-// 	return try 
-// }
+public func decode(values:UnsafePointer<Value>, value_count:size_t) throws -> [UInt8] {
+	return try Decode.process(values:values, value_size:value_count)
+}
 
-// public func decode(values:String) throws -> [UInt8] {
-// 	return try Encoded(validate:values).decoded()
-// }
+public func decode(values:String) throws -> [UInt8] {
+	return try Decode.process(values:[Value](validate:values), value_size:values.count)
+}
 
-// public func decode(_ encoded:Encoded) throws -> [UInt8] {
-// 	return try encoded.decoded()
-// }
+public func decode(_ encoded:Encoded) throws -> [UInt8] {
+	return encoded.decoded()
+}
 
-// extension Array where Element == UInt8 {
-// 	func base64Encoded() -> Encoded {
-// 		return Encode.process(bytes:self, byte_count:self.count)
-// 	}
-// }
+extension Array where Element == UInt8 {
+	func base64Encoded() -> Encoded {
+		return Encoded.from(decoded:self)
+	}
+}
