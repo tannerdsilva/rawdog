@@ -17,7 +17,7 @@ class Base64Tests: XCTestCase {
 			let alignedEncodingByteLengthPadded = RAW_base64.Encode.padded_encoding_byte_length(unencoded_byte_count:alignedSize)
 			let alignedEncodingByteLengthUnpadded = RAW_base64.Encode.unpadded_encoding_byte_length(unencoded_byte_count:alignedSize)
 			let alignedDecodedByteLengthFromUnpadded = try! RAW_base64.Decode.decoded_byte_length(unpadded_encoding_byte_length:alignedEncodingByteLengthUnpadded)
-			let alignedDecodedByteLengthFromPadded = try! RAW_base64.Decode.decoded_byte_length(padded_encoding_byte_length:alignedEncodingByteLengthPadded)
+			let alignedDecodedByteLengthFromPadded = RAW_base64.Decode.decoded_byte_length(padded_encoding_byte_length:alignedEncodingByteLengthPadded)
 			
 			// verify that the padded encoding byte length is the same as the reference implementation.
 			XCTAssertEqual(alignedReferenceImplEncLen, alignedEncodingByteLengthPadded)
@@ -71,62 +71,30 @@ class Base64Tests: XCTestCase {
 			// verify that the computed length for the decoded values are the same as the misaligned (by two) size (based on the unpadded encoding byte length for the same misalignment)
 			XCTAssertEqual(misalignedByTwoDecodedByteLengthFromUnpadded, misalignByTwo)
 
-			let misalignedByTwoDecodedByteLengthFromPadded = try! RAW_base64.Decode.decoded_byte_length(padded_encoding_byte_length:misalignedByTwoEncodingByteLengthPadded)
+			let misalignedByTwoDecodedByteLengthFromPadded = RAW_base64.Decode.decoded_byte_length(padded_encoding_byte_length:misalignedByTwoEncodingByteLengthPadded)
 			// verify that the computed length for the decoded values are the same as the reference implementation (for padded encoding byte length)
 			XCTAssertEqual(misalignedByTwoDecodedByteLengthFromPadded, misalignedByTwoReferenceImplDecLen)
 		}
 	}
 
-	func testBase64EncodingFromRaw() {
+	// // testing base64 encoding from bytes.
+	func testBase64EncodingFromBytes() {
+		let bytes: [UInt8] = Array("Hello, World!".utf8)
+		let base64Encoded = try! RAW_base64.encode(bytes:bytes)
+		XCTAssertEqual(base64Encoded, "SGVsbG8sIFdvcmxkIQ==")
+	}
+
+	// testing base64 decoding to bytes.
+	func testBase64DecodingToBytes() {
+		let decodedBytes = try! RAW_base64.decode("SGVsbG8sIFdvcmxkIQ==")
+		let decodedString = String(bytes: decodedBytes, encoding: .utf8)
+		XCTAssertEqual(decodedString, "Hello, World!")
+	}
+
+	// this should not throw - throwing should be considered a severely unexpected error.
+	func testBase64NoContentNoThrow() {
+		let startBytes = [UInt8]()
+		let base64Encoded = try? RAW_base64.encode(bytes:startBytes)
+		XCTAssertEqual(base64Encoded, "")
 	}
 }
-// 	// test that the encoding map is the same as the C implementation.
-//     func testBase64EncodingMap() throws {
-// 		let cEncodingMap = Base64EncodeMap(RAW_staticbuff_storetype:CRAW_base64.base64_maps_rfc4648.encode_map)
-// 		// test the encoding map.
-// 		for i in 0..<64 {
-// 			let char = RAW_base64.RFC4648.EncodeMap[i]
-// 			let cSource = try? Value(validate:UInt8(cEncodingMap[i]))
-// 			XCTAssertEqual(char, cSource)
-// 		}
-// 	}
-	
-// 	// test that the decoding map is the same as the C implementation.
-// 	func testBase64DecodingMap() throws {
-// 		let cDecodingMap = Base64DecodeMap(RAW_staticbuff_storetype:CRAW_base64.base64_maps_rfc4648.decode_map)
-// 		for dm in RAW_base64.RFC4648.decodeMap.enumerated() {
-// 			let cSource = UInt8(bitPattern:cDecodingMap[dm.offset])
-// 			XCTAssertEqual(dm.element, cSource)
-// 		}
-// 	}
-// }
-
-	// testing base64 encodinInt8g from raw value.
-	// func testBase64EncodingFromRaw() {
-	// 	Array("Hello, World!".utf8).asRAW_val { rawDat, rawSize in
-	// 		let base64Encoded = try! RAW_base64.encode(bytes:val(RAW_data:rawDat, RAW_size:rawSize))
-	// 		XCTAssertEqual(base64Encoded, "SGVsbG8sIFdvcmxkIQ==")
-	// 	}
-	// }
-
-	// // testing base64 encoding from bytes.
-	// func testBase64EncodingFromBytes() {
-	// 	let bytes: [UInt8] = Array("Hello, World!".utf8)
-	// 	let base64Encoded = try! RAW_base64.encode(bytes:bytes)
-	// 	XCTAssertEqual(base64Encoded, "SGVsbG8sIFdvcmxkIQ==")
-	// }
-
-	// // testing base64 decoding to bytes.
-	// func testBase64DecodingToBytes() {
-	// 	let decodedBytes = try! RAW_base64.decode("SGVsbG8sIFdvcmxkIQ==")
-	// 	let decodedString = String(bytes: decodedBytes, encoding: .utf8)
-	// 	XCTAssertEqual(decodedString, "Hello, World!")
-	// }
-
-	// // this should not throw - throwing should be considered a severely unexpected error.
-	// func testBase64NoContentNoThrow() {
-	// 	let startBytes = [UInt8]()
-	// 	let base64Encoded = try? RAW_base64.encode(bytes:startBytes)
-	// 	XCTAssertEqual(base64Encoded, "")
-	// }
-// }

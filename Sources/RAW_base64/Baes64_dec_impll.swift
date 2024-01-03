@@ -89,20 +89,21 @@ internal struct Decode {
 	/// decode a series of unpadded base64 values into a series of bytes.
 	/// - parameter values: the base64 values to decode
 	/// - parameter value_count: the number of values to decode
-	/// - parameter padding: the padding that was used to encode the data
-	/// - returns: the decoded data
-	internal static func process(values:UnsafePointer<Value>, value_count:size_t, padding:Encoded.Padding) throws -> [UInt8] {
+	/// - parameter padding: the padding that was used to encode the data.
+	/// - returns: the decoded data.
+	/// - throws: throws an error if the length is not a valid length for the given 
+	internal static func process(values:UnsafePointer<Value>, value_count:size_t, padding_audit expected_padding:Encoded.Padding) throws -> [UInt8] {
 		let decodingSize = try decoded_byte_length(unpadded_encoding_byte_length:value_count)
 		return try [UInt8](unsafeUninitializedCapacity:decodingSize, initializingWith: { writeBuffer, write_countup in
 			write_countup = 0
 			var src_countdown = value_count
 			var readSeeker = values
 			var writeSeeker = writeBuffer.baseAddress!
-			var paddingAudit:Encoded.Padding = .zero
+			var padding_audit:Encoded.Padding = .zero
 
 			// process the data chunks
 			while src_countdown > 0 {
-				chunk_parse(dest_head:&writeSeeker, dest_length:&write_countup, src_head:&readSeeker, src_length:&src_countdown, tail_audit:&paddingAudit)
+				chunk_parse(dest_head:&writeSeeker, dest_length:&write_countup, src_head:&readSeeker, src_length:&src_countdown, tail_audit:&padding_audit)
 			}
 
 			#if DEBUG
@@ -111,7 +112,7 @@ internal struct Decode {
 			#endif
 
 			// verify the padding
-			guard paddingAudit == padding else {
+			guard padding_audit == expected_padding else {
 				throw Error.invalidPaddingLength
 			}
 		})

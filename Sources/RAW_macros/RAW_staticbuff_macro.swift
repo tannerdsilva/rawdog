@@ -477,7 +477,8 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 			/// encodes the type into the given destination pointer.
 			\(config.modifiers) func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
 				return withUnsafePointer(to:\(raw:config.storageVariableName)) { valPtr in
-					return RAW_memcpy(dest, valPtr, MemoryLayout<RAW_staticbuff_storetype>.size)!
+					let sizeValue = MemoryLayout<RAW_staticbuff_storetype>.size
+					return RAW_memcpy(dest, valPtr, sizeValue)!.advanced(by:sizeValue)
 				}
 			}
 		"""))

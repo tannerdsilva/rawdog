@@ -1,28 +1,31 @@
 import RAW
 
 /// represents a base64 encoded data buffer.
-@frozen public struct Encoded {
+public struct Encoded {
 
 	/// represents the tail encoding length of a base64 encoded value. this is the number of '=' padding characters that are present at the end of the encoded value.
 	@frozen public enum Padding {
+		/// no padding characters
 		case zero
+		/// one padding character
 		case one
+		/// two padding characters
 		case two
 	}
 
-	// count of 7-bit values
+	/// count of base64 values (not including padding)
 	public let value_count:size_t
-	// value buffer of 7-bit values
+	/// buffer of base64 values (not including padding)
 	public let values:[Value]
 
-	// encoding tail
+	/// encoding tail (number of padding characters)
 	public let tail:Padding
 }
 
 extension Encoded {
 	/// returns a byte array representing the decoded value of the current instance.
 	public func decoded() throws -> [UInt8] {
-		return try Decode.process(values:values, value_count:value_count, padding:tail)
+		return try Decode.process(values:values, value_count:value_count, padding_audit:tail)
 	}
 }
 
@@ -159,7 +162,7 @@ extension Encoded:Sequence {
 
 extension Encoded.Padding {
 
-	/// initialize a tail from a Value.
+	/// initialize a tail from a string encoded value buffer.
 	internal static func parse(from bytes:UnsafePointer<UInt8>, byte_size:size_t) throws -> Self {
 		var iterateBackFrom = switch byte_size {
 			case 0: 0
@@ -192,7 +195,7 @@ extension Encoded.Padding {
 			}
 		}
 		// ensure that there are still normal encoding bytes to process
-		guard byte_size - stepLength > 0 else {
+		guard byte_size - stepLength >= 0 else {
 			throw Error.invalidPaddingLength
 		}
 		return Self(validated:stepLength)
@@ -270,10 +273,6 @@ extension Encoded:Equatable {
 extension Encoded:ExpressibleByStringLiteral {
 	public typealias StringLiteralType = String
 	public init(stringLiteral value:String) {
-		do {
-			self = try Encoded(validate:value)
-		} catch {
-			fatalError("invalid string literal: \(value)")
-		}
+		self = try! Encoded(validate:value)
 	}
 }

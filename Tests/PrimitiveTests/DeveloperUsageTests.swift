@@ -1,4 +1,5 @@
 import XCTest
+import RAW_hex
 @testable import RAW
 @testable import RAW_blake2
 @testable import RAW_base64
@@ -74,17 +75,30 @@ final class TestDeveloperUsage:XCTestCase {
 		let parsedJSON = try Data(contentsOf:jsonTestContent)
 		XCTAssertGreaterThan(parsedJSON.count, 0)
 		let testScenarios = try JSONDecoder().decode([Blake2TestScenario].self, from:parsedJSON)
+		var buildHashes = [String:[Blake2TestScenario]]()
+		for scenario in testScenarios {
+			let inputData = scenario.input
+			let keyData = scenario.key
+			switch scenario.hash {
+				case "blake2s":
+					let b2sHasher = try Hasher<S, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:32)
+	
+					default:
+					break;
+
+			}
+		}
 		var blake2sHasher = try Hasher<S, FixedBuff5>()
 		try blake2sHasher.update(Array("Hello".utf8))
 		let blake2sHash = try blake2sHasher.finish()
+		let blake2sHashBytes = [UInt8](RAW_encodable:blake2sHash)
+		let blake2sHashString = try RAW_base64.encode(bytes:blake2sHashBytes)
+		XCTAssertEqual(blake2sHashString, "HfZQsfk=")
 		let b64Encoded = try RAW_base64.Encoded(validate:"HfZQsfk=")
+		let base64Decoded = try b64Encoded.decoded()
 		// let base64Decoded = try RAW_base64.decode("HfZQsfk=")
-		// let asBuff = FixedBuff5(RAW_decode:base64Decoded)!
-		// XCTAssertEqual(blake2sHash, asBuff)
-	}
-
-	func testBlake2BOutBytes() {
-		XCTAssertEqual(BLAKE2B_OUTBYTES.rawValue, 64)
+		let asBuff = FixedBuff5(RAW_decode:base64Decoded)!
+		XCTAssertEqual(blake2sHash, asBuff)
 	}
 
 	// verifies that the size of a tuple is equal to the sum of the sizes of its members.
@@ -98,9 +112,15 @@ final class TestDeveloperUsage:XCTestCase {
 			XCTFail("MemoryLayout<MySpecialUIntType>.size == \(MemoryLayout<MySpecialUIntType>.size)")
 			return
 		}
+
+		guard MemoryLayout<MySpecialUIntType>.stride == 14 else {
+			XCTFail("MemoryLayout<MySpecialUIntType>.stride == \(MemoryLayout<MySpecialUIntType>.stride)")
+			return
+		}
 	}
 
 	func testExpectedLengths() {
 		XCTAssertEqual(BLAKE2B_OUTBYTES.rawValue, 64)
+		XCTAssertEqual(BLAKE2S_OUTBYTES.rawValue, 32)
 	}
 }

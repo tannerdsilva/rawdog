@@ -7,35 +7,42 @@ public struct Encoded {
 	// encoded representation is still stored as decoded bytes for memory efficiency (takes half the space)
 	private let decoded_data:[UInt8]
 
-	/// initialize an encoded value from a series of ``Value``'s in memory.
+}
+
+extension Encoded {
+	/// initialize an encoded value from a series of pre-parsed ``Value``'s in memory.
+	@available(*, deprecated, message: "This initializer is deprecated. Use other initializers instead.")
 	internal init(encoded hexValues:UnsafePointer<Value>, size:size_t) throws {
 		#if RAWDOG_HEX_LOG
 		logger.debug("initializing encoded value from \(size) values.", metadata:["represented_size": "\(size)", "storage_size": "\(size / 2)"])
 		#endif
 
-		self.decoded_data = try RAW_hex_decode(encoded:hexValues, value_size:size)
+		self.decoded_data = try Decode.process(values:hexValues, value_size:size)
 	}
 
 	/// initialize an encoded value from a decoded byte sequence.
+	@available(*, deprecated, message: "This initializer is deprecated. Use other initializers instead.")
 	internal init(decoded bytes:[UInt8]) {
 		self.decoded_data = bytes
 	}
 }
 
 extension Encoded {
-	// 
+	/// initialize an encoded value by validating an existing encoding in String form.
 	public init(validate string:String) throws {
 		let encodedValues = try [Value](validate:string)
-		self.decoded_data = try RAW_hex_decode(encoded:encodedValues, value_size:encodedValues.count)
+		self.decoded_data = try Decode.process(values:encodedValues, value_size:encodedValues.count)
 	}
 
+	/// initialize an encoded value by validating an existing encoding in byte form (utf8 bytes).
 	public init(validate bytes:[UInt8]) throws {
 		self = try Self(validate:bytes, size:bytes.count)
 	}
 
+	/// initialize an encoded value by validating an existing encoding in byte form with size specified (utf8 bytes).
 	public init(validate bytes:[UInt8], size:size_t) throws {
 		let encodedValues = try [Value](validate:bytes, size:bytes.count)
-		self.decoded_data = try RAW_hex_decode(encoded:encodedValues, value_size:encodedValues.count)
+		self.decoded_data = try Decode.process(values:encodedValues, value_size:encodedValues.count)
 	}
 }
 

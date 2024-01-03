@@ -6,7 +6,7 @@ class HexTests: XCTestCase {
 		let hexString:Encoded = "1F2F"
 		let expectedData: [Value] = [.one, .f, .two, .f]
 		
-		let result = try RAW_hex_decode(encoded:expectedData, value_size:expectedData.count)
+		let result = try Decode.process(values:expectedData, value_size:expectedData.count)
 		
 		// XCTAssertTrue(result)
 		XCTAssertEqual(result, [0x1F, 0x2F])

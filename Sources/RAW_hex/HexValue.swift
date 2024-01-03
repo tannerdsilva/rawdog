@@ -193,9 +193,8 @@ extension Value {
 
 	/// initialize a hex value from an ascii value representing a hex-encoded value.
 	/// - throws: `Error.invalidHexEncodingCharacter` if the character is not a valid hex character.
-	init(validate byte:UInt8) throws {
+	public init(validate byte:UInt8) throws {
 		switch byte {
-
 			case 0x30:
 				self = .zero
 			case 0x31:

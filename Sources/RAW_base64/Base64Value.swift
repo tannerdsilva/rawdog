@@ -74,6 +74,13 @@
 }
 
 extension Value {
+	/// returns a random base64 value.
+	public static func random() -> Self {
+		return Self(indexValue:UInt8.random(in:0..<64))
+	}
+}
+
+extension Value {
 	internal func indexValue() -> UInt8 {
 		switch self {
 			// uppercase letters
@@ -307,7 +314,7 @@ extension Value {
 		}
 	}
 
-	internal func characterValue() -> Character {
+	public func characterValue() -> Character {
 		switch self {
 			// uc
 			case .A: return "A"
@@ -695,5 +702,12 @@ extension Value:CustomStringConvertible {
 extension Value:Hashable {
 	public func hash(into hasher: inout Hasher) {
 		hasher.combine(indexValue())
+	}
+}
+
+extension Value:ExpressibleByExtendedGraphemeClusterLiteral {
+	public typealias ExtendedGraphemeClusterLiteralType = Character
+	public init(extendedGraphemeClusterLiteral:Character) {
+		self = try! Self.init(validate:extendedGraphemeClusterLiteral)
 	}
 }
