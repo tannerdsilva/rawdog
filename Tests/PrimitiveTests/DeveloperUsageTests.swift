@@ -4,11 +4,10 @@ import RAW_hex
 @testable import RAW_blake2
 @testable import RAW_base64
 @testable import cblake2
-// import Foundation
 
 @RAW_staticbuff(5, isUnsigned:true)
 struct FixedBuff5:Hashable, Equatable, Collection, Sequence, ExpressibleByArrayLiteral {
-	static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+	internal static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		return RAW_memcmp(lhs_data, rhs_data, 5)
 	}
 }
@@ -45,66 +44,128 @@ struct MySpecialUIntType {
 
 final class TestDeveloperUsage:XCTestCase {
 	func testBlake2Functionality() throws {
-		struct Blake2TestScenario:Codable {
-			enum CodingKeys:String, CodingKey {
-				case hash = "hash"
-				case key = "key"
-				case input = "in"
-				case output = "out"
+		do {
+			struct Blake2TestScenario:Codable {
+				enum CodingKeys:String, CodingKey {
+					case hash = "hash"
+					case key = "key"
+					case input = "in"
+					case output = "out"
+				}
+				let hash:String
+				let key:String
+				let input:String
+				let output:String
+				init(from decoder:Decoder) throws {
+					let container = try decoder.container(keyedBy:CodingKeys.self)
+					hash = try container.decode(String.self, forKey:.hash)
+					key = try container.decode(String.self, forKey:.key)
+					input = try container.decode(String.self, forKey:.input)
+					output = try container.decode(String.self, forKey:.output)
+				}
+				func encode(to encoder:Encoder) throws {
+					var container = encoder.container(keyedBy:CodingKeys.self)
+					try container.encode(hash, forKey:.hash)
+					try container.encode(key, forKey:.key)
+					try container.encode(input, forKey:.input)
+					try container.encode(output, forKey:.output)
+				}
 			}
-			let hash:String
-			let key:String
-			let input:String
-			let output:String
-			init(from decoder:Decoder) throws {
-				let container = try decoder.container(keyedBy:CodingKeys.self)
-				hash = try container.decode(String.self, forKey:.hash)
-				key = try container.decode(String.self, forKey:.key)
-				input = try container.decode(String.self, forKey:.input)
-				output = try container.decode(String.self, forKey:.output)
+			let jsonTestContent = Bundle.module.resourceURL!.appendingPathComponent("blake2-kat.json")
+			let parsedJSON = try Data(contentsOf:jsonTestContent)
+			XCTAssertGreaterThan(parsedJSON.count, 0)
+			let testScenarios = try! JSONDecoder().decode([Blake2TestScenario].self, from:parsedJSON)
+			for scenario in testScenarios {
+				let keyData = try RAW_hex.decode(RAW_hex.Encoded.from(encoded:scenario.key))
+				let expectedBinaryOutput = try RAW_hex.decode(RAW_hex.Encoded.from(encoded:scenario.output))
+				let expectedBinaryInput = try RAW_hex.decode(RAW_hex.Encoded.from(encoded:scenario.input))
+				switch scenario.hash {
+					case "blake2s":
+						switch scenario.key.count {
+							case 0:
+								var b2sHasher = try! Hasher<S, [UInt8]>(outputLength:expectedBinaryOutput.count)
+								try b2sHasher.update(expectedBinaryInput)
+								let b2sHash = try b2sHasher.finish()
+								XCTAssertEqual(b2sHash, expectedBinaryOutput)
+								let reenc_result = String(RAW_hex.encode(bytes:b2sHash))
+								XCTAssertEqual(reenc_result, scenario.output)
+							default:
+								var b2sHasher = try! Hasher<S, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
+								try b2sHasher.update(expectedBinaryInput)
+								let b2sHash = try b2sHasher.finish()
+								XCTAssertEqual(b2sHash, expectedBinaryOutput)
+								let reenc_result = String(RAW_hex.encode(bytes:b2sHash))
+								XCTAssertEqual(reenc_result, scenario.output)
+						}
+					case "blake2b":
+						switch scenario.key.count {
+							case 0:
+							var b2bHasher = try! Hasher<B, [UInt8]>(outputLength:expectedBinaryOutput.count)
+							try b2bHasher.update(expectedBinaryInput)
+							let b2bHash = try b2bHasher.finish()
+							XCTAssertEqual(b2bHash, expectedBinaryOutput)
+							let reenc_result = String(RAW_hex.encode(bytes:b2bHash))
+							XCTAssertEqual(reenc_result, scenario.output)
+							default:
+							var b2bHasher = try! Hasher<B, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
+							try b2bHasher.update(expectedBinaryInput)
+							let b2bHash = try b2bHasher.finish()
+							XCTAssertEqual(b2bHash, expectedBinaryOutput)
+							let reenc_result = String(RAW_hex.encode(bytes:b2bHash))
+							XCTAssertEqual(reenc_result, scenario.output)
+						}
+					case "blake2bp":
+						switch scenario.key.count {
+							case 0:
+							var b2bpHasher = try! Hasher<BP, [UInt8]>(outputLength:expectedBinaryOutput.count)
+							try b2bpHasher.update(expectedBinaryInput)
+							let b2bpHash = try b2bpHasher.finish()
+							XCTAssertEqual(b2bpHash, expectedBinaryOutput)
+							let reenc_result = String(RAW_hex.encode(bytes:b2bpHash))
+							XCTAssertEqual(reenc_result, scenario.output)
+							default:
+							var b2bpHasher = try! Hasher<BP, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
+							try b2bpHasher.update(expectedBinaryInput)
+							let b2bpHash = try b2bpHasher.finish()
+							XCTAssertEqual(b2bpHash, expectedBinaryOutput)
+							let reenc_result = String(RAW_hex.encode(bytes:b2bpHash))
+							XCTAssertEqual(reenc_result, scenario.output)
+						}
+					case "blake2sp":
+						switch scenario.key.count {
+							case 0:
+							var b2spHasher = try! Hasher<SP, [UInt8]>(outputLength:expectedBinaryOutput.count)
+							try b2spHasher.update(expectedBinaryInput)
+							let b2spHash = try b2spHasher.finish()
+							XCTAssertEqual(b2spHash, expectedBinaryOutput)
+							let reenc_result = String(RAW_hex.encode(bytes:b2spHash))
+							XCTAssertEqual(reenc_result, scenario.output)
+							default:
+							var b2spHasher = try! Hasher<SP, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
+							try b2spHasher.update(expectedBinaryInput)
+							let b2spHash = try b2spHasher.finish()
+							XCTAssertEqual(b2spHash, expectedBinaryOutput)
+							let reenc_result = String(RAW_hex.encode(bytes:b2spHash))
+							XCTAssertEqual(reenc_result, scenario.output)
+						}
+						default:
+						break;
+				}
 			}
-			func encode(to encoder:Encoder) throws {
-				var container = encoder.container(keyedBy:CodingKeys.self)
-				try container.encode(hash, forKey:.hash)
-				try container.encode(key, forKey:.key)
-				try container.encode(input, forKey:.input)
-				try container.encode(output, forKey:.output)
-			}
+			var blake2sHasher = try Hasher<S, FixedBuff5>()
+			try blake2sHasher.update(Array("Hello".utf8))
+			let blake2sHash = try blake2sHasher.finish()
+			let blake2sHashBytes = [UInt8](RAW_encodable:blake2sHash)
+			let blake2sHashString = try RAW_base64.encode(bytes:blake2sHashBytes)
+			XCTAssertEqual(blake2sHashString, "HfZQsfk=")
+			let b64Encoded:RAW_base64.Encoded = "HfZQsfk="
+			let base64Decoded = try b64Encoded.decoded()
+			// let base64Decoded = try RAW_base64.decode("HfZQsfk=")
+			let asBuff = FixedBuff5(RAW_decode:base64Decoded)!
+			XCTAssertEqual(blake2sHash, asBuff)
+		} catch let error {
+			XCTFail("error: \(error)")
 		}
-		let jsonTestContent = Bundle.module.resourceURL!.appendingPathComponent("blake2-kat.json")
-		let parsedJSON = try Data(contentsOf:jsonTestContent)
-		XCTAssertGreaterThan(parsedJSON.count, 0)
-		let testScenarios = try JSONDecoder().decode([Blake2TestScenario].self, from:parsedJSON)
-		var buildHashes = [String:[Blake2TestScenario]]()
-		// for scenario in testScenarios {
-		// 	let inputData = scenario.input
-		// 	let keyData = scenario.key
-		// 	switch scenario.hash {
-		// 		case "blake2s":
-		// 			switch scenario.key.count {
-		// 				case 0:
-		// 				let b2sHasher = try! Hasher<S, [UInt8]>(outputLength:32)
-		// 				default:
-		// 				// let b2sHasher = try! Hasher<S, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:32)
-		// 			}
-					
-	
-		// 			default:
-		// 			break;
-
-		// 	}
-		// }
-		var blake2sHasher = try Hasher<S, FixedBuff5>()
-		try blake2sHasher.update(Array("Hello".utf8))
-		let blake2sHash = try blake2sHasher.finish()
-		let blake2sHashBytes = [UInt8](RAW_encodable:blake2sHash)
-		let blake2sHashString = try RAW_base64.encode(bytes:blake2sHashBytes)
-		XCTAssertEqual(blake2sHashString, "HfZQsfk=")
-		let b64Encoded = try RAW_base64.Encoded(validate:"HfZQsfk=")
-		let base64Decoded = try b64Encoded.decoded()
-		// let base64Decoded = try RAW_base64.decode("HfZQsfk=")
-		let asBuff = FixedBuff5(RAW_decode:base64Decoded)!
-		XCTAssertEqual(blake2sHash, asBuff)
 	}
 
 	// verifies that the size of a tuple is equal to the sum of the sizes of its members.
