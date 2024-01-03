@@ -76,18 +76,24 @@ final class TestDeveloperUsage:XCTestCase {
 		XCTAssertGreaterThan(parsedJSON.count, 0)
 		let testScenarios = try JSONDecoder().decode([Blake2TestScenario].self, from:parsedJSON)
 		var buildHashes = [String:[Blake2TestScenario]]()
-		for scenario in testScenarios {
-			let inputData = scenario.input
-			let keyData = scenario.key
-			switch scenario.hash {
-				case "blake2s":
-					let b2sHasher = try Hasher<S, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:32)
+		// for scenario in testScenarios {
+		// 	let inputData = scenario.input
+		// 	let keyData = scenario.key
+		// 	switch scenario.hash {
+		// 		case "blake2s":
+		// 			switch scenario.key.count {
+		// 				case 0:
+		// 				let b2sHasher = try! Hasher<S, [UInt8]>(outputLength:32)
+		// 				default:
+		// 				// let b2sHasher = try! Hasher<S, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:32)
+		// 			}
+					
 	
-					default:
-					break;
+		// 			default:
+		// 			break;
 
-			}
-		}
+		// 	}
+		// }
 		var blake2sHasher = try Hasher<S, FixedBuff5>()
 		try blake2sHasher.update(Array("Hello".utf8))
 		let blake2sHash = try blake2sHasher.finish()

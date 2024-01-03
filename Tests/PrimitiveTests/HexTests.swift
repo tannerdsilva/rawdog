@@ -10,7 +10,7 @@ class HexTests: XCTestCase {
 		
 		// XCTAssertTrue(result)
 		XCTAssertEqual(result, [0x1F, 0x2F])
-		XCTAssertEqual(Array<Value>(hexString), expectedData)
+		XCTAssertEqual(try Array<Value>(validate:String(hexString)), expectedData)
 	}
 
 	func testEncodedHexRandomAccessTest() throws {
@@ -18,7 +18,7 @@ class HexTests: XCTestCase {
 		let expectedData: [Value] = [.one, .f, .two, .f]
 		// XCTAssertEqual(hexString)
 		for (index, value) in hexString.enumerated() {
-			XCTAssertEqual(hexString[index], expectedData[index])
+			XCTAssertEqual(hexString[index], expectedData[index].characterValue())
 		}
 	}
 	
