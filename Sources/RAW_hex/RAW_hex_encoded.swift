@@ -2,7 +2,7 @@ import RAW
 
 /// represents a valid "hex string" value. while instances of this type may be expressing a value of n bytes, their actual memory footprint is n / 2, since the data is stored intenally in its decoded form.
 /// - note: this is a value type, and is immutable.
-public struct Encoded<D> {
+public struct Encoded {
 	// encoded representation is still stored as decoded bytes for memory efficiency (takes half the space).
 	// this is where the decoded data is stored, and the encoded representation is computed on the fly as needed.
 	private let decoded_data:[UInt8]
@@ -13,7 +13,7 @@ public struct Encoded<D> {
 
 	/// initialize an encoded value from a decoded byte sequence.
 	internal init(decoded_bytes bytes:[UInt8], decoded_size:size_t) {
-		self.encoded_count = Encode.length(bytes.count)
+		self.encoded_count = Encode.length(decoded_size)
 		self.decoded_data = bytes
 		self.decoded_count = decoded_size
 	}
@@ -118,10 +118,10 @@ extension Encoded:Sequence {
 		}
 
 		/// returns the next character in the encoded value.
-		public mutating func next() -> Encoded.Element? {
+		public mutating func next() -> Character? {
 			switch pendingValue {
 			case .none:
-				if index >= endIndex {
+				guard index < endIndex else {
 					return nil
 				}
 				let (first, second) = Encode.process_inline(decoded_data:decoded_data, encoded_index:index)

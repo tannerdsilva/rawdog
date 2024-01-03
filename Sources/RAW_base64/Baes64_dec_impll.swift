@@ -3,7 +3,7 @@ import RAW
 internal struct Decode {
 
 	/// returns the number of bytes that are required to stored the specified encoded data in decoded form.
-	internal static func decoded_byte_length(unpadded_encoding_byte_length base64Length:size_t) throws -> size_t {
+	internal static func length(unpadded_encoding_byte_length base64Length:size_t) throws -> size_t {
 		let remainingBytes = switch base64Length % 4 {
 			case 3: 2
 			case 2: 1
@@ -15,7 +15,7 @@ internal struct Decode {
 	}
 
 	/// returns the number of bytes that are required to store the specified encoded data in decoded form.
-	internal static func decoded_byte_length(padded_encoding_byte_length base64LengthPadded: size_t) -> size_t {
+	internal static func length(padded_encoding_byte_length base64LengthPadded: size_t) -> size_t {
 		return ((base64LengthPadded+3)/4*3)
 	}
 
@@ -93,7 +93,7 @@ internal struct Decode {
 	/// - returns: the decoded data.
 	/// - throws: throws an error if the length is not a valid length for the given 
 	internal static func process(values:UnsafePointer<Value>, value_count:size_t, padding_audit expected_padding:Encoded.Padding) throws -> [UInt8] {
-		let decodingSize = try decoded_byte_length(unpadded_encoding_byte_length:value_count)
+		let decodingSize = try Self.length(unpadded_encoding_byte_length:value_count)
 		return try [UInt8](unsafeUninitializedCapacity:decodingSize, initializingWith: { writeBuffer, write_countup in
 			write_countup = 0
 			var src_countdown = value_count

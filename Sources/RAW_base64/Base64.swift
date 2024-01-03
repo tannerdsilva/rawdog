@@ -25,7 +25,7 @@ public func decode(values:UnsafePointer<Value>, value_count:size_t, padding:Enco
 }
 
 public func decode(values:String) throws -> [UInt8] {
-	return try Encoded(validate:values).decoded()
+	return try Encoded.from(encoded:values).decoded()
 }
 
 public func decode(_ encoded:Encoded) throws -> [UInt8] {
@@ -37,3 +37,31 @@ extension Array where Element == UInt8 {
 		return Encode.process(bytes:self, byte_count:self.count)
 	}
 }
+
+extension Array where Element == Value {
+	/// initialize a new array of hex values from a hex string.
+	/// validates the contents of the string to ensure that it is a valid hex string.
+	/// - parameter RAW_hex_validate_encoded: the hex string to initialize the array from.
+	/// - throws: assorted errors if the hex string is not valid.
+	public init(validate hexString:String) throws {
+		let utf8Bytes = [UInt8](hexString.utf8)
+		let getCount = utf8Bytes.count
+		self = try Self(validate:utf8Bytes, size:getCount)
+	}
+
+	/// initialize a new array of hex values from a byte buffer.
+	public init(validate data:UnsafePointer<UInt8>, size:size_t) throws {
+		let getCount = size
+		self = try Self(unsafeUninitializedCapacity:getCount, initializingWith: { valueBuffer, valueCount in
+			valueCount = 0
+			while valueCount < getCount {
+				valueBuffer[valueCount] = try Value(validate:data[valueCount])
+				valueCount += 1
+			}
+			#if DEBUG
+			assert(valueCount == getCount)
+			#endif
+		})
+	}
+}
+

@@ -44,7 +44,6 @@ extension Array where Element == UInt8 {
 			#else
 			for encodableVar in encodableVars {
 				currentPtr = encodableVar.RAW_encode(dest: currentPtr)
-				currentPtr = stridePtr
 			}
 			#endif
 			size = encSize

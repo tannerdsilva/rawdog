@@ -51,6 +51,7 @@ extension RAW_blake2_func_impl_initparam {
 }
 
 /// used to specify a type of blake2 hashing function that can be used.
+/// implementors include the blake2b and blake2s hashing functions.
 public protocol RAW_blake2_func_impl {
 
 	/// the state type that a given hashing variant uses.

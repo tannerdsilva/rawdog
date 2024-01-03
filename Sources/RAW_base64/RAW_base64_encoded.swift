@@ -14,12 +14,22 @@ public struct Encoded {
 	}
 
 	/// count of base64 values (not including padding)
-	public let value_count:size_t
+	private let value_count:size_t
 	/// buffer of base64 values (not including padding)
-	public let values:[Value]
+	private let values:[Value]
+
+	private let decoded_data:[UInt8]
 
 	/// encoding tail (number of padding characters)
-	public let tail:Padding
+	private let tail:Padding
+
+	/// primary internal initializer. initializes an encoded value from a buffer of base64 values and a tail.
+	internal init(value_count:size_t, values:[Value], decoded:[UInt8], tail:Padding) {
+		self.value_count = value_count
+		self.values = values
+		self.decoded_data = decoded
+		self.tail = tail
+	}
 }
 
 extension Encoded {
@@ -30,40 +40,36 @@ extension Encoded {
 }
 
 extension Encoded {
-
-	/// initialize a base64 encoded value from its string representation.
-	/// - note: this is a validating initializer, meaning that it will throw an error if the string is not a valid base64 encoding.
-	public init(validate base64String:String) throws {
-		// convert the string into a utf8 byte array
-		let utf8Bytes = [UInt8](base64String.utf8)
-		self = try Self(validate:utf8Bytes, size:utf8Bytes.count)
+	/// initialize a base64 encoded value from a string representation of its value
+	public static func from(encoded encString:String) throws -> Self {
+		let utf8Bytes = [UInt8](encString.utf8)
+		let getCount = utf8Bytes.count
+		return try Self.from(encoded:utf8Bytes, size:getCount)
 	}
 
 	/// initialize a base64 encoded value from a byte buffer of utf8 bytes.
-	/// - note: this is a validating initializer, meaning that it will throw an error if the byte buffer is not a valid base64 encoding.
-	public init(validate bytes:UnsafePointer<UInt8>, size:size_t) throws {
-		// parse for the padding characters
-		let getTail = try Encoded.Padding.parse(from:bytes, byte_size:size)
+	public static func from(encoded encBytes:UnsafePointer<UInt8>, size:size_t) throws -> Self {
+		let getTail = try Encoded.Padding.parse(from:encBytes, byte_size:size)
 
-		// compute the number of encoded bytes
 		let encoded_byte_count = size - getTail.asSize()
-
-		// compute the number of decoded bytes and then validate the padding length against the computed value
-		let decoded_byte_count = try Decode.decoded_byte_length(unpadded_encoding_byte_length:encoded_byte_count)
+		let decoded_byte_count = try Decode.length(unpadded_encoding_byte_length:encoded_byte_count)
+		
 		guard Encode.compute_padding(unencoded_byte_count:decoded_byte_count) == getTail else {
 			throw Error.invalidPaddingLength
 		}
-
+		var valSize:size_t = 0
 		let encodedValues = try [Value](unsafeUninitializedCapacity:encoded_byte_count, initializingWith: { buffer, countup in
 			countup = 0
 			for i in 0..<encoded_byte_count {
-				buffer[countup] = try Value(validate:bytes[i])
+				buffer[countup] = try Value(validate:encBytes[i])
 				countup += 1
 			}
+			valSize = countup
 		})
-		self.value_count = encoded_byte_count
-		self.values = encodedValues
-		self.tail = getTail
+
+		let decodedBytes = try Decode.process(values:encodedValues, value_count:valSize, padding_audit:getTail)
+
+		return Self(value_count:valSize, values:encodedValues, decoded:decodedBytes, tail:getTail)
 	}
 }
 
@@ -72,6 +78,7 @@ extension Encoded:Collection {
 	public typealias Element = Character
 	public var startIndex:Index {
 		return 0
+
 	}
 	public var endIndex:Index {
 		return value_count + tail.asSize()
@@ -273,6 +280,6 @@ extension Encoded:Equatable {
 extension Encoded:ExpressibleByStringLiteral {
 	public typealias StringLiteralType = String
 	public init(stringLiteral value:String) {
-		self = try! Encoded(validate:value)
+		self = try! Encoded.from(encoded:value)
 	}
 }

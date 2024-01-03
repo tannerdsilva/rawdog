@@ -62,7 +62,7 @@ public func decode(values:UnsafePointer<Value>, value_count:size_t) throws -> [U
 	return try Decode.process(values:values, value_size:value_count)
 }
 
-public func decode(values:String) throws -> [UInt8] {
+public func decode( values:String) throws -> [UInt8] {
 	return try Decode.process(values:[Value](validate:values), value_size:values.count)
 }
 

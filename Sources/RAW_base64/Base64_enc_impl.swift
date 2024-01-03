@@ -14,12 +14,12 @@ internal struct Encode {
 	}
 
 	/// computes the number of encoded bytes that would be required to encode the given number of unencoded bytes.
-	internal static func padded_encoding_byte_length(unencoded_byte_count bytes:size_t) -> size_t {
+	internal static func padded_length(unencoded_byte_count bytes:size_t) -> size_t {
 		return ((bytes + 2) / 3) * 4
 	}
 
 	/// computes the number of encoded bytes that would be required to encode the given number of unencoded bytes.
-	internal static func unpadded_encoding_byte_length(unencoded_byte_count bytes:size_t) -> size_t {
+	internal static func unpadded_length(unencoded_byte_count bytes:size_t) -> size_t {
 		let remainingBytes = bytes % 3
 		// calculate the length contribution of the remaining bytes
 		let remainingBlockLength = switch remainingBytes {
@@ -27,6 +27,30 @@ internal struct Encode {
 			default: remainingBytes + 1
 		}
 		return ((bytes / 3) * 4) + remainingBlockLength
+	}
+
+	internal static func chunk_parse_inline(decoded_bytes bytes:UnsafePointer<UInt8>, decoded_byte_count src_len:size_t, encoded_index:size_t) -> Value {
+		let encodeSize = Encode.unpadded_length(unencoded_byte_count:src_len)
+		#if DEBUG
+		assert(encoded_index < encodeSize, "the encoded index should be less than the source length. if it's not, we have a bug.")
+		#endif
+		let baseBlockIndex = ((encoded_index / 4) * 3)
+		let baseBlockLeftover = encoded_index % 4
+		let remainingBytes = encodeSize - baseBlockIndex - baseBlockLeftover
+		let basePtr = bytes + baseBlockIndex
+		switch baseBlockLeftover {
+			case 0:
+				
+				return Value(indexValue:((basePtr[0] & 0xfc) >> 2))
+			case 1:
+				return Value(indexValue:(((basePtr[0] & 0x3) << 4) | ((basePtr[1] & 0xf0) >> 4)))
+			case 2:
+				return Value(indexValue:(((basePtr[1] & 0xf) << 2) | ((basePtr[2] & 0xc0) >> 6)))
+			case 3:
+				return Value(indexValue:(basePtr[2] & 0x3f))
+			default:
+				fatalError("encoded index % 4 should never be greater than 3")
+		}
 	}
 
 	// triplets in
@@ -92,11 +116,11 @@ internal struct Encode {
 		// mutable copy of the size, this will be counted down as we process the data
 		var source_byte_countdown = byte_count
 		// compute the unpadded length of the encoded data
-		let encodedLengthWithoutPadding = Encode.unpadded_encoding_byte_length(unencoded_byte_count:source_byte_countdown)
+		let encodedLengthWithoutPadding = Encode.unpadded_length(unencoded_byte_count:source_byte_countdown)
 
 		#if DEBUG
 		// when in debug mode, validate that the also store the expected length with padding. this will be audited later.
-		let withPadding = Encode.padded_encoding_byte_length(unencoded_byte_count:source_byte_countdown)
+		let withPadding = Encode.padded_length(unencoded_byte_count:source_byte_countdown)
 		#endif
 
 		var destPadding:Encoded.Padding = .zero
@@ -135,6 +159,8 @@ internal struct Encode {
 		assert(encodedLengthWithoutPadding == withPadding - destPadding.asSize(), "the encoded length without padding should be equal to the encoded length with padding minus the padding size")
 		#endif
 
-		return Encoded(value_count:encodedLengthWithoutPadding, values:byteValues, tail:destPadding)
+		let byteBuffer = UnsafeBufferPointer(start:data, count:byte_count)
+
+		return Encoded(value_count:encodedLengthWithoutPadding, values:byteValues, decoded:Array<UInt8>(byteBuffer), tail:destPadding)
 	}
 }
