@@ -194,6 +194,6 @@ extension Encoded:ExpressibleByArrayLiteral {
 			fatalError("encoded values must be an even number of characters.")
 		}
 
-		self = try! Self.from(encoded:buildValues, size:buildValues.count)
+		self = Self.from(encoded:buildValues, size:buildValues.count)
 	}
 }

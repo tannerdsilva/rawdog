@@ -1,10 +1,10 @@
 import XCTest
-import RAW
-import CRAW_base64 // used as reference
+import CRAW_base64
 @testable import RAW_base64
 @testable import RAW
 
 class Base64Tests: XCTestCase {
+
 
 	func testBase64LengthTests() {
 		// test that padding deltas are zero for sizes that are multiples of 3.
@@ -82,6 +82,12 @@ class Base64Tests: XCTestCase {
 		let bytes: [UInt8] = Array("Hello, World!".utf8)
 		let base64Encoded = RAW_base64.encode(bytes:bytes)
 		XCTAssertEqual(base64Encoded, "SGVsbG8sIFdvcmxkIQ==")
+
+		let loopTestString = "SGVsbG8sIFdvcmxkIQ"
+		assert(loopTestString.count == base64Encoded.count)
+		for (i, val) in loopTestString.enumerated() {
+			XCTAssertEqual(val, base64Encoded[i].characterValue())
+		}
 	}
 
 	// testing base64 decoding to bytes.

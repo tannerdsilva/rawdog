@@ -92,9 +92,9 @@ internal struct Decode {
 	/// - parameter padding: the padding that was used to encode the data.
 	/// - returns: the decoded data.
 	/// - throws: throws an error if the length is not a valid length for the given 
-	internal static func process(values:UnsafePointer<Value>, value_count:size_t, padding_audit expected_padding:Encoded.Padding) throws -> [UInt8] {
+	internal static func process(values:UnsafePointer<Value>, value_count:size_t, padding_audit expected_padding:Encoded.Padding) throws -> ([UInt8], size_t) {
 		let decodingSize = try Self.length(unpadded_encoding_byte_length:value_count)
-		return try [UInt8](unsafeUninitializedCapacity:decodingSize, initializingWith: { writeBuffer, write_countup in
+		let decodedBytes = try [UInt8](unsafeUninitializedCapacity:decodingSize, initializingWith: { writeBuffer, write_countup in
 			write_countup = 0
 			var src_countdown = value_count
 			var readSeeker = values
@@ -116,6 +116,7 @@ internal struct Decode {
 				throw Error.invalidPaddingLength
 			}
 		})
+		return (decodedBytes, decodingSize)
 	}
 }
 

@@ -13,33 +13,44 @@ public struct Encoded {
 		case two
 	}
 
-	/// count of base64 values (not including padding)
-	private let value_count:size_t
-	/// buffer of base64 values (not including padding)
-	private let values:[Value]
-
+	private let decoded_count:size_t
 	private let decoded_data:[UInt8]
 
-	/// encoding tail (number of padding characters)
-	private let tail:Padding
-
 	/// primary internal initializer. initializes an encoded value from a buffer of base64 values and a tail.
-	internal init(value_count:size_t, values:[Value], decoded:[UInt8], tail:Padding) {
-		self.value_count = value_count
-		self.values = values
+	internal init(decoded:[UInt8], decoded_count:size_t) {
+		#if DEBUG
+		assert(decoded_count == decoded.count)
+		#endif
 		self.decoded_data = decoded
-		self.tail = tail
+		self.decoded_count = decoded_count
 	}
 }
 
 extension Encoded {
 	/// returns a byte array representing the decoded value of the current instance.
-	public func decoded() throws -> [UInt8] {
-		return try Decode.process(values:values, value_count:value_count, padding_audit:tail)
+	public func decoded() -> [UInt8] {
+		return decoded_data
+	}
+
+	/// returns the unpadded encoding length of the current instance.
+	public var count:size_t {
+		return Encode.unpadded_length(unencoded_byte_count:decoded_count)
 	}
 }
 
 extension Encoded {
+	/// initialize an encoded value from a byte buffer of unencoded bytes.
+	public static func from(decoded bytes:[UInt8]) throws -> Self {
+		return Self(decoded:bytes, decoded_count:bytes.count)
+	}
+}
+
+extension Encoded {
+	public static func from(encoded values:UnsafePointer<Value>, value_count:size_t, padding:Encoded.Padding) throws -> Self {
+		let decodedBytes = try Decode.process(values:values, value_count:value_count, padding_audit:padding)
+		return Self(decoded:decodedBytes.0, decoded_count:decodedBytes.1) 
+	}
+
 	/// initialize a base64 encoded value from a string representation of its value
 	public static func from(encoded encString:String) throws -> Self {
 		let utf8Bytes = [UInt8](encString.utf8)
@@ -60,8 +71,10 @@ extension Encoded {
 		var valSize:size_t = 0
 		let encodedValues = try [Value](unsafeUninitializedCapacity:encoded_byte_count, initializingWith: { buffer, countup in
 			countup = 0
+			var writePtr = buffer.baseAddress!
 			for i in 0..<encoded_byte_count {
-				buffer[countup] = try Value(validate:encBytes[i])
+				writePtr.initialize(to:try Value(validate:encBytes[i]))
+				writePtr += 1
 				countup += 1
 			}
 			valSize = countup
@@ -69,68 +82,42 @@ extension Encoded {
 
 		let decodedBytes = try Decode.process(values:encodedValues, value_count:valSize, padding_audit:getTail)
 
-		return Self(value_count:valSize, values:encodedValues, decoded:decodedBytes, tail:getTail)
+		return Self(decoded:decodedBytes.0, decoded_count:decodedBytes.1, tail:getTail)
 	}
 }
 
 extension Encoded:Collection {
 	public typealias Index = size_t
-	public typealias Element = Character
+	public typealias Element = Value
 	public var startIndex:Index {
 		return 0
 
 	}
 	public var endIndex:Index {
-		return value_count + tail.asSize()
+		return value_count
 	}
 	public func index(after i:Index) -> Index {
 		return i + 1
 	}
 	public subscript(position:Index) -> Element {
-		switch tail {
-		case .zero:
-			guard position < value_count else {
-				fatalError("invalid index: \(position)")
-			}
-			return values[position].characterValue()
-		case .one:
-			switch position {
-			case 0..<value_count:
-				return values[position].characterValue()
-			case value_count:
-				return "="
-			default:
-				fatalError("invalid index: \(position)")
-			}
-		case .two:
-			switch position {
-			case 0..<value_count:
-				return values[position].characterValue()
-			case value_count:
-				return "="
-			case value_count + 1:
-				return "="
-			default:
-				fatalError("invalid index: \(position)")
-			}
-		}
+		return Encode.chunk_parse_inline(decoded_bytes:self.decoded_data, decoded_byte_count:self.decoded_count, encoded_index:position)
 	}
 }
 
 extension Encoded:Sequence {
 	public struct Iterator:IteratorProtocol {
-	    public mutating func next() -> Character? {
+	    public mutating func next() -> Value? {
 			defer { position += 1 }
 			switch tail {
 				case .zero:
 					guard position < value_count else {
 						return nil
 					}
-					return values[position].characterValue()
+					return values[position]
 				case .one:
 					switch position {
 					case 0..<value_count:
-						return values[position].characterValue()
+						return values[position]
 					case value_count:
 						return "="
 					default:
@@ -139,7 +126,7 @@ extension Encoded:Sequence {
 				case .two:
 					switch position {
 					case 0..<value_count:
-						return values[position].characterValue()
+						return values[position]
 					case value_count:
 						return "="
 					case value_count + 1:
@@ -168,7 +155,6 @@ extension Encoded:Sequence {
 }
 
 extension Encoded.Padding {
-
 	/// initialize a tail from a string encoded value buffer.
 	internal static func parse(from bytes:UnsafePointer<UInt8>, byte_size:size_t) throws -> Self {
 		var iterateBackFrom = switch byte_size {
@@ -205,11 +191,11 @@ extension Encoded.Padding {
 		guard byte_size - stepLength >= 0 else {
 			throw Error.invalidPaddingLength
 		}
-		return Self(validated:stepLength)
+		return Self(validated_length_value:stepLength)
 	}
 
 	/// initialize a tail from a size_t value.
-	internal init?(validate sizeValue:size_t) {
+	internal init?(validate_length_value sizeValue:size_t) {
 		switch sizeValue {
 		case 0:
 			self = .zero
@@ -222,7 +208,7 @@ extension Encoded.Padding {
 		}
 	}
 
-	internal init(validated sizeValue:size_t) {
+	internal init(validated_length_value sizeValue:size_t) {
 		switch sizeValue {
 		case 0:
 			self = .zero
@@ -273,7 +259,7 @@ extension Encoded.Padding:Equatable, Hashable {
 extension Encoded:Equatable {
 	/// equality operator for encoded values.
 	public static func == (lhs:Encoded, rhs:Encoded) -> Bool {
-		return lhs.value_count == rhs.value_count && lhs.values == rhs.values && lhs.tail == rhs.tail
+		return lhs.decoded_count == rhs.decoded_count && lhs.decoded_data == rhs.decoded_data && lhs.tail == rhs.tail
 	}
 }
 
