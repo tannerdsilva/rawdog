@@ -53,16 +53,8 @@ public protocol RAW_encodable {
 	func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer
 }
 
-public protocol RAW_accessible:RAW_encodable {
-	func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R
-}
-
-public extension RAW_accessible {
-	func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-		return RAW_access { (ptr, datSize) in
-			return RAW_memcpy(dest, ptr, datSize)!.advanced(by:datSize)
-		}
-	}
+public protocol RAW_accessible {
+	func RAW_access<R>(_ accessFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R
 }
 
 extension RAW_encodable {

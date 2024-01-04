@@ -27,9 +27,6 @@ internal struct Encode {
 	}
 
 	internal static func process_inline(decoded_data:UnsafePointer<UInt8>, encoded_index:size_t) -> (Value, Value) {
-		#if RAWDOG_HEX_LOG
-		logger.debug("encoding byte at index \(encoded_index).", metadata:["output_index": "\(encoded_index)"])
-		#endif
 		let byte = decoded_data[encoded_index / 2]
 		let high = byte >> 4
 		let low = byte & 0x0F

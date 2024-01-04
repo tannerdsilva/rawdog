@@ -12,7 +12,11 @@ public struct Encoded {
 	private let encoded_count:size_t
 
 	/// initialize an encoded value from a decoded byte sequence.
-	internal init(decoded_bytes bytes:[UInt8], decoded_size:size_t) {
+	fileprivate init(decoded_bytes bytes:[UInt8], decoded_size:size_t) {
+		#if DEBUG
+		assert(decoded_size == bytes.count, "decoded size must match decoded bytes count. \(decoded_size) != \(bytes.count)")
+		#endif
+
 		self.encoded_count = Encode.length(decoded_size)
 		self.decoded_data = bytes
 		self.decoded_count = decoded_size
@@ -24,46 +28,58 @@ extension Encoded {
 	public func decoded() -> [UInt8] {
 		return decoded_data
 	}
+
+	/// returns the byte count for this encoded value
+	public var count:size_t {
+		return encoded_count
+	}
+}
+
+// decoded initializers
+extension Encoded {
+	/// initialize a hex encoded value from a byte buffer of unencoded bytes
+	public static func from(decoded bytes:[UInt8]) -> Self {
+		return Self(decoded_bytes:bytes, decoded_size:bytes.count)
+	}
 }
 
 // encoded initializers
 extension Encoded {
 	/// initialize an encoded value by validating an existing encoding in String form.
 	public static func from(encoded string:String) throws -> Self {
-		let encodedValues = try [Value](validate:string)
-		let enc_v = encodedValues.count
-		return Self(decoded_bytes:try Decode.process(values:encodedValues, value_size:enc_v), decoded_size:enc_v)
+		return try Self.from(encoded:[UInt8](string.utf8))
 	}
 
 	/// initialize an encoded value by validating an existing encoding in byte form (utf8 bytes).
 	public static func from(encoded bytes:[UInt8]) throws -> Self {
-		let bytesCount = bytes.count
-		return try Self.from(encoded:bytes, size:bytesCount)
+		return try Self.from(encoded:bytes, size:bytes.count)
 	}
 
 	/// initialize an encoded value by validating an existing encoding in byte form with size specified (utf8 bytes).
-	public static func from(encoded bytes:[UInt8], size:size_t) throws -> Self {
-		let bytesCount = size
+	public static func from(encoded bytes:UnsafePointer<UInt8>, size:size_t) throws -> Self {
 		// validate that all of the bytes are valid hex characters.
-		let encodedValues = try [Value](validate:bytes, size:bytesCount)
+		let encodedValues = try [Value](validate:bytes, size:size)
+		#if DEBUG
 		let enc_v = encodedValues.count
+		assert(enc_v == size, "encoded values count must match encoded bytes count. \(enc_v) != \(size)")
+		#endif
 		// initialize based on the decoded values.
-		return Self(decoded_bytes:try Decode.process(values:encodedValues, value_size:enc_v), decoded_size:enc_v)
+		return Self.from(encoded:encodedValues, size:size)
 	}
-}
-
-// decoded initializers
-extension Encoded {
-	/// initialize an encoded value by validating an existing decoding in byte form (utf8 bytes).
-	public static func from(decoded bytes:[UInt8]) -> Self {
-		let bytesCount = bytes.count
-		return Self(decoded_bytes:bytes, decoded_size:bytesCount)
+	
+	/// initialize an encoded value by validating an existing encoding in byte form with size specified (utf8 bytes).
+	public static func from(encoded values:UnsafePointer<Value>, size:size_t) -> Self {
+		// initialize based on the decoded values.
+		let decodedBytes = Decode.process(values:values, value_size:size)
+		return Self(decoded_bytes:decodedBytes.0, decoded_size:decodedBytes.1)
 	}
 
-	/// initialize an encoded value by validating an existing decoding in byte form with size specified (utf8 bytes).
-	public static func from(decoded bytes:[UInt8], size:size_t) -> Self {
-		let bytesCount = size
-		return Self(decoded_bytes:bytes, decoded_size:bytesCount)
+	public static func from(encoded values:[Value]) throws -> Self {
+		let valuesCount = values.count
+		guard valuesCount % 2 == 0 else {
+			throw Error.invalidEncodingSize(valuesCount)
+		}
+		return Self.from(encoded:values, size:valuesCount)
 	}
 }
 
@@ -72,7 +88,7 @@ extension Encoded:Collection {
 	public typealias Index = size_t
 	
 	/// ``Encoded`` values are represented as a collection of ``Character`` values.
-	public typealias Element = Character
+	public typealias Element = Value
 
 	/// the starting index for this collection is always 0.
 	public var startIndex:Index {
@@ -92,9 +108,9 @@ extension Encoded:Collection {
 	/// returns the character at the given index.
 	public subscript(position:Index) -> Element {
 		if position % 2 == 0 {
-			return Encode.process_inline(decoded_data:decoded_data, encoded_index:position).0.characterValue()
+			return Encode.process_inline(decoded_data:decoded_data, encoded_index:position).0
 		} else {
-			return Encode.process_inline(decoded_data:decoded_data, encoded_index:position).1.characterValue()
+			return Encode.process_inline(decoded_data:decoded_data, encoded_index:position).1
 		}
 	}
 }
@@ -118,7 +134,7 @@ extension Encoded:Sequence {
 		}
 
 		/// returns the next character in the encoded value.
-		public mutating func next() -> Character? {
+		public mutating func next() -> Value? {
 			switch pendingValue {
 			case .none:
 				guard index < endIndex else {
@@ -127,11 +143,11 @@ extension Encoded:Sequence {
 				let (first, second) = Encode.process_inline(decoded_data:decoded_data, encoded_index:index)
 				pendingValue = second
 				index += 1
-				return first.characterValue()
+				return first
 			case .some(let value):
 				pendingValue = nil
 				index += 1
-				return value.characterValue()
+				return value
 			}
 		}
 	}
@@ -157,15 +173,27 @@ extension Encoded:ExpressibleByStringLiteral {
 	public typealias StringLiteralType = String
 
 	public init(stringLiteral value:String) {
+		guard value.count % 2 == 0 else {
+			fatalError("encoded values must be an even number of characters.")
+		}
+
 		self = try! Self.from(encoded:value)
 	}
 }
 
 extension Encoded:ExpressibleByArrayLiteral {
-	public typealias ArrayLiteralElement = UInt8
+	public typealias ArrayLiteralElement = Value
 
-	public init(arrayLiteral elements:UInt8...) {
-		let bytes = [UInt8](elements)
-		self = try! Self.from(encoded:bytes)
+	public init(arrayLiteral elements:Value...) {
+		var buildValues:[Value] = []
+		for element in elements {
+			buildValues.append(element)
+		}
+
+		guard elements.count % 2 == 0 else {
+			fatalError("encoded values must be an even number of characters.")
+		}
+
+		self = try! Self.from(encoded:buildValues, size:buildValues.count)
 	}
 }

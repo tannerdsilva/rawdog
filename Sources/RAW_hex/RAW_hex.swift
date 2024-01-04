@@ -16,25 +16,22 @@ public enum Error:Swift.Error {
 	case hexDecodeFailed
 	/// general error that is thrown when a function returns false
 	case hexEncodeFailed
-	/// thrown when the hex string is not a valid hex string.
+	/// thrown when the hex string is not a valid hex character.
+	/// - valid hex characters are `0-9`, `a-f`, and `A-F` in ascii form.
 	case invalidHexEncodingCharacter(UInt8)
 	/// thrown when a hex encoded string is not a valid size for the decoding algorithm. encoded strings must be an even number of characters, since they are represented with twice as many bytes.
 	case invalidEncodingSize(size_t)
 }
 
 extension Array where Element == Value {
-	/// initialize a new array of hex values from a hex string.
-	/// validates the contents of the string to ensure that it is a valid hex string.
-	/// - parameter RAW_hex_validate_encoded: the hex string to initialize the array from.
-	/// - throws: assorted errors if the hex string is not valid.
-	public init(validate hexString:String) throws {
-		let utf8Bytes = [UInt8](hexString.utf8)
-		let getCount = utf8Bytes.count
-		self = try Self(validate:utf8Bytes, size:getCount)
-	}
-
 	/// initialize a new array of hex values from a byte buffer.
+	/// - throws: ``Error.invalidHexEncodingCharacter`` if the byte buffer contains a byte that is not a valid hex character.
+	/// - throws: ``Error.invalidEncodingSize`` if the byte buffer contains an odd number of bytes.
 	public init(validate data:UnsafePointer<UInt8>, size:size_t) throws {
+		guard size % 2 == 0 else {
+			throw Error.invalidEncodingSize(size)
+		}
+
 		let getCount = size
 		self = try Self(unsafeUninitializedCapacity:getCount, initializingWith: { valueBuffer, valueCount in
 			valueCount = 0
@@ -47,31 +44,67 @@ extension Array where Element == Value {
 			#endif
 		})
 	}
+
+	/// returns an array of random hex values. the length of the array is specified by the `length` parameter.
+	public static func random(length:size_t) -> Self {
+		return Self(unsafeUninitializedCapacity:length, initializingWith: { valueBuffer, valueCount in
+			valueCount = 0
+			var seekPointer = valueBuffer.baseAddress!
+			while valueCount < length {
+				seekPointer.initialize(to:Value.random())
+				seekPointer += 1
+				valueCount += 1
+			}
+			#if DEBUG
+			assert(valueCount == length)
+			#endif
+		})
+	}
+
+	public init(_ encoded:Encoded) {
+		self.init(unsafeUninitializedCapacity:encoded.count, initializingWith: { valueBuffer, valueCount in
+			valueCount = 0
+			var seekPointer = valueBuffer.baseAddress!
+			for value in encoded {
+				seekPointer.initialize(to:value)
+				seekPointer += 1
+				valueCount += 1
+			}
+			#if DEBUG
+			assert(valueCount == encoded.count)
+			#endif
+		})
+	}
 }
 
-
-public func encode(bytes:[UInt8], byte_count:size_t) -> Encoded {
-	return Encoded.from(decoded:bytes, size:byte_count)
-}
-
-public func encode(bytes:[UInt8]) -> Encoded {
-	return Encoded.from(decoded:bytes)
-}
-
-public func decode(values:UnsafePointer<Value>, value_count:size_t) throws -> [UInt8] {
-	return try Decode.process(values:values, value_size:value_count)
-}
-
-public func decode( values:String) throws -> [UInt8] {
-	return try Decode.process(values:[Value](validate:values), value_size:values.count)
-}
-
-public func decode(_ encoded:Encoded) throws -> [UInt8] {
-	return encoded.decoded()
+extension String {
+	public init(_ encoded:Encoded) {
+		self.init([Character](unsafeUninitializedCapacity:encoded.count, initializingWith: { charBuffer, charCount in
+			charCount = 0
+			var curPtr = charBuffer.baseAddress!
+			for value in encoded {
+				defer {
+					curPtr += 1
+					charCount += 1
+				}
+				curPtr.initialize(to:value.characterValue())
+			}
+		}))
+	}
 }
 
 extension Array where Element == UInt8 {
-	func base64Encoded() -> Encoded {
-		return Encoded.from(decoded:self)
+	public init(_ encoded:Encoded) {
+		self.init([UInt8](unsafeUninitializedCapacity:encoded.count, initializingWith: { byteBuffer, byteCount in
+			byteCount = 0
+			var curPtr = byteBuffer.baseAddress!
+			for value in encoded {
+				defer {
+					curPtr += 1
+					byteCount += 1
+				}
+				curPtr.initialize(to:value.asciiValue())
+			}
+		}))
 	}
 }

@@ -1,6 +1,13 @@
 import func CRAW.memcpy;
 
-extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
+extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+	/// compare two raw encoded values of this type.
+	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+		return try withUnsafePointer(to:self.bitPattern) { ptr in
+			return try accessFunc(UnsafeRawPointer(ptr), MemoryLayout<Self.RAW_staticbuff_storetype>.size)
+		}
+	}
+	
 	/// initialize afrom the given raw buffer representation.
 	public init(RAW_staticbuff_storetype: UnsafeRawPointer) {
 		self.init(bitPattern:UnsafeRawPointer(RAW_staticbuff_storetype).load(as:UInt64.self))
@@ -18,7 +25,6 @@ extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 
 	/// implements faithful comparison of the integer.
 	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {	
-
 		let doubleLeft = Self(bitPattern:lhs_data.assumingMemoryBound(to:UInt64.self).pointee)
 		let doubleRight = Self(bitPattern:rhs_data.assumingMemoryBound(to:UInt64.self).pointee)
 		if (doubleLeft < doubleRight) {
@@ -34,7 +40,14 @@ extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	public typealias RAW_staticbuff_storetype = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
 }
 
-extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
+extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+	/// access the underlying memory of this value
+	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+		return try withUnsafePointer(to:self.bitPattern) { ptr in
+			return try accessFunc(UnsafeRawPointer(ptr), MemoryLayout<Self.RAW_staticbuff_storetype>.size)
+		}
+	}
+
 	/// initialize afrom the given raw buffer representation.
 	public init(RAW_staticbuff_storetype: UnsafeRawPointer) {
 		self.init(bitPattern:RAW_staticbuff_storetype.load(as:UInt32.self))
@@ -52,7 +65,6 @@ extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 
 	/// implements faithful comparison of the integer.
 	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {	
-
 		let doubleLeft = Self(bitPattern:lhs_data.assumingMemoryBound(to:UInt32.self).pointee)
 		let doubleRight = Self(bitPattern:rhs_data.assumingMemoryBound(to:UInt32.self).pointee)
 		if (doubleLeft < doubleRight) {

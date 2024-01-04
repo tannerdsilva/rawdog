@@ -6,7 +6,7 @@ import XCTest
 class RAWUIntTests:XCTestCase {
 	func testAsRAWVal() throws {
 		let value:UInt = 512
-		let rawVal = value.RAW_encoded_bytes()
+		let rawVal = [UInt8](RAW_encodable:value)
 		#if arch(x86_64) || arch(arm64)
 		let expectedBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]
 		#else
@@ -30,7 +30,7 @@ class RAWUIntTests:XCTestCase {
 class RAWUInt8Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value: UInt8 = 128
-		let rawVal = value.RAW_encoded_bytes()
+		let rawVal = [UInt8](RAW_encodable:value)
 		let expectedBytes: [UInt8] = [0x80]
 		XCTAssertEqual(rawVal, expectedBytes)
 	}
@@ -45,7 +45,7 @@ class RAWUInt8Tests: XCTestCase {
 class RAWUInt16Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value: UInt16 = 512
-		let rawVal = value.RAW_encoded_bytes()
+		let rawVal = [UInt8](RAW_encodable:value)
 		let expectedBytes: [UInt8] = [0x02, 0x00]
 		XCTAssertEqual(rawVal, expectedBytes)
 	}
@@ -60,7 +60,7 @@ class RAWUInt16Tests: XCTestCase {
 class RAWUInt32Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value: UInt32 = 512
-		let rawVal = value.RAW_encoded_bytes()
+		let rawVal = [UInt8](RAW_encodable:value)
 		let expectedBytes: [UInt8] = [0x00, 0x00, 0x02, 0x00]
 		XCTAssertEqual(rawVal, expectedBytes)
 	}
@@ -75,7 +75,7 @@ class RAWUInt32Tests: XCTestCase {
 class RAWUInt64Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value:UInt64 = 512
-		let rawVal = value.RAW_encoded_bytes()
+		let rawVal = [UInt8](RAW_encodable:value)
 		let expectedBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]
 		XCTAssertEqual(rawVal, expectedBytes)
 	}

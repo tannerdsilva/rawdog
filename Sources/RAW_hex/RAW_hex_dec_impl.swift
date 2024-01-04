@@ -13,7 +13,7 @@ internal struct Decode {
 	}
 
 	/// primary decoding function for the  decoder.
-	internal static func process(values:UnsafePointer<Value>, value_size:size_t) throws -> [UInt8] {
+	internal static func process(values:UnsafePointer<Value>, value_size:size_t) -> ([UInt8], size_t) {
 		// compute the length of the input buffer. if it's less than 2, we can't decode it.
 		let inputLength:size_t = value_size
 		
@@ -26,7 +26,7 @@ internal struct Decode {
 		#if RAWDOG_HEX_LOG
 		logger.debug("theoretical output length is \(outputTheoreticalLength) bytes.", metadata:["output_length": "\(outputTheoreticalLength)"])
 		#endif
-
+		var outputStride = 0
 		let outputBytes = [UInt8](unsafeUninitializedCapacity:outputTheoreticalLength, initializingWith: { outputBuffer, outStrided in
 			outStrided = 0
 			var inputScan:size_t = 0
@@ -60,12 +60,13 @@ internal struct Decode {
 			#if DEBUG
 			assert((inputLength - inputScan) == 0, "input length should be zero at this point. if it's not, we have a bug. \((inputLength - inputScan))")
 			#endif
+			outputStride = outStrided
 		})
 		#if RAWDOG_HEX_LOG
 		for (index, byte) in outputBytes.enumerated() {
-			logger.debug("decoded byte at index \(index) is \(byte).", metadata:["output_index": "\(index)", "byte": "\(byte)"])
+			logger.trace("decoded byte at index \(index) is \(byte).", metadata:["output_index": "\(index)", "byte": "\(byte)"])
 		}
 		#endif
-		return outputBytes
+		return (outputBytes, outputStride)
 	}
 }

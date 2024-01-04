@@ -1,4 +1,12 @@
-extension Array where Element == UInt8 {
+extension Array:RAW_accessible where Element == UInt8 {
+	public func RAW_access<R>(_ accessFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+		return try accessFunc(self, self.count)
+	}
+
+    public func RAW_encoded_size() -> size_t {
+        return self.count
+    }
+
 	public init<E>(RAW_encodable encodableVar:E) where E:RAW_encodable {
 		let encSize = encodableVar.RAW_encoded_size()
 		self = Self(unsafeUninitializedCapacity:encSize, initializingWith: { buff, size in
@@ -12,12 +20,15 @@ extension Array where Element == UInt8 {
 	}
 	
 	public init<E>(RAW_encodables encodableVars:E...) where E:RAW_encodable {
-		var buildEncodables = [E]()
-		buildEncodables.reserveCapacity(encodableVars.count)
-		for encodableVar in encodableVars {
-			buildEncodables.append(encodableVar)
-		}
-		self.init(RAW_encodables:buildEncodables)
+		self.init(RAW_encodables:[E](unsafeUninitializedCapacity:encodableVars.count, initializingWith: { eBuff, eCount in
+			eCount = 0
+			var writeSeek = eBuff.baseAddress!
+			for encodableVar in encodableVars {
+				writeSeek.initialize(to: encodableVar)
+				writeSeek += 1
+				eCount += 1
+			}
+		}))
 	}
 
 	public init<E>(RAW_encodables encodableVars:[E]) where E:RAW_encodable {

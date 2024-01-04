@@ -5,6 +5,7 @@ public protocol RAW_rep_val:RAW_convertible {
 	associatedtype RAW_rep_val_type:RAW_convertible;
 
 	init?(RAW_rep_val:RAW_rep_val_type)
+
 	func RAW_rep_value() -> RAW_rep_val_type
 }
 
