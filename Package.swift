@@ -19,13 +19,13 @@ fileprivate func rawHexDependencies() -> [Target.Dependency] {
 	#if RAWDOG_HEX_LOG
 	return [
 		"RAW",
-		"CRAW_hex",
+		// "CRAW_hex",
 		.product(name: "Logging", package:"swift-log")
 	]
 	#else
 	return [
 		"RAW",
-		"CRAW_hex"
+		// "CRAW_hex"
 	]
 	#endif
 }
@@ -77,17 +77,17 @@ let package = Package(
 
 		// raw targets
 		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2"]),
-		.target(name:"RAW_base64", dependencies:rawBase64Dependencies(), swiftSettings:[.define("RAWDOG_BASE64_LOG")]),
+		.target(name:"RAW_base64", dependencies:rawBase64Dependencies(), swiftSettings:[/*.define("RAWDOG_BASE64_LOG")*/]),
 		.target(name:"RAW_hex", dependencies:rawHexDependencies(), swiftSettings: [/*.define("RAWDOG_HEX_LOG")*/]),
 		.target(name:"RAW", dependencies:rawTargetDependencies),
 
 		// c implementations
 		.target(name:"CRAW"),
 		.target(name:"CRAW_base64", dependencies:[.product(name:"Logging", package:"swift-log")]),
-		.target(name:"CRAW_hex"),
+		// .target(name:"CRAW_hex"),
 		.target(name:"cblake2"),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "CRAW_hex", "RAW_hex", "CRAW_base64"], resources:[.process("blake2-kat.json")]),
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64"], resources:[.process("blake2-kat.json")]),
 	]
 )
