@@ -13,7 +13,7 @@ public struct Encoded {
 		case two
 	}
 
-	private let decoded_count:size_t
+	internal let decoded_count:size_t
 	private let decoded_data:[UInt8]
 
 	/// primary internal initializer. initializes an encoded value from a buffer of base64 values and a tail.
@@ -82,7 +82,7 @@ extension Encoded {
 
 		let decodedBytes = try Decode.process(values:encodedValues, value_count:valSize, padding_audit:getTail)
 
-		return Self(decoded:decodedBytes.0, decoded_count:decodedBytes.1, tail:getTail)
+		return Self(decoded:decodedBytes.0, decoded_count:decodedBytes.1)
 	}
 }
 
@@ -91,10 +91,9 @@ extension Encoded:Collection {
 	public typealias Element = Value
 	public var startIndex:Index {
 		return 0
-
 	}
 	public var endIndex:Index {
-		return value_count
+		return Encode.unpadded_length(unencoded_byte_count:decoded_count)
 	}
 	public func index(after i:Index) -> Index {
 		return i + 1
@@ -107,50 +106,27 @@ extension Encoded:Collection {
 extension Encoded:Sequence {
 	public struct Iterator:IteratorProtocol {
 	    public mutating func next() -> Value? {
-			defer { position += 1 }
-			switch tail {
-				case .zero:
-					guard position < value_count else {
-						return nil
-					}
-					return values[position]
-				case .one:
-					switch position {
-					case 0..<value_count:
-						return values[position]
-					case value_count:
-						return "="
-					default:
-						return nil
-					}
-				case .two:
-					switch position {
-					case 0..<value_count:
-						return values[position]
-					case value_count:
-						return "="
-					case value_count + 1:
-						return "="
-					default:
-						return nil
-					}
+			guard position < encoded_count else {
+				return nil
 			}
+			let nextValue = Encode.chunk_parse_inline(decoded_bytes:data, decoded_byte_count:data_count, encoded_index:position)
+			position += 1
+			return nextValue
 	    }
-
-		private let value_count:size_t
-		private let values:[Value]
+		private let encoded_count:size_t
+		private let data_count:size_t
+		private let data:[UInt8]
 		private var position:size_t
-		private let tail:Padding
 
-		fileprivate init(value_count:size_t, values:[Value], tail:Padding) {
-			self.value_count = value_count
-			self.values = values
+		fileprivate init(data:[UInt8], data_count:size_t) {
+			self.data = data
+			self.data_count = data_count
 			self.position = 0
-			self.tail = tail
+			self.encoded_count = Encode.unpadded_length(unencoded_byte_count: data_count)
 		}
 	}
 	public func makeIterator() -> Iterator {
-		return Iterator(value_count:value_count, values:values, tail:tail)
+		return Iterator(data:decoded_data, data_count:decoded_count)
 	}
 }
 
@@ -164,7 +140,7 @@ extension Encoded.Padding {
 
 		// reverse-step through the bytes until we find a non-padding character
 		var stepLength = 0
-		seekLoop: while iterateBackFrom > 0 {
+		seekLoop: while iterateBackFrom >= 0 {
 			switch stepLength {
 				case 0, 1:
 					switch bytes[iterateBackFrom] {
@@ -235,7 +211,6 @@ extension Encoded.Padding {
 }
 
 extension Encoded.Padding:Equatable, Hashable {
-
 	/// equality operator for padding values.
 	public static func == (lhs:Encoded.Padding, rhs:Encoded.Padding) -> Bool {
 		switch (lhs, rhs) {
@@ -259,7 +234,7 @@ extension Encoded.Padding:Equatable, Hashable {
 extension Encoded:Equatable {
 	/// equality operator for encoded values.
 	public static func == (lhs:Encoded, rhs:Encoded) -> Bool {
-		return lhs.decoded_count == rhs.decoded_count && lhs.decoded_data == rhs.decoded_data && lhs.tail == rhs.tail
+		return lhs.decoded_count == rhs.decoded_count && lhs.decoded_data == rhs.decoded_data
 	}
 }
 

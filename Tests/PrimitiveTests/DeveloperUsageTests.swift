@@ -43,7 +43,7 @@ struct MySpecialUIntType {
 }
 
 final class TestDeveloperUsage:XCTestCase {
-	func testBlake2Functionality() throws {
+	func testBlake2AndHexFunctionality() throws {
 		do {
 			struct Blake2TestScenario:Codable {
 				enum CodingKeys:String, CodingKey {
@@ -101,53 +101,53 @@ final class TestDeveloperUsage:XCTestCase {
 						case "blake2b":
 							switch scenario.key.count {
 								case 0:
-								var b2bHasher = try Hasher<B, [UInt8]>(outputLength:expectedBinaryOutput.count)
-								try b2bHasher.update(expectedBinaryInput)
-								let b2bHash = try b2bHasher.finish()
-								XCTAssertEqual(b2bHash, expectedBinaryOutput)
-								let reenc_result = String(RAW_hex.Encoded.from(decoded:b2bHash))
-								XCTAssertEqual(reenc_result, scenario.output)
+									var b2bHasher = try Hasher<B, [UInt8]>(outputLength:expectedBinaryOutput.count)
+									try b2bHasher.update(expectedBinaryInput)
+									let b2bHash = try b2bHasher.finish()
+									XCTAssertEqual(b2bHash, expectedBinaryOutput)
+									let reenc_result = String(RAW_hex.Encoded.from(decoded:b2bHash))
+									XCTAssertEqual(reenc_result, scenario.output)
 								default:
-								var b2bHasher = try Hasher<B, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
-								try b2bHasher.update(expectedBinaryInput)
-								let b2bHash = try b2bHasher.finish()
-								XCTAssertEqual(b2bHash, expectedBinaryOutput)
-								let reenc_result = String(RAW_hex.Encoded.from(decoded:b2bHash))
-								XCTAssertEqual(reenc_result, scenario.output)
+									var b2bHasher = try Hasher<B, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
+									try b2bHasher.update(expectedBinaryInput)
+									let b2bHash = try b2bHasher.finish()
+									XCTAssertEqual(b2bHash, expectedBinaryOutput)
+									let reenc_result = String(RAW_hex.Encoded.from(decoded:b2bHash))
+									XCTAssertEqual(reenc_result, scenario.output)
 							}
 						case "blake2bp":
 							switch scenario.key.count {
 								case 0:
-								var b2bpHasher = try Hasher<BP, [UInt8]>(outputLength:expectedBinaryOutput.count)
-								try b2bpHasher.update(expectedBinaryInput)
-								let b2bpHash = try b2bpHasher.finish()
-								XCTAssertEqual(b2bpHash, expectedBinaryOutput)
-								let reenc_result = String(RAW_hex.Encoded.from(decoded:b2bpHash))
-								XCTAssertEqual(reenc_result, scenario.output)
+									var b2bpHasher = try Hasher<BP, [UInt8]>(outputLength:expectedBinaryOutput.count)
+									try b2bpHasher.update(expectedBinaryInput)
+									let b2bpHash = try b2bpHasher.finish()
+									XCTAssertEqual(b2bpHash, expectedBinaryOutput)
+									let reenc_result = String(RAW_hex.Encoded.from(decoded:b2bpHash))
+									XCTAssertEqual(reenc_result, scenario.output)
 								default:
-								var b2bpHasher = try Hasher<BP, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
-								try b2bpHasher.update(expectedBinaryInput)
-								let b2bpHash = try b2bpHasher.finish()
-								XCTAssertEqual(b2bpHash, expectedBinaryOutput)
-								let reenc_result = String(RAW_hex.Encoded.from(decoded:b2bpHash))
-								XCTAssertEqual(reenc_result, scenario.output)
+									var b2bpHasher = try Hasher<BP, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
+									try b2bpHasher.update(expectedBinaryInput)
+									let b2bpHash = try b2bpHasher.finish()
+									XCTAssertEqual(b2bpHash, expectedBinaryOutput)
+									let reenc_result = String(RAW_hex.Encoded.from(decoded:b2bpHash))
+									XCTAssertEqual(reenc_result, scenario.output)
 							}
 						case "blake2sp":
 							switch scenario.key.count {
 								case 0:
-								var b2spHasher = try Hasher<SP, [UInt8]>(outputLength:expectedBinaryOutput.count)
-								try b2spHasher.update(expectedBinaryInput)
-								let b2spHash = try b2spHasher.finish()
-								XCTAssertEqual(b2spHash, expectedBinaryOutput)
-								let reenc_result = String(RAW_hex.Encoded.from(decoded:b2spHash))
-								XCTAssertEqual(reenc_result, scenario.output)
+									var b2spHasher = try Hasher<SP, [UInt8]>(outputLength:expectedBinaryOutput.count)
+									try b2spHasher.update(expectedBinaryInput)
+									let b2spHash = try b2spHasher.finish()
+									XCTAssertEqual(b2spHash, expectedBinaryOutput)
+									let reenc_result = String(RAW_hex.Encoded.from(decoded:b2spHash))
+									XCTAssertEqual(reenc_result, scenario.output)
 								default:
-								var b2spHasher = try Hasher<SP, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
-								try b2spHasher.update(expectedBinaryInput)
-								let b2spHash = try b2spHasher.finish()
-								XCTAssertEqual(b2spHash, expectedBinaryOutput)
-								let reenc_result = String(RAW_hex.Encoded.from(decoded:b2spHash))
-								XCTAssertEqual(reenc_result, scenario.output)
+									var b2spHasher = try Hasher<SP, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
+									try b2spHasher.update(expectedBinaryInput)
+									let b2spHash = try b2spHasher.finish()
+									XCTAssertEqual(b2spHash, expectedBinaryOutput)
+									let reenc_result = String(RAW_hex.Encoded.from(decoded:b2spHash))
+									XCTAssertEqual(reenc_result, scenario.output)
 							}
 						default:
 						break;
@@ -160,7 +160,7 @@ final class TestDeveloperUsage:XCTestCase {
 			try blake2sHasher.update(Array("Hello".utf8))
 			let blake2sHash = try blake2sHasher.finish()
 			let blake2sHashBytes = [UInt8](RAW_encodable:blake2sHash)
-			let blake2sHashString = RAW_base64.encode(bytes:blake2sHashBytes)
+			let blake2sHashString = try RAW_base64.encode(bytes:blake2sHashBytes)
 			XCTAssertEqual(blake2sHashString, "HfZQsfk=")
 			let b64Encoded:RAW_base64.Encoded = "HfZQsfk="
 			let base64Decoded = try b64Encoded.decoded()

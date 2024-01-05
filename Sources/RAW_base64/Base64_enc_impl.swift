@@ -32,10 +32,14 @@ internal struct Encode {
 	internal static func chunk_parse_inline(decoded_bytes bytes:UnsafePointer<UInt8>, decoded_byte_count src_len:size_t, encoded_index:size_t) -> Value {
 		let baseBlockIndex = ((encoded_index / 4) * 3)
 
+		#if RAWDOG_BASE64_LOG
+		logger.critical("parsing chunk inline", metadata:["baseBlockIndex": "\(baseBlockIndex)", "encoded_index": "\(encoded_index)"])
+		#endif
+
 		#if DEBUG
 		let encodeSize = Encode.unpadded_length(unencoded_byte_count:src_len)
-		assert(encoded_index < encodeSize, "the encoded index should be less than the source length. if it's not, we have a bug.")
-		assert(baseBlockIndex < src_len, "the base block index should be less than the source length. if it's not, we have a bug.")
+		assert(encoded_index < encodeSize, "the encoded index should be less than the source length. if it's not, we have a bug. \(encoded_index) >= \(encodeSize)")
+		assert(baseBlockIndex < src_len, "the base block index should be less than the source length. if it's not, we have a bug. \(baseBlockIndex) >= \(src_len)")
 		#endif
 		
 		let baseBlockLeftover = encoded_index % 4
@@ -63,7 +67,7 @@ internal struct Encode {
 					case ...0: // handle negative or zero lengths here
 						fatalError("remaining decoded length should never be negative")
 					case 1:
-						return Value(indexValue:((basePtr[0] & 0xfc) >> 2))
+						return Value(indexValue:((basePtr[0] & 0x3) << 4))
 					default:
 						return Value(indexValue:(((basePtr[0] & 0x3) << 4) | ((basePtr[1] & 0xf0) >> 4)))
 				}
@@ -75,7 +79,7 @@ internal struct Encode {
 					case 2:
 						return Value(indexValue:((basePtr[1] & 0xf) << 2))
 					default:
-						return Value(indexValue:(((basePtr[1] & 0xf) << 2) | ((basePtr[2] & 0xc0) >> 6)))
+						return Value(indexValue:(((basePtr[2] & 0xc0) >> 6) | ((basePtr[1] & 0xf) << 2)))
 				}
 			case 3:
 				#if DEBUG

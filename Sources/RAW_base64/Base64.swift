@@ -22,34 +22,22 @@ public enum Error:Swift.Error {
 	case invalidBase64EncodingCharacter(Character)
 }
 
-public func encode(bytes:UnsafePointer<UInt8>, byte_count:size_t) -> Encoded {
-	return Encode.process(bytes:bytes, byte_count:byte_count)
+public func encode(_ bytes:[UInt8], byte_count:size_t) throws -> Encoded {
+	#if DEBUG
+	assert(byte_count == bytes.count, "byte count must match byte buffer count. \(byte_count) != \(bytes.count)")
+	#endif
+	return try Encoded.from(decoded:bytes)
 }
 
-public func encode(bytes:[UInt8]) -> Encoded {
-	return Encode.process(bytes:bytes, byte_count:bytes.count)
+public func encode(bytes:[UInt8]) throws -> Encoded {
+	return try Encoded.from(decoded:bytes)
 }
 
-public func decode(values:UnsafePointer<Value>, value_count:size_t, padding:Encoded.Padding) throws -> [UInt8] {
-	return try Decode.process(values:values, value_count:value_count, padding_audit:padding)
-}
-
-public func decode(values:String) throws -> [UInt8] {
-	return try Encoded.from(encoded:values).decoded()
-}
-
-public func decode(_ encoded:Encoded) throws -> [UInt8] {
-	return try encoded.decoded()
-}
-
-extension Array where Element == UInt8 {
-	func base64Encoded() -> Encoded {
-		return Encode.process(bytes:self, byte_count:self.count)
-	}
+public func decode(_ str:String) throws -> [UInt8] {
+	return try Encoded.from(encoded:str).decoded()
 }
 
 extension Array where Element == Value {
-
 	/// returns an array of random hex values. the length of the array is specified by the `length` parameter.
 	public static func random(length:size_t) -> Self {
 		return Self(unsafeUninitializedCapacity:length, initializingWith: { valueBuffer, valueCount in
@@ -89,7 +77,14 @@ extension Array where Element == Value {
 
 extension String {
 	public init(_ encoded:Encoded) {
-		let encodedLength = encoded.value_count + encoded.tail.asSize()
+		#if RAWDOG_BASE64_LOG
+		logger.info("initializing string from encoded value. encoded: \(encoded.count)")
+		#endif
+		let expectedTail = Encode.compute_padding(unencoded_byte_count:encoded.decoded_count)
+		#if RAWDOG_BASE64_LOG
+		logger.info("expected tail: \(expectedTail)")
+		#endif
+		let encodedLength = encoded.count + expectedTail.asSize()
 		self.init([Character](unsafeUninitializedCapacity:encodedLength, initializingWith: { charBuff, charSize in
 			charSize = 0
 			var writePtr = charBuff.baseAddress!
@@ -98,14 +93,16 @@ extension String {
 				writePtr += 1
 				charSize += 1
 			}
-			switch encoded.tail {
+			switch expectedTail {
 				case .zero: break
 				case .one:
 					writePtr.initialize(to:"=")
+					charSize += 1
 				case .two:
 					writePtr.initialize(to:"=")
 					writePtr += 1
 					writePtr.initialize(to:"=")
+					charSize += 2
 			}
 		}))
 	}
