@@ -160,7 +160,7 @@ final class TestDeveloperUsage:XCTestCase {
 			try blake2sHasher.update(Array("Hello".utf8))
 			let blake2sHash = try blake2sHasher.finish()
 			let blake2sHashBytes = [UInt8](RAW_encodable:blake2sHash)
-			let blake2sHashString = try RAW_base64.encode(bytes:blake2sHashBytes)
+			let blake2sHashString = try RAW_base64.encode(blake2sHashBytes)
 			XCTAssertEqual(blake2sHashString, "HfZQsfk=")
 			let b64Encoded:RAW_base64.Encoded = "HfZQsfk="
 			let base64Decoded = try b64Encoded.decoded()

@@ -29,7 +29,7 @@ public func encode(_ bytes:[UInt8], byte_count:size_t) throws -> Encoded {
 	return try Encoded.from(decoded:bytes)
 }
 
-public func encode(bytes:[UInt8]) throws -> Encoded {
+public func encode(_ bytes:[UInt8]) throws -> Encoded {
 	return try Encoded.from(decoded:bytes)
 }
 

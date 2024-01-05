@@ -36,6 +36,11 @@ extension Encoded {
 	public var count:size_t {
 		return Encode.unpadded_length(unencoded_byte_count:decoded_count)
 	}
+
+	/// returns the padded encoding length of the current instance.
+	public var padding:Encoded.Padding {
+		return Encode.compute_padding(unencoded_byte_count:decoded_count)
+	}
 }
 
 extension Encoded {
@@ -46,11 +51,6 @@ extension Encoded {
 }
 
 extension Encoded {
-	public static func from(encoded values:UnsafePointer<Value>, value_count:size_t, padding:Encoded.Padding) throws -> Self {
-		let decodedBytes = try Decode.process(values:values, value_count:value_count, padding_audit:padding)
-		return Self(decoded:decodedBytes.0, decoded_count:decodedBytes.1) 
-	}
-
 	/// initialize a base64 encoded value from a string representation of its value
 	public static func from(encoded encString:String) throws -> Self {
 		let utf8Bytes = [UInt8](encString.utf8)
@@ -117,7 +117,6 @@ extension Encoded:Sequence {
 		private let data_count:size_t
 		private let data:[UInt8]
 		private var position:size_t
-
 		fileprivate init(data:[UInt8], data_count:size_t) {
 			self.data = data
 			self.data_count = data_count

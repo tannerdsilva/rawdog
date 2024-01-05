@@ -59,7 +59,7 @@ internal struct Encode {
 			// user wants to access index zero of the quartlet
 			case 0:
 				// the first byte is unconditional
-				return Value(indexValue:(basePtr[0] >> 2))
+				return Value(indexValue:(basePtr[0] & 0xfc) >> 2)
 			case 1:
 
 				// the result of this byte is dependent on the remaining decoded byte length. if there is only one decoding byte remaining, then the result is the first two bits of the first byte. otherwise, the result is the last two bits of the first byte and the first four bits of the second byte.
@@ -67,9 +67,9 @@ internal struct Encode {
 					case ...0: // handle negative or zero lengths here
 						fatalError("remaining decoded length should never be negative")
 					case 1:
-						return Value(indexValue:((basePtr[0] & 0x03) << 4))
+						return Value(indexValue:((basePtr[0] & 0x3) << 4))
 					default:
-						return Value(indexValue:(((basePtr[0] & 0x03) << 4) | ((basePtr[1] & 0xf0) >> 4)))
+						return Value(indexValue:(((basePtr[0] & 0x3) << 4) | ((basePtr[1] & 0xf0) >> 4)))
 				}
 			case 2:
 				// the result of this byte is dependent on the remaining decoded byte length. if there is only one decoding byte remaining, then the result is the last four bits of the first byte. otherwise, the result is the last four bits of the first byte and the first two bits of the second byte.
@@ -79,7 +79,7 @@ internal struct Encode {
 					case 2:
 						return Value(indexValue:((basePtr[1] & 0xf) << 2))
 					default:
-						return Value(indexValue:(((basePtr[2] & 0xc0) >> 6) | ((basePtr[1] & 0xf) << 2)))
+						return Value(indexValue:((basePtr[1] & 0xf) << 2) | ((basePtr[2] & 0xc0) >> 6))
 				}
 			case 3:
 				#if DEBUG
@@ -149,67 +149,5 @@ internal struct Encode {
 			default:
 				fatalError("source length is negative")
 		}
-	}
-
-	// /// - note: this function assumes that the destination buffer is large enough to hold the encoded data. despite taking the destination buffer size as a parameter, this function does not check that the destination buffer is large enough to hold the encoded data.
-	internal static func process(bytes data:UnsafePointer<UInt8>, byte_count:size_t) -> String {
-		// mutable copy of the size, this will be counted down as we process the data
-		var source_byte_countdown = byte_count
-		// compute the unpadded length of the encoded data
-		let encodedLengthWithoutPadding = Encode.unpadded_length(unencoded_byte_count:source_byte_countdown)
-
-		#if DEBUG
-		// when in debug mode, validate that the also store the expected length with padding. this will be audited later.
-		let withPadding = Encode.padded_length(unencoded_byte_count:source_byte_countdown)
-		#endif
-
-		var destPadding:Encoded.Padding = .zero
-
-		// initialize the [Value] buffer with the encoded length without padding.
-		let byteValues = [Value](unsafeUninitializedCapacity:encodedLengthWithoutPadding, initializingWith: { writeBuffer, writeSize in
-			
-			var srcPtr = data
-			var writeseeker = writeBuffer.baseAddress!
-			
-			while source_byte_countdown > 0 {
-				
-				#if DEBUG
-				// extra sanity checking when in debug mode
-				let deltaAudit = writeseeker
-				let expectedStepSize = switch source_byte_countdown {
-					case 1: 2
-					case 2: 3
-					case 3...: 4
-					default: fatalError("source length exceeds 3 bytes")
-				}
-				#endif
-
-				Encode.chunk_parse(&writeseeker, &writeSize, &srcPtr, &source_byte_countdown, &destPadding)
-				
-				#if DEBUG
-				assert(writeseeker - deltaAudit == expectedStepSize, "the write buffer should have advanced by \(expectedStepSize) bytes but was stepped by \(writeseeker - deltaAudit)")
-				#endif
-			}
-			#if DEBUG
-			assert(writeSize == encodedLengthWithoutPadding, "the write size should be equal to the encoded length without padding. if it's not, we have a bug. \((writeSize - encodedLengthWithoutPadding))")
-			#endif
-		})
-
-		#if DEBUG
-		assert(encodedLengthWithoutPadding == withPadding - destPadding.asSize(), "the encoded length without padding should be equal to the encoded length with padding minus the padding size")
-		#endif
-
-		let byteBuffer = UnsafeBufferPointer(start:data, count:byte_count)
-		let utf8Bytes = [UInt8](byteBuffer)
-		var utf8String = String(decoding:byteBuffer, as:UTF8.self)
-		switch destPadding {
-			case .zero:
-				break
-			case .one:
-				utf8String.append("=")
-			case .two:
-				utf8String.append("==")
-		}
-		return utf8String
 	}
 }
