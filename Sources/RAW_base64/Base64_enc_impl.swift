@@ -51,7 +51,7 @@ internal struct Encode {
 		#endif
 
 		#if RAWDOG_BASE64_LOG
-		logger.critical("parsing chunk inline", metadata:["baseBlockIndex": "\(baseBlockIndex)", "baseBlockLeftover": "\(baseBlockLeftover)", "remainingDecodedLength": "\(remainingDecodedLength)", "encoding_length": "\(encodeSize)", "encoded_index": "\(encoded_index)"])
+		logger.info("parsing chunk inline", metadata:["baseBlockIndex": "\(baseBlockIndex)", "baseBlockLeftover": "\(baseBlockLeftover)", "remainingDecodedLength": "\(remainingDecodedLength)", "encoding_length": "\(encodeSize)", "encoded_index": "\(encoded_index)"])
 		#endif
 
 		// this switch determines which index the return value will be derived from.

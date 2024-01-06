@@ -13,11 +13,12 @@ public struct Encoded {
 		case two
 	}
 
+	// count is stored as to not invoke the count property on the decoded_data array (constant vs 0(n))
 	internal let decoded_count:size_t
-	private let decoded_data:[UInt8]
+	private let decoded_data:[UInt8] // data buffer
 
 	/// primary internal initializer. initializes an encoded value from a buffer of base64 values and a tail.
-	internal init(decoded:[UInt8], decoded_count:size_t) {
+	internal init(valid_decoded_bytes decoded:[UInt8], decoded_count:size_t) {
 		#if DEBUG
 		assert(decoded_count == decoded.count)
 		#endif
@@ -43,13 +44,15 @@ extension Encoded {
 	}
 }
 
+// decoded initializers
 extension Encoded {
 	/// initialize an encoded value from a byte buffer of unencoded bytes.
 	public static func from(decoded bytes:[UInt8]) throws -> Self {
-		return Self(decoded:bytes, decoded_count:bytes.count)
+		return Self(valid_decoded_bytes:bytes, decoded_count:bytes.count)
 	}
 }
 
+// encoded initializers
 extension Encoded {
 	/// initialize a base64 encoded value from a string representation of its value
 	public static func from(encoded encString:String) throws -> Self {
@@ -81,8 +84,7 @@ extension Encoded {
 		})
 
 		let decodedBytes = try Decode.process(values:encodedValues, value_count:valSize, padding_audit:getTail)
-
-		return Self(decoded:decodedBytes.0, decoded_count:decodedBytes.1)
+		return Self(valid_decoded_bytes:decodedBytes.0, decoded_count:decodedBytes.1)
 	}
 }
 
