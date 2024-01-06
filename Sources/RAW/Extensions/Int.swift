@@ -1,7 +1,7 @@
 import func CRAW.memcpy;
 
 // extend the signed 64 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
-extension Int64:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+extension Int64:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	/// access the underlying memory of this value
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -38,7 +38,7 @@ extension Int64:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff, RA
 }
 
 // extend the signed 32 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
-extension Int32:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+extension Int32:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
 			return try accessFunc(UnsafeRawPointer(ptr), MemoryLayout<Self.RAW_staticbuff_storetype>.size)
@@ -75,7 +75,7 @@ extension Int32:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff, RA
 }
 
 // extend the signed 16 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
-extension Int16:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+extension Int16:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -112,7 +112,7 @@ extension Int16:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff, RA
 }
 
 // extend the signed 8 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
-extension Int8:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+extension Int8:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -149,7 +149,7 @@ extension Int8:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff, RAW
 }
 
 // extend the signed integer to conform to the raw static buffer protocol, as it is a fixed size type.
-extension Int:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+extension Int:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in

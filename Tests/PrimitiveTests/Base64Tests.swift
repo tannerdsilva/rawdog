@@ -17,6 +17,16 @@ class Base64Tests: XCTestCase {
 		return (swift_truth_aligned_encoded, cref_truth_aligned_encoded)
 	}
 
+	static func compareStringDecodes(_ stringToDecode:String) throws -> ([UInt8], [UInt8]) {
+		let swift_truth_aligned_decoded = try RAW_base64.decode(stringToDecode)
+		let cref_truth_aligned_decoded = [UInt8](unsafeUninitializedCapacity:base64_decoded_length(stringToDecode.count), initializingWith: { buffer, countup in
+			countup = 0
+			countup = base64_decode(buffer.baseAddress, buffer.count, stringToDecode, stringToDecode.count)
+		})
+		return (swift_truth_aligned_decoded, cref_truth_aligned_decoded)
+	
+	}
+
 	func testBase64LengthTests() {
 		// test that padding deltas are zero for sizes that are multiples of 3.
 		for i in 0..<64 {
@@ -50,6 +60,8 @@ class Base64Tests: XCTestCase {
 					})
 					let (swift_truth_aligned_encoded, cref_truth_aligned_encoded) = try Base64Tests.compareStringExports(alignedTestData)
 					XCTAssertEqual(swift_truth_aligned_encoded, cref_truth_aligned_encoded)
+					let (swift_truth_aligned_decoded, cref_truth_aligned_decoded) = try Base64Tests.compareStringDecodes(swift_truth_aligned_encoded)
+					XCTAssertEqual(swift_truth_aligned_decoded, cref_truth_aligned_decoded)
 				}
 
 				// verify unaligned lengths
@@ -87,6 +99,8 @@ class Base64Tests: XCTestCase {
 					})
 					let (swift_truth_misalignedByOne_encoded, cref_truth_misalignedByOne_encoded) = try Base64Tests.compareStringExports(misalignedByOneTestData)
 					XCTAssertEqual(swift_truth_misalignedByOne_encoded, cref_truth_misalignedByOne_encoded, "misalignedByOneTestData: \(misalignedByOneTestData)")
+					let (swift_truth_misalignedByOne_decoded, cref_truth_misalignedByOne_decoded) = try Base64Tests.compareStringDecodes(swift_truth_misalignedByOne_encoded)
+					XCTAssertEqual(swift_truth_misalignedByOne_decoded, cref_truth_misalignedByOne_decoded, "misalignedByOneTestData: \(misalignedByOneTestData)")
 				}
 
 				// - unaligned +2
@@ -122,6 +136,8 @@ class Base64Tests: XCTestCase {
 					})
 					let (swift_truth_misalignedByTwo_encoded, cref_truth_misalignedByTwo_encoded) = try Base64Tests.compareStringExports(misalignedByTwoTestData)
 					XCTAssertEqual(swift_truth_misalignedByTwo_encoded, cref_truth_misalignedByTwo_encoded)
+					let (swift_truth_misalignedByTwo_decoded, cref_truth_misalignedByTwo_decoded) = try Base64Tests.compareStringDecodes(swift_truth_misalignedByTwo_encoded)
+					XCTAssertEqual(swift_truth_misalignedByTwo_decoded, cref_truth_misalignedByTwo_decoded)
 				}
 			} catch {
 				XCTFail("unexpected error: \(error)")

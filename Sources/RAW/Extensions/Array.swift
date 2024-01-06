@@ -1,8 +1,4 @@
-extension Array:RAW_accessible where Element == UInt8 {
-	public func RAW_access<R>(_ accessFunc:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
-		return try accessFunc(self, self.count)
-	}
-
+extension Array where Element == UInt8 {
     public func RAW_encoded_size() -> size_t {
         return self.count
     }

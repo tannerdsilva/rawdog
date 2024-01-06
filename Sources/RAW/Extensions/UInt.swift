@@ -3,7 +3,7 @@ import func CRAW.memcpy;
 import func CRAW.memcmp;
 
 // extend the unsigned 64 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
-extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// access the underlying memory of this value
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -40,7 +40,7 @@ extension UInt64:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, R
 }
 
 // extend the unsigned 32 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
-extension UInt32:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+extension UInt32:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// access the underlying memory of this value
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -77,7 +77,7 @@ extension UInt32:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, R
 }
 
 // extend the unsigned 16 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
-extension UInt16:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+extension UInt16:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// access the underlying memory of this value
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
@@ -114,7 +114,7 @@ extension UInt16:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, R
 }
 
 // extend the unsigned 8 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
-extension UInt8:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+extension UInt8:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// access the underlying memory of this value
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in

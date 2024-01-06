@@ -1,6 +1,6 @@
 import func CRAW.memcpy;
 
-extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// compare two raw encoded values of this type.
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bitPattern) { ptr in
@@ -40,7 +40,7 @@ extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, R
 	public typealias RAW_staticbuff_storetype = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
 }
 
-extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff, RAW_accessible {
+extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
 	/// access the underlying memory of this value
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bitPattern) { ptr in

@@ -107,19 +107,23 @@ extension Encoded:Collection {
 
 extension Encoded:Sequence {
 	public struct Iterator:IteratorProtocol {
-	    public mutating func next() -> Value? {
+		public mutating func next() -> Value? {
 			guard position < encoded_count else {
 				return nil
 			}
-			let nextValue = Encode.chunk_parse_inline(decoded_bytes:data, decoded_byte_count:data_count, encoded_index:position)
-			position += 1
-			return nextValue
-	    }
+			defer {
+				position += 1
+			}
+			return Encode.chunk_parse_inline(decoded_bytes:data, decoded_byte_count:data_count, encoded_index:position)
+		}
 		private let encoded_count:size_t
 		private let data_count:size_t
 		private let data:[UInt8]
 		private var position:size_t
 		fileprivate init(data:[UInt8], data_count:size_t) {
+			#if DEBUG
+			assert(data_count == data.count, "data_count (\(data_count)) should be equal to data.count (\(data.count))")
+			#endif
 			self.data = data
 			self.data_count = data_count
 			self.position = 0
