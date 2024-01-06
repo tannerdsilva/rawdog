@@ -1,41 +1,81 @@
-import struct CRAW.size_t;
+import func CRAW.memcpy;
 
-extension Double:RAW_encodable, RAW_decodable, RAW_comparable {
-	/// retrieves the raw IEEE 754 representation of the double.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+extension Double:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
+	/// compare two raw encoded values of this type.
+	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bitPattern) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<UInt64>.size))
+			return try accessFunc(UnsafeRawPointer(ptr), MemoryLayout<Self.RAW_staticbuff_storetype>.size)
 		}
 	}
 	
-	/// initialize a double from a raw IEEE 754 representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == MemoryLayout<UInt64>.size) else {
-			return nil
-		}
-		guard (RAW_data != nil) else {
-			return nil
-		}
-		self = Double(bitPattern:RAW_data!.load(as:UInt64.self))
+	/// initialize afrom the given raw buffer representation.
+	public init(RAW_staticbuff_storetype: UnsafeRawPointer) {
+		self.init(bitPattern:UnsafeRawPointer(RAW_staticbuff_storetype).load(as:UInt64.self))
 	}
+
+	/// encodes the value to the specified pointer.
+	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		return withUnsafePointer(to:self.bitPattern) { bitPatternPtr in
+			// copy the bits of the UInt64
+			let writeSize = MemoryLayout<UInt64.RAW_staticbuff_storetype>.size
+			ptr.copyMemory(from:bitPatternPtr, byteCount:writeSize)
+			return ptr.advanced(by:writeSize)
+		}
+	}
+
+	/// implements faithful comparison of the integer.
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {	
+		let doubleLeft = Self(bitPattern:lhs_data.assumingMemoryBound(to:UInt64.self).pointee)
+		let doubleRight = Self(bitPattern:rhs_data.assumingMemoryBound(to:UInt64.self).pointee)
+		if (doubleLeft < doubleRight) {
+			return -1
+		} else if (doubleLeft > doubleRight) {
+			return 1
+		} else {
+			return 0
+		}
+	}
+
+	/// the type of raw storage that this type uses.
+	public typealias RAW_staticbuff_storetype = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
 }
 
-extension Float:RAW_encodable, RAW_decodable, RAW_comparable {
-	/// retrieves the raw IEEE 754 representation of the float.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+extension Float:RAW_encodable, RAW_decodable, RAW_comparable, RAW_staticbuff {
+	/// access the underlying memory of this value
+	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bitPattern) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<UInt32>.size))
+			return try accessFunc(UnsafeRawPointer(ptr), MemoryLayout<Self.RAW_staticbuff_storetype>.size)
 		}
 	}
-	
-	/// initializes a float32 from a raw IEEE 754 representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == MemoryLayout<UInt32>.size) else {
-			return nil
-		}
-		guard (RAW_data != nil) else {
-			return nil
-		}
-		self = Float(bitPattern:RAW_data!.load(as:UInt32.self))
+
+	/// initialize afrom the given raw buffer representation.
+	public init(RAW_staticbuff_storetype: UnsafeRawPointer) {
+		self.init(bitPattern:RAW_staticbuff_storetype.load(as:UInt32.self))
 	}
+
+	/// encodes the value to the specified pointer.
+	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		return withUnsafePointer(to:self.bitPattern) { bitPatternPtr in
+			// copy the bits of the UInt64
+			let writeSize = MemoryLayout<UInt32.RAW_staticbuff_storetype>.size
+			ptr.copyMemory(from:bitPatternPtr, byteCount:writeSize)
+			return ptr.advanced(by:writeSize)
+		}
+	}
+
+	/// implements faithful comparison of the integer.
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {	
+		let doubleLeft = Self(bitPattern:lhs_data.assumingMemoryBound(to:UInt32.self).pointee)
+		let doubleRight = Self(bitPattern:rhs_data.assumingMemoryBound(to:UInt32.self).pointee)
+		if (doubleLeft < doubleRight) {
+			return -1
+		} else if (doubleLeft > doubleRight) {
+			return 1
+		} else {
+			return 0
+		}
+	}
+
+	/// the type of raw storage that this type uses.
+	public typealias RAW_staticbuff_storetype = (UInt8, UInt8, UInt8, UInt8)
 }

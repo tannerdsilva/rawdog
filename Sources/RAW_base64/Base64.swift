@@ -1,50 +1,109 @@
 import RAW
-import CRAW
 
-/// a namespace for base64 encoding/decoding functions.
-public struct Base64 {
-	/// error thrown by Base64 encoding/decoding functions
-	public enum Error:Swift.Error {
-		/// the provided string could not be decoded.
-		case decodingError(String, Int32)
+#if RAWDOG_BASE64_LOG
+import Logging
+internal func makeDefaultLogger() -> Logger {
+	var logger = Logger(label:"RAW_base64")
+	logger.logLevel = .trace
+	return logger
+}
+internal var logger = makeDefaultLogger()
+#endif
 
-		/// the provided string could not be encoded.
-		case encodingError([UInt8], Int32)
-	}
-
-	/// encode a bytestream representatin to a base64 string.
-	/// - parameter bytes: the byte representation to encode.
-	/// - throws: ``Error.encodingError`` if the byte representation could not be encoded. this should never be thrown under normal operating conditions.
-	public static func encode<RE>(bytes rawBytes:RE) throws -> String where RE:RAW_encodable {
-		return try rawBytes.asRAW_val { rawVal in
-			let enclen = base64_encoded_length(rawVal.RAW_size) + 1
-			let newBytes = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:enclen)
-			defer {
-				newBytes.deallocate()
-			}
-			let encodeResult = base64_encode(newBytes.baseAddress, enclen, rawVal.RAW_data, rawVal.RAW_size)
-			guard encodeResult >= 0 else {
-				throw Error.encodingError(Array(rawVal), errno)
-			}
-			return String(cString:newBytes.baseAddress!)
-		}
-	}
+/// error thrown by Base64 encoding/decoding functions
+public enum Error:Swift.Error {
+	/// thrown when the padding length is not valid for the given Base64 encoding.
+	case invalidPaddingLength
 	
-	/// decode a base64 string to a byte array.
-	/// - parameter dataEncoding: the base64 string to decode.
-	/// - throws: ``Error.decodingError`` if the base64 string could not be decoded. this should never be thrown under normal operating conditions.
-	public static func decode(_ dataEncoding:String) throws -> [UInt8] {
-		let newBytes = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:base64_decoded_length(dataEncoding.count))
-		defer {
-			newBytes.deallocate()
-		}
-		let decodeResult = base64_decode(newBytes.baseAddress, base64_decoded_length(dataEncoding.count), dataEncoding, dataEncoding.count)
-		guard decodeResult >= 0 else {
-			throw Error.decodingError(dataEncoding, errno)
-		}
-		return Array(unsafeUninitializedCapacity:decodeResult, initializingWith: { (buffer, count) in
-			memcpy(buffer.baseAddress!, newBytes.baseAddress, decodeResult)
-			count = decodeResult
+	/// the provided string could not be decoded.
+	case invalidEncodingLength(size_t)
+
+	/// thrown when 
+	case invalidBase64EncodingCharacter(Character)
+}
+
+public func encode(_ bytes:[UInt8], byte_count:size_t) throws -> Encoded {
+	#if DEBUG
+	assert(byte_count == bytes.count, "byte count must match byte buffer count. \(byte_count) != \(bytes.count)")
+	#endif
+	return try Encoded.from(decoded:bytes)
+}
+
+public func encode(_ bytes:[UInt8]) throws -> Encoded {
+	return try Encoded.from(decoded:bytes)
+}
+
+public func decode(_ str:String) throws -> [UInt8] {
+	return try Encoded.from(encoded:str).decoded()
+}
+
+extension Array where Element == Value {
+	/// returns an array of random hex values. the length of the array is specified by the `length` parameter.
+	public static func random(length:size_t) -> Self {
+		return Self(unsafeUninitializedCapacity:length, initializingWith: { valueBuffer, valueCount in
+			valueCount = 0
+			var seekPointer = valueBuffer.baseAddress!
+			while valueCount < length {
+				seekPointer.initialize(to:Value.random())
+				seekPointer += 1
+				valueCount += 1
+			}
+			#if DEBUG
+			assert(valueCount == length)
+			#endif
 		})
+	}
+
+
+	public init(validate data:UnsafePointer<UInt8>, size:size_t) throws {
+		// validate that this is not an invalid value length for base64 encodings
+		guard size % 4 != 1 else {
+			throw Error.invalidEncodingLength(size)
+		}
+		self = try Self(unsafeUninitializedCapacity:size, initializingWith: { valueBuffer, valueCount in
+			valueCount = 0
+			var writePtr = valueBuffer.baseAddress!
+			while valueCount < size {
+				writePtr.initialize(to:try Value(validate:data[valueCount]))
+				valueCount += 1
+				writePtr += 1
+			}
+			#if DEBUG
+			assert(valueCount == size)
+			#endif
+		})
+	}
+}
+
+extension String {
+	public init(_ encoded:Encoded) {
+		#if RAWDOG_BASE64_LOG
+		logger.info("initializing string from encoded value. encoded: \(encoded.count)")
+		#endif
+		let expectedTail = Encode.compute_padding(unencoded_byte_count:encoded.decoded_count)
+		#if RAWDOG_BASE64_LOG
+		logger.info("expected tail: \(expectedTail)")
+		#endif
+		let encodedLength = encoded.count + expectedTail.asSize()
+		self.init([Character](unsafeUninitializedCapacity:encodedLength, initializingWith: { charBuff, charSize in
+			charSize = 0
+			var writePtr = charBuff.baseAddress!
+			for val in encoded {
+				writePtr.initialize(to:val.characterValue())
+				writePtr += 1
+				charSize += 1
+			}
+			switch expectedTail {
+				case .zero: break
+				case .one:
+					writePtr.initialize(to:"=")
+					charSize += 1
+				case .two:
+					writePtr.initialize(to:"=")
+					writePtr += 1
+					writePtr.initialize(to:"=")
+					charSize += 2
+			}
+		}))
 	}
 }

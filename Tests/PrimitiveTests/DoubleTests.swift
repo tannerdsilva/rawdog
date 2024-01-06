@@ -1,51 +1,42 @@
 import XCTest
 @testable import RAW
 
-final class NumberTests: XCTestCase {
-	func testArrayEncodingAndDecoding() throws {
-		let encodeNumbers:[Double] = [
-			3.14159,
-			3.0,
-			3.141,
-		]
-		let decoded = encodeNumbers.asRAW_val { rawVal in
-			return Array<Double>(RAW_size:rawVal.RAW_size, RAW_data:rawVal.RAW_data)
-		}
-		XCTAssertEqual(decoded, [
-			3.14159,
-			3,
-			3.141
-		])
-	}
-    func testEncodingAndDecodingDouble() throws {
-        let value: Double = 3.14159
-        let newVal = value.asRAW_val {
-			return Double(RAW_size: $0.RAW_size, RAW_data:$0.RAW_data)
-		}
-        XCTAssertEqual(newVal, value)
-    }
+final class NumberTests:XCTestCase {
+	func testArray() throws {
+		typealias TestType = UInt64
+		var makeDouble = [TestType]()
+		for _ in 0..<5120 {
+			// add a random value to the array
+			withUnsafePointer(to:(
+				UInt8.random(in:0..<255),
+				UInt8.random(in:0..<255),
+				UInt8.random(in:0..<255),
+				UInt8.random(in:0..<255),
 
+				UInt8.random(in:0..<255),
+				UInt8.random(in:0..<255),
+				UInt8.random(in:0..<255),
+				UInt8.random(in:0..<255)
+			)) {
+				let doubleValue = TestType(RAW_staticbuff_storetype:$0)
+				makeDouble.append(doubleValue)
+			}
+		}
+		let sortedItems = makeDouble.sorted(by: { TestType.RAW_compare(lhs:$0, rhs:$1) < 0 })
+		let nativeSort = makeDouble.sorted(by: { $0 < $1 })
+		XCTAssertEqual(sortedItems, nativeSort)
+	}
+
+	func testEncodingAndDecodingDouble() throws {
+		let value: Double = 3.14159
+		let valueBytes = [UInt8](RAW_encodable:value)
+		let newVal = Double(RAW_staticbuff_storetype:valueBytes)
+		XCTAssertEqual(newVal, value)
+	}
 	func testEncodingAndDecodingFloat16() throws {
 		let value: Float = 3.14159
-		let newVal = value.asRAW_val {
-			return Float(RAW_size: $0.RAW_size, RAW_data:$0.RAW_data)
-		}
-		XCTAssertEqual(newVal, value)
-	}
-
-	func testEncodingAndDecodingUInt() throws {
-		let value: UInt = 3
-		let newVal = value.asRAW_val {
-			return UInt(RAW_size: $0.RAW_size, RAW_data:$0.RAW_data)
-		}
-		XCTAssertEqual(newVal, value)
-	}
-
-	func testEncodingAndDecodingInt() throws {
-		let value: Int = 3
-		let newVal = value.asRAW_val {
-			return Int(RAW_size: $0.RAW_size, RAW_data:$0.RAW_data)
-		}
+		let valueBytes = [UInt8](RAW_encodable:value)
+		let newVal = Float(RAW_staticbuff_storetype:valueBytes)
 		XCTAssertEqual(newVal, value)
 	}
 }

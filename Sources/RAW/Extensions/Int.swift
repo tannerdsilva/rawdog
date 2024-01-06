@@ -1,146 +1,193 @@
-import struct CRAW.size_t;
+import func CRAW.memcpy;
 
-extension Int64:RAW_decodable, RAW_encodable, RAW_comparable {
-	/// retrieves the big endian representation of the int64.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+// extend the signed 64 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
+extension Int64:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
+	/// access the underlying memory of this value
+	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<Int64>.size))
+			return try accessFunc(UnsafeRawPointer(ptr), MemoryLayout<Self.RAW_staticbuff_storetype>.size)
 		}
 	}
 	
-	/// load a big endian int64 from a raw representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == MemoryLayout<Int64>.size) else {
-			return nil
+	/// compare two raw encoded values of this type.
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
+		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
+		if (lhsVal < rhsVal) {
+			return -1
+		} else if (lhsVal > rhsVal) {
+			return 1
+		} else {
+			return 0
 		}
-		guard (RAW_data != nil) else {
-			return nil
-		}
-		self = Int64(bigEndian:RAW_data!.load(as:Int64.self))
+	}
+	
+	/// initialize afrom the given raw buffer representation.
+	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		ptr.assumingMemoryBound(to:Self.self).pointee = self.bigEndian
+		return ptr.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
 	}
 
-	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
-	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		if (lhs.RAW_size != rhs.RAW_size) {
-			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
-		} else {
-			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
-		}
+	/// initialize afrom the given raw buffer representation.
+	public init(RAW_staticbuff_storetype: UnsafeRawPointer) {
+		self.init(bigEndian:RAW_staticbuff_storetype.load(as:Self.self))
 	}
+
+	/// the type of raw storage that this type uses.
+	public typealias RAW_staticbuff_storetype = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
 }
 
-extension Int32:RAW_decodable, RAW_encodable, RAW_comparable {
-	/// retrieves the big endian representation of the int32.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+// extend the signed 32 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
+extension Int32:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
+	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<Int32>.size))
+			return try accessFunc(UnsafeRawPointer(ptr), MemoryLayout<Self.RAW_staticbuff_storetype>.size)
 		}
-	}
-	
-	/// load a big endian int32 from a raw representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == MemoryLayout<Int32>.size) else {
-			return nil
-		}
-		guard (RAW_data != nil) else {
-			return nil
-		}
-		self = Int32(bigEndian:RAW_data!.load(as:Int32.self))
 	}
 
-	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
-	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		if (lhs.RAW_size != rhs.RAW_size) {
-			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
+	/// compare two raw encoded values of this type.
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
+		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
+		if (lhsVal < rhsVal) {
+			return -1
+		} else if (lhsVal > rhsVal) {
+			return 1
 		} else {
-			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
+			return 0
 		}
 	}
+
+	/// initialize afrom the given raw buffer representation.
+	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		ptr.assumingMemoryBound(to:Self.self).pointee = self.bigEndian
+		return ptr.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
+	}
+
+	/// initialize afrom the given raw buffer representation.
+	public init(RAW_staticbuff_storetype: UnsafeRawPointer) {
+		self.init(bigEndian:RAW_staticbuff_storetype.load(as:Self.self))
+	}
+
+	/// adds the size of the raw memory representation to the given pointer.
+	/// the type of raw storage that this type uses.
+	public typealias RAW_staticbuff_storetype = (UInt8, UInt8, UInt8, UInt8)
 }
 
-extension Int16:RAW_decodable, RAW_encodable, RAW_comparable {
-	/// retrieves the big endian representation of the int16.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+// extend the signed 16 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
+extension Int16:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
+	/// compare two raw encoded values of this type.
+	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<Int16>.size))
+			return try accessFunc(UnsafeRawPointer(ptr), MemoryLayout<Self.RAW_staticbuff_storetype>.size)
 		}
-	}
-	
-	/// load a big endian int16 from a raw representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == MemoryLayout<Int16>.size) else {
-			return nil
-		}
-		guard (RAW_data != nil) else {
-			return nil
-		}
-		self = Int16(bigEndian:RAW_data!.load(as:Int16.self))
 	}
 
-	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
-	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		if (lhs.RAW_size != rhs.RAW_size) {
-			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
+	/// compare two raw encoded values of this type.
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
+		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
+		if (lhsVal < rhsVal) {
+			return -1
+		} else if (lhsVal > rhsVal) {
+			return 1
 		} else {
-			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
+			return 0
 		}
 	}
+
+	/// initialize afrom the given raw buffer representation.
+	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		ptr.assumingMemoryBound(to:Self.self).pointee = self.bigEndian
+		return ptr.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
+	}
+
+	/// initialize afrom the given raw buffer representation.
+	public init(RAW_staticbuff_storetype: UnsafeRawPointer) {
+		self.init(bigEndian:RAW_staticbuff_storetype.load(as:Self.self))
+	}
+
+	/// the type of raw storage that this type uses.
+	public typealias RAW_staticbuff_storetype = (UInt8, UInt8)
 }
 
-extension Int8:RAW_decodable, RAW_encodable, RAW_comparable {
-	/// retrieves the big endian representation of the int8.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+// extend the signed 8 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
+extension Int8:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
+	/// compare two raw encoded values of this type.
+	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<Int8>.size))
+			return try accessFunc(UnsafeRawPointer(ptr), MemoryLayout<Self.RAW_staticbuff_storetype>.size)
 		}
-	}
-	
-	/// load a big endian int8 from a raw representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == MemoryLayout<Int8>.size) else {
-			return nil
-		}
-		guard (RAW_data != nil) else {
-			return nil
-		}
-		self = Int8(bigEndian:RAW_data!.load(as:Int8.self))
 	}
 
-	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
-	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		if (lhs.RAW_size != rhs.RAW_size) {
-			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
+	/// compare two raw encoded values of this type.
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
+		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
+		if (lhsVal < rhsVal) {
+			return -1
+		} else if (lhsVal > rhsVal) {
+			return 1
 		} else {
-			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
+			return 0
 		}
 	}
+
+	/// initialize afrom the given raw buffer representation.
+	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		ptr.assumingMemoryBound(to:Self.self).pointee = self.bigEndian
+		return ptr.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
+	}
+
+	/// initialize afrom the given raw buffer representation.
+	public init(RAW_staticbuff_storetype: UnsafeRawPointer) {
+		self.init(bigEndian:RAW_staticbuff_storetype.load(as:Self.self))
+	}
+
+	/// the type of raw storage that this type uses.
+	public typealias RAW_staticbuff_storetype = (UInt8)
 }
 
-extension Int:RAW_decodable, RAW_encodable, RAW_comparable {
-	/// retrieves the big endian representation of the int.
-	public func asRAW_val<R>(_ valFunc:(RAW) throws -> R) rethrows -> R {
+// extend the signed integer to conform to the raw static buffer protocol, as it is a fixed size type.
+extension Int:RAW_decodable, RAW_encodable, RAW_comparable, RAW_staticbuff {
+	/// compare two raw encoded values of this type.
+	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		return try withUnsafePointer(to:self.bigEndian) { ptr in
-			return try valFunc(RAW(ptr, MemoryLayout<Int>.size))
+			return try accessFunc(UnsafeRawPointer(ptr), MemoryLayout<Self.RAW_staticbuff_storetype>.size)
 		}
 	}
 	
-	/// load a big endian int from a raw representation in memory.
-	public init?(RAW_size:size_t, RAW_data:UnsafeRawPointer?) {
-		guard (RAW_size == MemoryLayout<Int>.size) else {
-			return nil
+	/// compare two raw encoded values of this type.
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+		let lhsVal = self.init(bigEndian:lhs_data.load(as:Self.self))
+		let rhsVal = self.init(bigEndian:rhs_data.load(as:Self.self))
+		if (lhsVal < rhsVal) {
+			return -1
+		} else if (lhsVal > rhsVal) {
+			return 1
+		} else {
+			return 0
 		}
-		guard (RAW_data != nil) else {
-			return nil
-		}
-		self = Int(bigEndian:RAW_data!.load(as:Int.self))
 	}
 
-	/// direct implementation of the ``RAW_comparable`` protocol for higher performance over the default implementation.
-	public static func RAW_compare(_ lhs:RAW, _ rhs:RAW) -> Int32 {
-		if (lhs.RAW_size != rhs.RAW_size) {
-			return (lhs.RAW_size < rhs.RAW_size) ? -1 : 1
-		} else {
-			return RAW_memcmp(lhs.RAW_data, rhs.RAW_data, lhs.RAW_size)
-		}
+	/// initialize afrom the given raw buffer representation.
+	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		ptr.assumingMemoryBound(to:Self.self).pointee = self.bigEndian
+		return ptr.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
 	}
+
+	/// initialize afrom the given raw buffer representation.
+	public init(RAW_staticbuff_storetype: UnsafeRawPointer) {
+		self.init(bigEndian:RAW_staticbuff_storetype.load(as:Self.self))
+	}
+
+	#if arch(arm64) || arch(x86_64)
+	// 64 bit support
+	/// the type of raw storage that this type uses.
+	public typealias RAW_staticbuff_storetype = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
+	#else
+	// 32 bit support
+	/// the type of raw storage that this type uses.
+	public typealias RAW_staticbuff_storetype = (UInt8, UInt8, UInt8, UInt8)
+	#endif
 }
