@@ -10,8 +10,8 @@ public protocol RAW_rep_val:RAW_convertible {
 }
 
 extension RAW_rep_val {
-	public init?(RAW_decode bytes:UnsafeRawPointer, size:size_t) {
-		guard let rep = RAW_rep_val_type(RAW_decode:bytes, size:size) else {
+	public init?(RAW_decode bytes:UnsafeRawPointer, count:size_t) {
+		guard let rep = RAW_rep_val_type(RAW_decode:bytes, count:count) else {
 			return nil
 		}
 		self.init(RAW_rep_val:rep)

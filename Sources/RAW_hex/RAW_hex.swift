@@ -26,21 +26,15 @@ public enum Error:Swift.Error {
 extension Array where Element == Value {
 	/// initialize a new array of hex values from a byte buffer.
 	/// - throws: ``Error.invalidHexEncodingCharacter`` if the byte buffer contains a byte that is not a valid hex character.
-	/// - throws: ``Error.invalidEncodingSize`` if the byte buffer contains an odd number of bytes.
-	public init(validate data:UnsafePointer<UInt8>, size:size_t) throws {
-		guard size % 2 == 0 else {
-			throw Error.invalidEncodingSize(size)
-		}
-
-		let getCount = size
-		self = try Self(unsafeUninitializedCapacity:getCount, initializingWith: { valueBuffer, valueCount in
+	public init(validate data:UnsafePointer<UInt8>, count:size_t) throws {
+		self = try Self(unsafeUninitializedCapacity:count, initializingWith: { valueBuffer, valueCount in
 			valueCount = 0
-			while valueCount < getCount {
+			while valueCount < count {
 				valueBuffer[valueCount] = try Value(validate:data[valueCount])
 				valueCount += 1
 			}
 			#if DEBUG
-			assert(valueCount == getCount)
+			assert(valueCount == count)
 			#endif
 		})
 	}
@@ -78,6 +72,8 @@ extension Array where Element == Value {
 }
 
 extension String {
+
+	/// initialize a string from a hex encoded value. the resulting string will be the ascii-based hex string of representing the byte values.
 	public init(_ encoded:Encoded) {
 		self.init([Character](unsafeUninitializedCapacity:encoded.count, initializingWith: { charBuffer, charCount in
 			charCount = 0
@@ -94,6 +90,8 @@ extension String {
 }
 
 extension Array where Element == UInt8 {
+
+	/// initialize a new byte array from a hex encoded value. the resulting byte array will be the hex-encoded ascii string of the byte array.
 	public init(_ encoded:Encoded) {
 		self.init([UInt8](unsafeUninitializedCapacity:encoded.count, initializingWith: { byteBuffer, byteCount in
 			byteCount = 0

@@ -13,15 +13,12 @@ public struct Encoded {
 		case two
 	}
 
-	// count is stored as to not invoke the count property on the decoded_data array (constant vs 0(n))
+	// count is stored as to not invoke the count property on the decoded_data array (constant lookup vs 0(n))
 	internal let decoded_count:size_t
-	private let decoded_data:[UInt8] // data buffer
+	private let decoded_data:[UInt8] // data buffer for the decoded value
 
 	/// primary internal initializer. initializes an encoded value from a buffer of base64 values and a tail.
-	internal init(valid_decoded_bytes decoded:[UInt8], decoded_count:size_t) {
-		#if DEBUG
-		assert(decoded_count == decoded.count)
-		#endif
+	internal init(decoded_bytes decoded:[UInt8], decoded_count:size_t) {
 		self.decoded_data = decoded
 		self.decoded_count = decoded_count
 	}
@@ -38,7 +35,7 @@ extension Encoded {
 		return Encode.unpadded_length(unencoded_byte_count:decoded_count)
 	}
 
-	/// returns the padded encoding length of the current instance.
+	/// returns the number of padding characters that are required to encode the current instance as a string.
 	public var padding:Encoded.Padding {
 		return Encode.compute_padding(unencoded_byte_count:decoded_count)
 	}
@@ -47,8 +44,8 @@ extension Encoded {
 // decoded initializers
 extension Encoded {
 	/// initialize an encoded value from a byte buffer of unencoded bytes.
-	public static func from(decoded bytes:[UInt8]) throws -> Self {
-		return Self(valid_decoded_bytes:bytes, decoded_count:bytes.count)
+	public static func from(decoded bytes:[UInt8], count:size_t) -> Self {
+		return Self(decoded_bytes:bytes, decoded_count:bytes.count)
 	}
 }
 
@@ -58,33 +55,36 @@ extension Encoded {
 	public static func from(encoded encString:String) throws -> Self {
 		let utf8Bytes = [UInt8](encString.utf8)
 		let getCount = utf8Bytes.count
-		return try Self.from(encoded:utf8Bytes, size:getCount)
+		return try Self.from(encoded:utf8Bytes, count:getCount)
 	}
 
 	/// initialize a base64 encoded value from a byte buffer of utf8 bytes.
-	public static func from(encoded encBytes:UnsafePointer<UInt8>, size:size_t) throws -> Self {
-		let getTail = try Encoded.Padding.parse(from:encBytes, byte_size:size)
+	/// - NOTE: padding characters in the encoded byte buffer are parsed and validated by this function.
+	public static func from(encoded encBytes:UnsafePointer<UInt8>, count:size_t) throws -> Self {
+		let getTail = try Encoded.Padding.parse(from:encBytes, byte_size:count)
 
-		let encoded_byte_count = size - getTail.asSize()
+		let encoded_byte_count = count - getTail.asSize()
 		let decoded_byte_count = try Decode.length(unpadded_encoding_byte_length:encoded_byte_count)
 		
 		guard Encode.compute_padding(unencoded_byte_count:decoded_byte_count) == getTail else {
 			throw Error.invalidPaddingLength
 		}
-		var valSize:size_t = 0
-		let encodedValues = try [Value](unsafeUninitializedCapacity:encoded_byte_count, initializingWith: { buffer, countup in
-			countup = 0
-			var writePtr = buffer.baseAddress!
-			for i in 0..<encoded_byte_count {
-				writePtr.initialize(to:try Value(validate:encBytes[i]))
-				writePtr += 1
-				countup += 1
-			}
-			valSize = countup
-		})
+		let decodedBytes = try Decode.process(bytes:encBytes, byte_count:encoded_byte_count, padding_audit:getTail)
+		#if DEBUG
+		assert(decoded_byte_count == decodedBytes.1, "decoded_byte_count (\(decoded_byte_count)) should be equal to decodedBytes.1 (\(decodedBytes.1))")
+		#endif
+		return Self(decoded_bytes:decodedBytes.0, decoded_count:decodedBytes.1)
+	}
 
-		let decodedBytes = try Decode.process(values:encodedValues, value_count:valSize, padding_audit:getTail)
-		return Self(valid_decoded_bytes:decodedBytes.0, decoded_count:decodedBytes.1)
+	/// initialize a base64 encoded value from a byte buffer of base64 values.
+	/// - NOTE: padding is not handled by this function, as this value is not encompassed by the Value type.
+	public static func from(encoded values:UnsafePointer<Value>, count:size_t) throws -> Self {
+		let decodedBytes = try Decode.process(values:values, value_count:count)
+		#if DEBUG
+		let decoded_byte_count = try Decode.length(unpadded_encoding_byte_length:count)
+		assert(decoded_byte_count == decodedBytes.1, "decoded_byte_count (\(decoded_byte_count)) should be equal to decodedBytes.1 (\(decodedBytes.1))")
+		#endif
+		return Self(decoded_bytes:decodedBytes.0, decoded_count:decodedBytes.1)
 	}
 }
 
@@ -127,7 +127,7 @@ extension Encoded:Sequence {
 			self.data = data
 			self.data_count = data_count
 			self.position = 0
-			self.encoded_count = Encode.unpadded_length(unencoded_byte_count: data_count)
+			self.encoded_count = Encode.unpadded_length(unencoded_byte_count:data_count)
 		}
 	}
 	public func makeIterator() -> Iterator {
@@ -240,6 +240,13 @@ extension Encoded:Equatable {
 	/// equality operator for encoded values.
 	public static func == (lhs:Encoded, rhs:Encoded) -> Bool {
 		return lhs.decoded_count == rhs.decoded_count && lhs.decoded_data == rhs.decoded_data
+	}
+}
+
+extension Encoded:ExpressibleByArrayLiteral {
+	public typealias ArrayLiteralElement = Value
+	public init(arrayLiteral elements:Value...) {
+		self = try! Encoded.from(encoded:elements, count:elements.count)
 	}
 }
 

@@ -616,12 +616,18 @@ extension Value {
 			case 0x39: self = .nine
 			case 0x2B: self = .plus
 			case 0x2F: self = .slash
-			default: fatalError()
+			default: throw Error.invalidBase64EncodingCharacter(Character(UnicodeScalar(asciiValue)))
 		}
 	}
 }
 
-extension Value:Equatable {
+extension Value:Equatable, Hashable {
+	/// hash the value.	
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(indexValue())
+	}
+
+	/// compare two values for equality.
 	public static func == (lhs:Value, rhs:Value) -> Bool {
 		switch (lhs, rhs) {
 			case (.A, .A): return true
@@ -694,19 +700,17 @@ extension Value:Equatable {
 }
 
 extension Value:CustomStringConvertible {
+	/// get the string representation of this base64 value.
 	public var description:String {
-		return String(characterValue())
+		return "\(String(characterValue()))"
 	}
 }
 
-extension Value:Hashable {
-	public func hash(into hasher: inout Hasher) {
-		hasher.combine(indexValue())
-	}
-}
-
+// character literal impl
 extension Value:ExpressibleByExtendedGraphemeClusterLiteral {
 	public typealias ExtendedGraphemeClusterLiteralType = Character
+
+	/// initialize a base64 value from a character literal.
 	public init(extendedGraphemeClusterLiteral:Character) {
 		self = try! Self.init(validate:extendedGraphemeClusterLiteral)
 	}

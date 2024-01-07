@@ -21,9 +21,9 @@ struct MYSTRUCT {
 }
 
 @ConcatBufferType(Double, Float)
-struct MYSTRUCT2 {
-	let firstItem:Double
-	let secondItem:Float
+fileprivate struct MYSTRUCT2 {
+	internal let firstItem:Double
+	internal let secondItem:Float
 }
 
 @RAW_staticbuff(8, isUnsigned:true)
@@ -159,11 +159,12 @@ final class TestDeveloperUsage:XCTestCase {
 			var blake2sHasher = try Hasher<S, FixedBuff5>()
 			try blake2sHasher.update(Array("Hello".utf8))
 			let blake2sHash = try blake2sHasher.finish()
-			let blake2sHashBytes = [UInt8](RAW_encodable:blake2sHash)
-			let blake2sHashString = try RAW_base64.encode(blake2sHashBytes)
+			var countout:size_t = 0
+			let blake2sHashBytes = [UInt8](RAW_encodable:blake2sHash, count_out:&countout)
+			let blake2sHashString = RAW_base64.encode(blake2sHashBytes)
 			XCTAssertEqual(blake2sHashString, "HfZQsfk=")
 			let b64Encoded:RAW_base64.Encoded = "HfZQsfk="
-			let base64Decoded = try b64Encoded.decoded()
+			let base64Decoded = b64Encoded.decoded()
 			// let base64Decoded = try RAW_base64.decode("HfZQsfk=")
 			let asBuff = FixedBuff5(RAW_decode:base64Decoded)!
 			XCTAssertEqual(blake2sHash, asBuff)

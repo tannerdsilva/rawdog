@@ -7,7 +7,7 @@ class Base64Tests: XCTestCase {
 
 	/// compares the swift and cref implementations of base64 encoding/decoding.
 	static func compareStringExports(_ truth_aligned_data:[UInt8]) throws -> (String, String) {
-		let bytes = try RAW_base64.encode(truth_aligned_data)
+		let bytes = RAW_base64.encode(truth_aligned_data)
 		let swift_truth_aligned_encoded = String(bytes)
 		let encLen = base64_encoded_length(truth_aligned_data.count)
 		let cref_truth_aligned_encoded = String(cString:[CChar](unsafeUninitializedCapacity:encLen, initializingWith: { buffer, countup in
@@ -148,7 +148,7 @@ class Base64Tests: XCTestCase {
 	// at one point in development I wrote a bug and throught there was something special about this pattern. there is nothing special about this pattern, in 
 	func testProblematicPattern() {
 		let troubles:[UInt8] = [159, 190, 109, 249, 241, 133, 53, 203, 146, 151, 236, 5, 151, 249, 85, 252, 68, 70, 160, 36, 37, 249, 56, 31, 43, 176, 2, 227, 7, 61, 229, 153, 64, 143, 193, 176, 46, 81, 233, 154, 242, 71, 90, 85, 69, 231, 44, 140, 167, 131, 243, 230, 183, 208, 236, 179, 127, 251, 84, 209, 211, 189, 238, 230]
-		let troublesEncoded = try! RAW_base64.encode(troubles)
+		let troublesEncoded = RAW_base64.encode(troubles)
 		let asString = String(troublesEncoded)
 		XCTAssertEqual(asString, "n75t+fGFNcuSl+wFl/lV/ERGoCQl+TgfK7AC4wc95ZlAj8GwLlHpmvJHWlVF5yyMp4Pz5rfQ7LN/+1TR073u5g==")
 		let recoded = try! RAW_base64.decode(asString)
@@ -158,7 +158,7 @@ class Base64Tests: XCTestCase {
 	// // testing base64 encoding from bytes.
 	func testBase64EncodingFromBytes() {
 		let bytes: [UInt8] = Array("Hello, World!".utf8)
-		let base64Encoded = try! RAW_base64.encode(bytes)
+		let base64Encoded = RAW_base64.encode(bytes)
 		XCTAssertEqual(base64Encoded, "SGVsbG8sIFdvcmxkIQ==")
 
 		let loopTestString = "SGVsbG8sIFdvcmxkIQ"
@@ -178,7 +178,7 @@ class Base64Tests: XCTestCase {
 	// this should not throw - throwing should be considered a severely unexpected error.
 	func testBase64NoContentNoThrow() {
 		let startBytes = [UInt8]()
-		let base64Encoded = try! RAW_base64.encode(startBytes)
+		let base64Encoded = RAW_base64.encode(startBytes)
 		XCTAssertEqual(base64Encoded, "")
 	}
 }

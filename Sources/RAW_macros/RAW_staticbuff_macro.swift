@@ -30,7 +30,6 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 
 		internal enum ImplementOrExisting<T> {
 			case implement(T)
-			// case existing(T)
 		}
 		
 		internal let modifiers:DeclModifierListSyntax
@@ -483,6 +482,28 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 			}
 		"""))
 
+		#if RAWDOG_MACRO_LOG
+		logger.notice("did not find any existing RAW_access function in declaration. a default implementation will be provided.")
+		#endif
+		declString.append(DeclSyntax("""
+			/// provides an open pointer to the encoded value. ideally, this is implemented to expose the direct memory of the value, but this is not required. the default implementation encodes the value to a temporary buffer and returns the pointer to that buffer.
+			\(config.modifiers) func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+				return try withUnsafePointer(to:\(raw:config.storageVariableName)) { valPtr in
+					return try accessFunc(valPtr, MemoryLayout<RAW_staticbuff_storetype>.size)
+				}
+			}
+		"""))
+
+		#if RAWDOG_MACRO_LOG
+		logger.notice("did not find any existing RAW_staticbuff function in declaration. a default implementation will be provided.")
+		#endif
+		declString.append(DeclSyntax("""
+			/// returns the underlying memory of the type.
+			\(config.modifiers) func RAW_staticbuff() -> RAW_staticbuff_storetype {
+				return \(raw:config.storageVariableName)
+			}
+		"""))
+
 		// insert the default implementation for the decode initializer if it is not implemented already.
 		#if RAWDOG_MACRO_LOG
 		logger.notice("did not find existing initializer in declaration. a default implementation will be provided.")
@@ -542,21 +563,8 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 			#endif
 			declString.append(DeclSyntax("""
 				/// implements the sequence protocol by iterating over the bytes of the type.
-				\(config.modifiers) func makeIterator() -> AnyIterator<UInt8> {
-					var i:UInt16 = 0
-					return AnyIterator {
-						defer {
-							i += 1
-						}
-						guard i < \(raw:config.byteCount) else {
-							return nil
-						}
-						return withUnsafePointer(to:\(raw:config.storageVariableName)) { valPtr in
-							return valPtr.withMemoryRebound(to:UInt8.self, capacity:MemoryLayout<UInt8>.size) { bytePtr in
-								return bytePtr.advanced(by:Int(i)).pointee
-							}
-						}
-					}
+				\(config.modifiers) func makeIterator() -> RAW_staticbuff_iterator<Self> {
+					return RAW_staticbuff_iterator(staticbuff:self)
 				}
 			"""))
 		}

@@ -1,25 +1,57 @@
 /// represents one of the 16 possible values in a hexadecimal number
 @frozen public enum Value {
+
+	/// represents the value `0`
 	case zero
+
+	/// represents the value `1`
 	case one
+
+	/// represents the value `2`
 	case two
+
+	/// represents the value `3`
 	case three
+
+	/// represents the value `4`
 	case four
+
+	/// represents the value `5`
 	case five
+
+	/// represents the value `6`
 	case six
+
+	/// represents the value `7`
 	case seven
+
+	/// represents the value `8`
 	case eight
-	case nine	
+
+	/// represents the value `9`
+	case nine
+
+	/// represents the value `a`
 	case a
+
+	/// represents the value `b`
 	case b
+
+	/// represents the value `c`
 	case c
+
+	/// represents the value `d`
 	case d
+
+	/// represents the value `e`
 	case e
+
+	/// represents the value `f`
 	case f
 }
 
 extension Value {
-	/// initialize a hex value from a character value representing a hex-encoded value.
+	/// returns a random hex value.
 	public static func random() -> Value {
 		return Value(hexcharIndexValue:UInt8.random(in:0...15))
 	}
@@ -28,7 +60,8 @@ extension Value {
 // character implementations
 extension Value {
 
-	/// initialize a hex value from a character value representing a hex-encoded value.
+	/// initialize a hex value from a character value representing a hex-encoded character.
+	/// - note: this is a `validate` variant of this initializer, meaning that the function will throw if the character is not a valid hex character.
 	/// - throws: `Error.invalidHexCharacter` if the character is not a valid hex character.
 	public init(validate char:Character) throws {
 		switch char {
@@ -70,10 +103,9 @@ extension Value {
 	}
 
 	/// initialize a hex value from a pre-validated character representing a hex-encoded value.
-	/// - WARNING: this initializer does not validate the character. it is the caller's responsibility to ensure that the character is a valid hex character. undefined behavior will result if the character is not a valid hex character.
+	/// - WARNING: this is a `validated` variant of this initializer, meaning that the function will not throw if the character is not a valid hex character. a fatal error will occur if the character is not a valid hex character.
 	init(validated char:Character) {
 		switch char {
-
 			case "0":
 				self = .zero
 			case "1":
@@ -112,7 +144,7 @@ extension Value {
 		}
 	}
 
-	/// get the character representation of this hex value.
+	/// returns the character value of the hex value.
 	public func characterValue() -> Character {
 		switch self {
 			case .zero:
@@ -153,7 +185,7 @@ extension Value {
 
 // byte implementations
 extension Value {
-	/// get the ascii representation of this hex value.
+	/// returns the 8 bit ascii representation of this hex value.
 	public func asciiValue() -> UInt8 {
 		switch self {
 			case .zero:
@@ -191,7 +223,7 @@ extension Value {
 		}
 	}
 
-	/// initialize a hex value from an ascii value representing a hex-encoded value.
+	/// initialize a hex value from an 8-bit ascii value representing a hex-encoded value.
 	/// - throws: `Error.invalidHexEncodingCharacter` if the character is not a valid hex character.
 	public init(validate byte:UInt8) throws {
 		switch byte {
@@ -277,7 +309,7 @@ extension Value {
 
 // index value implementations
 extension Value {
-	/// initialize a hex value from a character value representing a hex-encoded value.
+	/// initialize a hex value from a character value representing a hex-encoded value (useful for encoding/decoding purposes).
 	internal init(hexcharIndexValue indexValue:UInt8) {
 		switch indexValue {
 			case 0:
@@ -318,6 +350,7 @@ extension Value {
 		}
 	}
 
+	/// returns the index value of the hex value (useful for encoding/decoding purposes)
 	internal func hexcharIndexValue() -> UInt8 {
 		switch self {
 			case .zero:

@@ -3,7 +3,7 @@ import XCTest
 
 final class NumberTests:XCTestCase {
 	func testArray() throws {
-		typealias TestType = UInt64
+		typealias TestType = UInt32
 		var makeDouble = [TestType]()
 		for _ in 0..<5120 {
 			// add a random value to the array
@@ -28,15 +28,21 @@ final class NumberTests:XCTestCase {
 	}
 
 	func testEncodingAndDecodingDouble() throws {
-		let value: Double = 3.14159
-		let valueBytes = [UInt8](RAW_encodable:value)
-		let newVal = Double(RAW_staticbuff_storetype:valueBytes)
-		XCTAssertEqual(newVal, value)
+		for _ in 0..<5120 {
+			let value: Double = Double.random(in:0..<Double.greatestFiniteMagnitude)
+			var countout:size_t = 0
+			let valueBytes = [UInt8](RAW_encodable:value, count_out:&countout)
+			let newVal = Double(RAW_staticbuff_storetype:valueBytes)
+			XCTAssertEqual(newVal, value)
+		}
 	}
-	func testEncodingAndDecodingFloat16() throws {
-		let value: Float = 3.14159
-		let valueBytes = [UInt8](RAW_encodable:value)
-		let newVal = Float(RAW_staticbuff_storetype:valueBytes)
-		XCTAssertEqual(newVal, value)
+	func testEncodingAndDecodingFloat() throws {
+		for _ in 0..<5120 {
+			let value: Float = Float.random(in:0..<Float.greatestFiniteMagnitude)
+			var countout:size_t = 0
+			let valueBytes = [UInt8](RAW_encodable:value, count_out:&countout)
+			let newVal = Float(RAW_staticbuff_storetype:valueBytes)
+			XCTAssertEqual(newVal, value)
+		}
 	}
 }

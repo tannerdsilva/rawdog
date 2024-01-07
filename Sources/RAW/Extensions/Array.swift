@@ -1,10 +1,6 @@
 extension Array where Element == UInt8 {
-    public func RAW_encoded_size() -> size_t {
-        return self.count
-    }
-
-	public init<E>(RAW_encodable encodableVar:E) where E:RAW_encodable {
-		let encSize = encodableVar.RAW_encoded_size()
+	public init<E>(RAW_encodable encodableVar:E, count_out encSize:inout size_t) where E:RAW_encodable {
+		encSize = encodableVar.RAW_encoded_size()
 		self = Self(unsafeUninitializedCapacity:encSize, initializingWith: { buff, size in
 			let startPtr = UnsafeMutableRawPointer(buff.baseAddress!)
 			let stridePtr = encodableVar.RAW_encode(dest:startPtr)
@@ -13,18 +9,6 @@ extension Array where Element == UInt8 {
 			#endif
 			size = encSize
 		})
-	}
-	
-	public init<E>(RAW_encodables encodableVars:E...) where E:RAW_encodable {
-		self.init(RAW_encodables:[E](unsafeUninitializedCapacity:encodableVars.count, initializingWith: { eBuff, eCount in
-			eCount = 0
-			var writeSeek = eBuff.baseAddress!
-			for encodableVar in encodableVars {
-				writeSeek.initialize(to: encodableVar)
-				writeSeek += 1
-				eCount += 1
-			}
-		}))
 	}
 
 	public init<E>(RAW_encodables encodableVars:[E]) where E:RAW_encodable {

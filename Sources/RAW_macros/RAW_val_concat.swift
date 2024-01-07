@@ -322,8 +322,15 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 
 		// build the initializer lines that will allow the macro type to implement RAW_staticbuff based on the underlying implementation of each member.
 		var initializerLines:[String] = []
-		for (i, (curVarName, curVarType)) in memberVariableNamesAndTypes.enumerated() {
+		var returnStoreLines = "("
+		for (i, (curVarName, curVarType)) in memberVariableNamesAndTypes.reversed().enumerated().reversed() {
 			initializerLines.append("self.\(curVarName) = \(curVarType)(RAW_staticbuff_storetype_seeking:&seeker)\n")
+			switch i {
+				case 0:
+					returnStoreLines += "\(curVarName).RAW_staticbuff() )"
+				default:
+					returnStoreLines += "\(curVarName).RAW_staticbuff(), "
+			}
 		}
 
 		// extend conformance to RAW_staticbuff since each of the children already conform to it.
@@ -338,6 +345,21 @@ public struct ConcatBufferTypeMacro:MemberMacro, ExtensionMacro {
 					return seeker
 				}
 
+				/// provides access to the underlying memory of this value.
+				\(raw:localModifiers) func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+					return try withUnsafePointer(to:\(raw:returnStoreLines)) { ptr in
+						return try accessFunc(ptr, MemoryLayout<Self.RAW_staticbuff_storetype>.size)
+					}
+				}
+
+				/// returns underlying memory of this value
+				\(raw:localModifiers) func RAW_staticbuff() -> RAW_staticbuff_storetype {
+					return self.RAW_access { buff, _ in
+						return buff.load(as:RAW_staticbuff_storetype.self)
+					}
+				}
+
+				/// initialize afrom the given raw buffer representation.
 				\(raw:localModifiers) init(RAW_staticbuff_storetype ptr:UnsafeRawPointer) {
 					var seeker = ptr
 					\(raw:initializerLines.joined(separator:"\n"))

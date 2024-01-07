@@ -5,7 +5,8 @@ import XCTest
 class RAWIntTests:XCTestCase {
 	func testAsRAWVal() throws {
 		let value:Int = -512
-		let rawVal = value.RAW_encoded_bytes()
+		var countout:size_t = 0
+		let rawVal = [UInt8](RAW_encodable:value, count_out:&countout)
 		#if arch(x86_64) || arch(arm64)
 		let expectedBytes: [UInt8] = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0x00]
 		#else
@@ -29,9 +30,10 @@ class RAWIntTests:XCTestCase {
 class RAWInt8Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value:Int8 = -128
-		let rawVal = value.RAW_encoded_bytes()
+		var countout:size_t = 0
+		let bytes: [UInt8] = [UInt8](RAW_encodable:value, count_out:&countout)
 		let expectedBytes: [UInt8] = [0x80]
-		XCTAssertEqual(rawVal, expectedBytes)
+		XCTAssertEqual(bytes, expectedBytes)
 	}
 	
 	func testInitWithRAWData() {
@@ -44,9 +46,10 @@ class RAWInt8Tests: XCTestCase {
 class RAWInt16Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value: Int16 = -512
-		let rawVal = value.RAW_encoded_bytes()
+		var countout:size_t = 0
+		let bytes: [UInt8] = [UInt8](RAW_encodable:value, count_out:&countout)
 		let expectedBytes: [UInt8] = [0xFE, 0x00]
-		XCTAssertEqual(rawVal, expectedBytes)
+		XCTAssertEqual(bytes, expectedBytes)
 	}
 	
 	func testInitWithRAWData() {
@@ -59,9 +62,10 @@ class RAWInt16Tests: XCTestCase {
 class RAWInt32Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value: Int32 = -512
-		let rawVal = value.RAW_encoded_bytes()
+		var countout:size_t = 0
+		let bytes: [UInt8] = [UInt8](RAW_encodable:value, count_out:&countout)
 		let expectedBytes:[UInt8] = [0xFF, 0xFF, 0xFE, 0x00]
-		XCTAssertEqual(rawVal, expectedBytes)
+		XCTAssertEqual(bytes, expectedBytes)
 	}
 	
 	func testInitWithRAWData() {
@@ -74,7 +78,8 @@ class RAWInt32Tests: XCTestCase {
 class RAWInt64Tests: XCTestCase {
 	func testAsRAWVal() throws {
 		let value:Int64 = -512
-		let rawVal = value.RAW_encoded_bytes()
+		var countout:size_t = 0
+		let rawVal = [UInt8](RAW_encodable:value, count_out:&countout)
 		let expectedBytes: [UInt8] = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0x00]
 		XCTAssertEqual(rawVal, expectedBytes)
 	}
