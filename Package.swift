@@ -53,6 +53,9 @@ let package = Package(
 			name: "RAW",
 			targets: ["RAW"]),
 		.library(
+			name: "RAW_hex",
+			targets: ["RAW_hex"]),
+		.library(
 			name: "RAW_base64",
 			targets: ["RAW_base64"]),
 		.library(
