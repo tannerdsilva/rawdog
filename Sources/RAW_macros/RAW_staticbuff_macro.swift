@@ -119,7 +119,6 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 		let structureModifiers:DeclModifierListSyntax
 		var inheritedTypes:Set<StaticBuffImplConfiguration.SpecifiedProtocol> = Set()
 		var overrideFuncs:Set<StaticBuffImplConfiguration.ImplementedFunctions> = Set()
-		var storageIdentifierName:IdentifierPatternSyntax? = nil
 		func parseInheritanceTypes(_ ihc:InheritanceClauseSyntax) throws {
 			for listItem in ihc.inheritedTypes {
 				#if RAWDOG_MACRO_LOG
@@ -348,14 +347,13 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 							throw Diagnostics.invalidStoredProperty(varDecl)
 						}
 						
-						guard let identifierPattern = onlyBindingItem.pattern.as(IdentifierPatternSyntax.self) else {
+						guard let _ = onlyBindingItem.pattern.as(IdentifierPatternSyntax.self) else {
 							#if RAWDOG_MACRO_LOG
 							mainLogger.critical("invalid identifier pattern.")
 							#endif
 							throw Diagnostics.invalidStoredProperty(varDecl)
 						}
 
-						storageIdentifierName = identifierPattern
 					default:
 						break
 				}
