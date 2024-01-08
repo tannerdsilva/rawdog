@@ -1,3 +1,19 @@
+### 4.3.2
+
+- Modified ``public static func RAW_compare(...seeking:...)`` variants to use inout argument types.
+
+	- This change fixed an underlying bug in the previous implementation of this function. This bug is now fixed.
+
+- Added tests that prove `ConcatBufferTypeMacro` is implementing linear comparisons as expected.
+
+# v4.x.x
+
+- Continued iteration of the library - another breaking update that brings improvements that are worth the hastle.
+
+- Introduction of new `RAW_encodable` and `RAW_decodable` protocols that operate efficiently and tightly with low-level memory.
+
+- Introduction of macros that make it easy and convenient to build primitive, binary-based data types in Swift.
+
 # v3.0.0
 
 - Major rearchitecture and reorganization of the fundamental protocols and their relationships.
