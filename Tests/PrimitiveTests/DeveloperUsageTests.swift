@@ -42,7 +42,55 @@ struct MySpecialUIntType {
 	let bitVar64:MyUInt64Equivalent
 }
 
+// mydually - this is used to test the linear sort and compare functions of the ConcatBufferType macro.
+@ConcatBufferType(UInt64, Int64)
+struct MyDually {
+	let first: UInt64
+	let second: Int64
+}
+
+extension MyDually:Comparable, Equatable {
+	static func < (lhs:MyDually, rhs:MyDually) -> Bool {
+		return Self.RAW_compare(lhs:lhs, rhs:rhs) < 0
+	}
+	static func == (lhs:MyDually, rhs:MyDually) -> Bool {
+		return Self.RAW_compare(lhs:lhs, rhs:rhs) == 0
+	}
+}
+
+
 final class TestDeveloperUsage:XCTestCase {
+	func testSortingByFirstVariable() {
+
+		XCTAssertTrue(UInt64.RAW_compare(lhs:5, rhs:10) < 0)
+
+		let dually1 = MyDually(first: 10, second: 20)
+		let dually2 = MyDually(first: 5, second: 30)
+
+		XCTAssertTrue(dually2 < dually1, "\(dually2) < \(dually1)")
+
+		let dually3 = MyDually(first: 15, second: 40)
+
+		XCTAssertTrue(dually1 < dually3, "\(dually1) < \(dually3)")
+		
+		let sortedArray = [dually1, dually2, dually3].sorted()
+		
+		XCTAssertEqual(sortedArray, [dually2, dually1, dually3], "\(sortedArray)")
+	}
+	
+	func testComparingByFirstVariable() {
+		let dually1 = MyDually(first: 10, second: 20)
+		let dually2 = MyDually(first: 5, second: 30)
+		let dually3 = MyDually(first: 15, second: 40)
+		
+		XCTAssertTrue(dually1 > dually2, "\(dually1) < \(dually2)")
+		XCTAssertFalse(dually2 > dually1, "\(dually2) < \(dually1)")
+		XCTAssertTrue(dually1 < dually3, "\(dually1) < \(dually3)")
+		XCTAssertFalse(dually3 < dually1, "\(dually3) < \(dually1)")
+		XCTAssertTrue(dually2 < dually3, "\(dually2) < \(dually3)")
+		XCTAssertFalse(dually3 < dually2, "\(dually3) < \(dually2)")
+	}
+
 	func testBlake2AndHexFunctionality() throws {
 		do {
 			struct Blake2TestScenario:Codable {
