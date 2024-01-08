@@ -61,15 +61,15 @@ extension RAW_staticbuff {
 		})
 	}
 
-	public init(RAW_staticbuff_storetype_seeking storeVal:UnsafeMutablePointer<UnsafeRawPointer>) {
+	public init(RAW_staticbuff_storetype_seeking storeVal:inout UnsafeRawPointer) {
 		#if DEBUG
 		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		#endif
 		defer {
-			storeVal.pointee = storeVal.pointee.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
+			storeVal = storeVal.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
 		}
-		self = Self.init(RAW_staticbuff_storetype:storeVal.pointee)
+		self = Self.init(RAW_staticbuff_storetype:storeVal)
 	}
 
 	// extend a default implementation of the RAW_decodable size function.
