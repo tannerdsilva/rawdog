@@ -107,14 +107,14 @@ extension RAW_staticbuff {
 	}
 
 	// applies the same RAW_compare function that is required by RAW_staticbuff, but advances the pointers by the size of the static buffer after the comparison is complete.
-	public static func RAW_compare(lhs_data_seeking:UnsafeMutablePointer<UnsafeRawPointer>, rhs_data_seeking:UnsafeMutablePointer<UnsafeRawPointer>) -> Int32 {
+	public static func RAW_compare(lhs_data_seeking:inout UnsafeRawPointer, rhs_data_seeking:inout UnsafeRawPointer) -> Int32 {
 		#if DEBUG
 		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		#endif
 		defer {
-			lhs_data_seeking.pointee = lhs_data_seeking.pointee.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
-			rhs_data_seeking.pointee = rhs_data_seeking.pointee.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
+			lhs_data_seeking = lhs_data_seeking.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
+			rhs_data_seeking = rhs_data_seeking.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
 		}
 		return RAW_compare(lhs_data:lhs_data_seeking, rhs_data:rhs_data_seeking)
 	}
