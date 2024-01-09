@@ -22,7 +22,7 @@ class RAWUIntTests:XCTestCase {
 		#else
 		let bytes: [UInt8] = [0x00, 0x00, 0x02, 0x00]
 		#endif
-		let value = UInt(RAW_staticbuff_storetype:bytes)
+		let value = UInt(RAW_decode:bytes)
 		XCTAssertEqual(value, 512)
 	}
 }
@@ -39,7 +39,7 @@ class RAWUInt8Tests: XCTestCase {
 	
 	func testInitWithRAWData() {
 		let bytes: [UInt8] = [0x80]
-		let value = UInt8(RAW_staticbuff_storetype:bytes)
+		let value = UInt8(RAW_decode:bytes)
 		XCTAssertEqual(value, 128)
 	}
 }
@@ -55,7 +55,7 @@ class RAWUInt16Tests: XCTestCase {
 	
 	func testInitWithRAWData() {
 		let bytes: [UInt8] = [0x02, 0x00]
-		let value = UInt16(RAW_staticbuff_storetype:bytes)
+		let value = UInt16(RAW_decode:bytes)
 		XCTAssertEqual(value, 512)
 	}
 }
@@ -71,7 +71,7 @@ class RAWUInt32Tests: XCTestCase {
 	
 	func testInitWithRAWData() {
 		let bytes: [UInt8] = [0x00, 0x00, 0x02, 0x00]
-		let value = UInt32(RAW_staticbuff_storetype:bytes)
+		let value = UInt32(RAW_decode:bytes)
 		XCTAssertEqual(value, 512)
 	}
 }
@@ -87,7 +87,7 @@ class RAWUInt64Tests: XCTestCase {
 	
 	func testInitWithRAWData() {
 		let bytes: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]
-		let value = UInt64(RAW_staticbuff_storetype:bytes)
+		let value = UInt64(RAW_decode:bytes)
 		XCTAssertEqual(value, 512)
 	}
 }

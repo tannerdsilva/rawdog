@@ -57,6 +57,7 @@ public protocol RAW_encodable {
 }
 
 extension RAW_encodable {
+	// default implementation is to encode into a temporary buffer that can be used for for the access function.
 	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
 		var byteCount:size_t = 0 
 		let asBytes = [UInt8](RAW_encodable:self, count_out:&byteCount)
