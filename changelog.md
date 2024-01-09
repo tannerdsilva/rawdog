@@ -1,3 +1,7 @@
+### 4.3.4
+
+- Expanded platform support on MacOS, from v11 to v10.15.
+
 ### 4.3.3
 
 - Modified ``RAW_staticbuff`` initializer extension ``RAW_staticbuff_storetype_seeking`` to use `inout` argument type.

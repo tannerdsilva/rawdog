@@ -46,7 +46,7 @@ fileprivate func rawBase64Dependencies() -> [Target.Dependency] {
 let package = Package(
 	name: "rawdog",
 	platforms:[
-		.macOS(.v11)
+		.macOS(.v10_15)
 	],
 	products: [
 		.library(
