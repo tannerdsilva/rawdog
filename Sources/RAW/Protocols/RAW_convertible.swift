@@ -52,7 +52,7 @@ public protocol RAW_encodable {
 	/// - returns: the pointer advanced by the number of bytes written. unexpected behavior may occur if the pointer is not advanced by the number of bytes returned in ``RAW_encoded_size``.
 	func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer
 
-	/// exposes the encoded bytes as an open byte buffer, with a specified closure access function.
+	/// exposes the encoded bytes as an open byte buffer, with a specified closure access function. (this is typically implemented by a default extension)
 	func RAW_access<R>(_:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R
 }
 

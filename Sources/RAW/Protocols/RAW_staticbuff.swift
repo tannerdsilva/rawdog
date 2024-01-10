@@ -1,17 +1,15 @@
 /// represents a raw binary value of a pre-specified, static length.
-public protocol RAW_staticbuff:RAW_encodable, RAW_decodable, RAW_comparable {
+public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed {
+	associatedtype RAW_fixed_type = RAW_staticbuff_storetype
+
 	/// the type that will be used to represent the raw data.
 	/// - note: this protocol assumes that the result of `MemoryLayout<Self.RAW_staticbuff_storetype>.size` is the true size of your static buffer data. behavior with this protocol is undefined if this is not the case.
 	associatedtype RAW_staticbuff_storetype
 
+	var RAW_staticbuff:RAW_staticbuff_storetype { get }
+
 	/// initialize the static buffer from a pointer to its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
-	init(RAW_staticbuff_storetype:UnsafeRawPointer)
-
-	/// returns a copy of the static buffer's raw representation store type.
-	func RAW_staticbuff() -> RAW_staticbuff_storetype
-
-	/// compare two static buffers. returns 0 if the buffers are equal, negative values if the left buffer is less than the right buffer, and positive values if the left buffer is greater than the right buffer.
-	static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32
+	init(RAW_staticbuff:UnsafeRawPointer)
 }
 
 public struct RAW_staticbuff_iterator<T:RAW_staticbuff>:IteratorProtocol {
@@ -37,7 +35,7 @@ public struct RAW_staticbuff_iterator<T:RAW_staticbuff>:IteratorProtocol {
 	}
 }
 
-extension RAW_staticbuff {
+extension RAW_staticbuff {	
 	/// encodes the value to the specified pointer.
 	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
 		#if DEBUG
@@ -51,17 +49,17 @@ extension RAW_staticbuff {
 	}
 
 	/// initialize a new static buffer from a given value of its raw representation store type.
-	public init(RAW_staticbuff_storetype storeVal:RAW_staticbuff_storetype) {
+	public init(RAW_staticbuff storeVal:RAW_staticbuff_storetype) {
 		#if DEBUG
 		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		#endif
 		self = withUnsafePointer(to:storeVal, {
-			return Self.init(RAW_staticbuff_storetype:$0)
+			return Self.init(RAW_staticbuff:$0)
 		})
 	}
 
-	public init(RAW_staticbuff_storetype_seeking storeVal:inout UnsafeRawPointer) {
+	public init(RAW_staticbuff_seeking storeVal:inout UnsafeRawPointer) {
 		#if DEBUG
 		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
@@ -69,53 +67,11 @@ extension RAW_staticbuff {
 		defer {
 			storeVal = storeVal.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
 		}
-		self = Self.init(RAW_staticbuff_storetype:storeVal)
-	}
-
-	// extend a default implementation of the RAW_decodable size function.
-	public func RAW_encoded_size() -> size_t {
-		#if DEBUG
-		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		#endif
-
-		return MemoryLayout<RAW_staticbuff_storetype>.size
+		self = Self.init(RAW_staticbuff:storeVal)
 	}
 
 	// extend a default implementation of the RAW_decodable initializer
-	public init?(RAW_decode bytes:UnsafeRawPointer, count size:size_t) {
-		#if DEBUG
-		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		#endif
-		guard size == MemoryLayout<RAW_staticbuff_storetype>.size else {
-			return nil
-		}
-
-		self.init(RAW_staticbuff_storetype:bytes.assumingMemoryBound(to:RAW_staticbuff_storetype.self))
-	}
-
-	// extend a default implementation of the RAW_comparable function
-	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
-		#if DEBUG
-		assert(lhs_count == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(rhs_count == MemoryLayout<RAW_staticbuff_storetype>.size)
-		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		#endif
-		return RAW_compare(lhs_data:lhs_data, rhs_data:rhs_data)
-	}
-
-	// applies the same RAW_compare function that is required by RAW_staticbuff, but advances the pointers by the size of the static buffer after the comparison is complete.
-	public static func RAW_compare(lhs_data_seeking:inout UnsafeRawPointer, rhs_data_seeking:inout UnsafeRawPointer) -> Int32 {
-		#if DEBUG
-		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		#endif
-		defer {
-			lhs_data_seeking = lhs_data_seeking.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
-			rhs_data_seeking = rhs_data_seeking.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
-		}
-		return RAW_compare(lhs_data:lhs_data_seeking, rhs_data:rhs_data_seeking)
+	public init?(RAW_decode bytes:UnsafeRawPointer) {
+		self.init(RAW_staticbuff:bytes.assumingMemoryBound(to:RAW_staticbuff_storetype.self))
 	}
 }

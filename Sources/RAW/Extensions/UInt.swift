@@ -52,13 +52,27 @@ extension UInt16:RAW_convertible_fixed {
 
 // extend the unsigned 8 bit integer to conform to the raw static buffer protocol, as it is a fixed size type.
 extension UInt8:RAW_convertible_fixed {
+	public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+		let lhs = Self(RAW_decode:lhs_data)!
+		let rhs = Self(RAW_decode:rhs_data)!
+		if lhs < rhs {
+			return -1
+		} else if lhs > rhs {
+			return 1
+		} else {
+			return 0
+		}
+	}
+
 	public init?(RAW_decode: UnsafeRawPointer) {
 		self = RAW_decode.load(as:Self.self)
 	}
 
 	public func RAW_encode(dest: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-		dest.assumingMemoryBound(to:Self.self).initialize(to:self)
-		return dest.advanced(by:MemoryLayout<RAW_fixed_type>.size)
+		return withUnsafePointer(to:self) { ptr in
+			dest.assumingMemoryBound(to:Self.self).initialize(to:ptr.pointee)
+			return dest.advanced(by:MemoryLayout<RAW_fixed_type>.size)
+		}
 	}
 
 	// four bytes
@@ -66,7 +80,19 @@ extension UInt8:RAW_convertible_fixed {
 }
 
 // extend the unsigned integer to conform to the raw static buffer protocol, as it is a fixed size type.
-extension UInt:RAW_convertible_fixed {
+extension UInt:RAW_convertible_fixed, RAW_comparable_fixed {
+	public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+		let lhs = Self(RAW_decode:lhs_data)!
+		let rhs = Self(RAW_decode:rhs_data)!
+		if lhs < rhs {
+			return -1
+		} else if lhs > rhs {
+			return 1
+		} else {
+			return 0
+		}
+	}
+
 	public init?(RAW_decode: UnsafeRawPointer) {
 		self.init(bigEndian:RAW_decode.load(as:Self.self))
 	}

@@ -1,3 +1,19 @@
+# 5.0.0
+
+- Introduction of a new protocol ``RAW_fixed`` which provides many of the functions and utilities that ``RAW_staticbuff`` served in the `4.x.x` releases.
+
+- Modified the design of the ``RAW_staticbuff`` protocol (and its macro) to optimally dovetail and operate with new sister protocol ``RAW_fixed``.
+
+- Modified default protocols implemented on native numerical types
+
+	- BinaryInteger types are now ``RAW_fixed``, since they no longer meet the requirements to be fully compliant with ``RAW_staticbuff``.
+	
+		- BinaryInteger is not guaranteed to be endian corrects, so while they are convertible with fixed assumptions, they cannot be blindly copied directly off of memory with any guaranteed durability, hence, why they cannot be ``RAW_staticbuff`` compliant.
+
+- Introduction of convenience protocols ``RAW_convertible_fixed`` and ``RAW_comparable_fixed``, allowing users to build static-length binary types with minimal implementation overhead.
+
+	- As such, ``RAW_staticbuff`` has dropped its explicit requirements for length-static comparisons, and simply adds this ``RAW_comparable_fixed`` as a required conformance.
+	
 ### 4.3.4
 
 - Expanded platform support on MacOS, from v11 to v10.15.
