@@ -1,5 +1,5 @@
 import XCTest
-@testable import RAW
+import RAW
 
 final class NumberTests:XCTestCase {
 	func testArray() throws {
@@ -18,7 +18,7 @@ final class NumberTests:XCTestCase {
 				UInt8.random(in:0..<255),
 				UInt8.random(in:0..<255)
 			)) {
-				let doubleValue = TestType(RAW_decode:$0)
+				let doubleValue = TestType(RAW_decode:$0)!
 				makeDouble.append(doubleValue)
 			}
 		}
@@ -32,7 +32,7 @@ final class NumberTests:XCTestCase {
 			let value: Double = Double.random(in:0..<Double.greatestFiniteMagnitude)
 			var countout:size_t = 0
 			let valueBytes = [UInt8](RAW_encodable:value, count_out:&countout)
-			let newVal = Double(RAW_decode:valueBytes)
+			let newVal = Double(RAW_decode:valueBytes)!
 			XCTAssertEqual(newVal, value)
 		}
 	}
@@ -41,7 +41,7 @@ final class NumberTests:XCTestCase {
 			let value: Float = Float.random(in:0..<Float.greatestFiniteMagnitude)
 			var countout:size_t = 0
 			let valueBytes = [UInt8](RAW_encodable:value, count_out:&countout)
-			let newVal = Float(RAW_staticbuff_storetype:valueBytes)
+			let newVal = Float(RAW_decode:valueBytes)!
 			XCTAssertEqual(newVal, value)
 		}
 	}

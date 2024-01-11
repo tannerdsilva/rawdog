@@ -1,5 +1,5 @@
 import XCTest
-@testable import RAW
+import RAW
 
 
 // test that the UInt type is correctly converting to and from a raw representation.

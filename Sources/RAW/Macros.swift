@@ -18,9 +18,9 @@ public macro ConcatBufferType(_ types:any RAW_staticbuff.Type...) = #externalMac
 /// - behavior is undefined if the specified bits is not the same as the size of the FixedWidthInteger type.
 /// - implements ``RAW_comparable`` on the type unconditionally.
 @attached(member, names:arbitrary)
-@attached(extension, conformances:RAW_staticbuff, Collection, ExpressibleByArrayLiteral, Equatable, Comparable, RAW_comparable, names:arbitrary)
-public macro RAW_staticbuff_fixedwidthinteger_explicit_macro<T:FixedWidthInteger>(bits:size_t, bigEndianEncode:Bool) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_fixedwidthinteger_explicit_macro")
+@attached(extension, conformances:RAW_staticbuff)
+public macro RAW_staticbuff_fixedwidthinteger_explicit<T:FixedWidthInteger>(bits:size_t, bigEndian:Bool) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_fixedwidthinteger_explicit_macro")
 
-
+/// automatically implements RAW_staticbuff on any FixedWidthInteger type, allowing the macro user to specify either big or little endian encoding.
 @freestanding(expression)
-public macro RAW_staticbuff_fixedwidthinteger_macro<T:FixedWidthInteger>(bits:size_t, bigEndianEncode:Bool) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_fixedwidthinteger_implicit_macro")
+public macro RAW_staticbuff_fixedwidthinteger_explicit<T:FixedWidthInteger>(bigEndian:Bool) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_fixedwidthinteger_implicit_macro")

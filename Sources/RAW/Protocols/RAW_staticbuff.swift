@@ -36,29 +36,6 @@ public struct RAW_staticbuff_iterator<T:RAW_staticbuff>:IteratorProtocol {
 }
 
 extension RAW_staticbuff {	
-	/// encodes the value to the specified pointer.
-	public func RAW_encode(dest ptr:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-		#if DEBUG
-		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		#endif
-		return RAW_access { buff, _ in
-			ptr.assumingMemoryBound(to:RAW_staticbuff_storetype.self).initialize(to:buff.assumingMemoryBound(to:RAW_staticbuff_storetype.self).pointee)
-			return ptr.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
-		}
-	}
-
-	/// initialize a new static buffer from a given value of its raw representation store type.
-	public init(RAW_staticbuff storeVal:RAW_staticbuff_storetype) {
-		#if DEBUG
-		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
-		#endif
-		self = withUnsafePointer(to:storeVal, {
-			return Self.init(RAW_staticbuff:$0)
-		})
-	}
-
 	public init(RAW_staticbuff_seeking storeVal:inout UnsafeRawPointer) {
 		#if DEBUG
 		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
@@ -72,6 +49,10 @@ extension RAW_staticbuff {
 
 	// extend a default implementation of the RAW_decodable initializer
 	public init?(RAW_decode bytes:UnsafeRawPointer) {
+		#if DEBUG
+		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
+		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
+		#endif
 		self.init(RAW_staticbuff:bytes.assumingMemoryBound(to:RAW_staticbuff_storetype.self))
 	}
 }
