@@ -8,258 +8,294 @@ import Logging
 fileprivate let mainLogger = Logger(label:"RAW_staticbuff_macro")
 #endif
 
-public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeMacro, AccessorMacro, PeerMacro {
+public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 	
 	internal struct StaticBuffImplConfiguration {
-		
-		// specifies the protocols that the user specified in the main declaration, implying that the macro should apply default implementations.
-		internal enum SpecifiedProtocol:String, Hashable, Equatable {
-			case collection = "collection"
-			case sequence = "sequence"
-			case equatable = "equatable"
-			case hashable = "hashable"
-			case expressibleByArrayLiteral = "expressiblebyarrayliteral"
-		}
-
-		// the only non-optional protocol that is implemented with this macro is RAW_staticbuff. for the functions that this protocol requires, the user may override all but the RAW_staticbuff_storetype.
-		internal enum ImplementedFunctions:UInt8, Hashable, Equatable {
-			case raw_compare
-		}
-		
 		internal let modifiers:DeclModifierListSyntax
 		internal let structName:String
 		internal var storageVariableName:String {
 			get {
-				return "RAW_staticbuiff"
+				return "RAW_staticbuff"
 			}
 		}
 
 		internal let byteCount:UInt16
-		internal let specifiedConforms:Set<SpecifiedProtocol>
-		internal let implementedFunctions:Set<ImplementedFunctions>
+		internal let specifiedConforms:Set<IdentifierTypeSyntax>
+		internal let isRAWCompareOverridden:Bool
 
-		fileprivate init(modifiers:DeclModifierListSyntax, structName:String, byteCount:UInt16, specifiedConforms:Set<SpecifiedProtocol>, implementedFunctions:Set<ImplementedFunctions>) {
+		fileprivate init(modifiers:DeclModifierListSyntax, structName:String, byteCount:UInt16, specifiedConforms:Set<IdentifierTypeSyntax>, isRAWCompareOverridden:Bool) {
 			self.modifiers = modifiers
 			self.structName = structName
 			self.byteCount = byteCount
 			self.specifiedConforms = specifiedConforms
-			self.implementedFunctions = implementedFunctions
+			self.isRAWCompareOverridden = isRAWCompareOverridden
 		}
 	}
 
 	/// parses the static buffer number from the attribute node.
-	fileprivate static func parseNodeConfiguration(from node:SwiftSyntax.AttributeSyntax) throws -> UInt16 {
-		let labeledExpressionList = node.arguments!.as(LabeledExprListSyntax.self)!
-		var getNewNumber:UInt16? = nil
-		for (i, curItem) in labeledExpressionList.enumerated() {
-			switch i {
-				case 0:
-					// get the number of bytes
-					let number = curItem.expression.as(IntegerLiteralExprSyntax.self)!.literal
-					guard case .integerLiteral(let value) = number.tokenKind else {
-						#if RAWDOG_MACRO_LOG
-						mainLogger.critical("expected integer literal")
-						#endif
-						throw Diagnostics.mustBeIntegerLiteral("\(number)")
-					}
-					getNewNumber = UInt16(value)
+	fileprivate static func parseNodeConfiguration(from node:SwiftSyntax.AttributeSyntax, context:MacroExpansionContext) throws -> UInt16 {
+		class NodeParser:SyntaxVisitor {
+			var intLiteral:IntegerLiteralExprSyntax? = nil
+			var labeledExprList:LabeledExprListSyntax? = nil
+			override func visit(_ node:IntegerLiteralExprSyntax) -> SyntaxVisitorContinueKind {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.info("found integer literal", metadata:["value": "\(node.literal)"])
+				#endif
+				intLiteral = node
+				return .skipChildren
+			}
+
+			override func visit(_ node:LabeledExprListSyntax) -> SyntaxVisitorContinueKind {
+				guard node.count == 1 else {
 					#if RAWDOG_MACRO_LOG
-					mainLogger.info("got attribute number", metadata:["attributeNumber": "\(getNewNumber!)"])
+					mainLogger.error("expected 1 labeled expression, found \(node.count)")
 					#endif
-				default:
-					#if RAWDOG_MACRO_LOG
-					mainLogger.critical("expected 1 integer-literal argument")
-					#endif
-					throw Diagnostics.mustBeIntegerLiteral("\(String(describing: node.arguments))")
+					return .skipChildren
+				}
+				labeledExprList = node
+				return .visitChildren
 			}
 		}
-		return getNewNumber!
+		let nodeParser = NodeParser(viewMode:.sourceAccurate)
+		nodeParser.walk(node)
+		guard let intLiteral = nodeParser.intLiteral else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected integer literal, found \(String(describing:nodeParser.intLiteral))")
+			#endif
+			context.addDiagnostics(from:Diagnostics.expectedIntegerLiteral(nodeParser.labeledExprList), node:node)
+			throw Diagnostics.expectedIntegerLiteral(nodeParser.labeledExprList)
+		}
+		guard let intLiteralValue = UInt16("\(intLiteral.literal)") else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected integer literal, found \(String(describing:nodeParser.intLiteral))")
+			#endif
+			context.addDiagnostics(from:Diagnostics.expectedIntegerLiteral(nodeParser.labeledExprList), node:node)
+			throw Diagnostics.expectedIntegerLiteral(nodeParser.labeledExprList)
+		}
+		return intLiteralValue
 	}
 
-	fileprivate static func parseAttachedDeclGroupSyntax(_ declaration:some DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax) throws -> StaticBuffImplConfiguration {
-		let byteCount = try Self.parseNodeConfiguration(from:node)
-		let structureName:TokenSyntax
-		let structureModifiers:DeclModifierListSyntax
-		var inheritedTypes:Set<StaticBuffImplConfiguration.SpecifiedProtocol> = Set()
-		var overrideFuncs:Set<StaticBuffImplConfiguration.ImplementedFunctions> = Set()
-		func parseInheritanceTypes(_ ihc:InheritanceClauseSyntax) throws {
-			for listItem in ihc.inheritedTypes {
+	fileprivate static func parseAttachedDeclGroupSyntax(_ declaration:DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax, context:MacroExpansionContext) throws -> StaticBuffImplConfiguration {
+		guard declaration.syntaxNodeType == StructDeclSyntax.self else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected struct declaration, found \(String(describing:declaration.syntaxNodeType))")
+			#endif
+			context.addDiagnostics(from:Diagnostics.expectedStructDeclaration, node:node)
+			throw Diagnostics.expectedStructDeclaration
+		}
+
+		let byteCount = try Self.parseNodeConfiguration(from:node, context:context)
+
+		class AttachedStructSyntaxParser:SyntaxVisitor {
+			internal var structName:String? = nil
+			internal var modifiers:DeclModifierListSyntax = []
+			internal var inheritanceClauseTypes:Set<IdentifierTypeSyntax> = []
+			internal var overrideCompare:Bool = false
+			internal let context:MacroExpansionContext
+
+			init(context:MacroExpansionContext) {
+				self.context = context
+				super.init(viewMode:.sourceAccurate)
+			}
+
+			override func visit(_ node:CodeBlockSyntax) -> SyntaxVisitorContinueKind {
 				#if RAWDOG_MACRO_LOG
-				mainLogger.info("found inherited type", metadata:["type": "\(listItem)"])
+				mainLogger.info("found code block", metadata:["block": "\(node)"])
 				#endif
-				guard let identifierType = listItem.type.as(IdentifierTypeSyntax.self) else {
+				return .skipChildren
+			}
+
+			override func visit(_ node:StructDeclSyntax) -> SyntaxVisitorContinueKind {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.info("found struct declaration", metadata:["name": "\(node.name)"])
+				#endif
+				structName = node.name.text
+				guard let modifiers = node.modifiers.as(DeclModifierListSyntax.self) else {
 					#if RAWDOG_MACRO_LOG
-					mainLogger.critical("expected identifier type")
+					mainLogger.warning("found struct declaration without modifiers", metadata:["name": "\(node.name)"])
 					#endif
-					throw Diagnostics.mustBeStructDeclaration(listItem.type.syntaxNodeType)
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.missingStaticModifier), node:node)
+					return .skipChildren
 				}
-				guard let asSpecifiedImpl = StaticBuffImplConfiguration.SpecifiedProtocol(rawValue:identifierType.name.text.lowercased()) else {
+				self.modifiers = modifiers
+				return .visitChildren
+			}
+
+			override func visit(_ node:VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.critical("found variable declaration. this is not supported", metadata:["name": "\(node)"])
+				#endif
+				context.addDiagnostics(from:Diagnostics.variableDeclarationsNotSupported, node:node)
+				return .skipChildren
+			}
+
+			override func visit(_ node:InheritanceClauseSyntax) -> SyntaxVisitorContinueKind {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.info("found inheritance clause. identifier types will be scraped and parsing will continue...", metadata:["inheritance": "\(node)"])
+				#endif
+				let idTypeLister = IdTypeLister(viewMode:.sourceAccurate)
+				idTypeLister.walk(node)
+				inheritanceClauseTypes = idTypeLister.listedIDTypes
+				return .skipChildren
+			}
+
+			// determine if this is a function we are interested in parsing further. other functions may exist, but we are only interested in parsing the override implementation of RAW_compare.
+			override func visit(_ node:FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.info("found function declaration", metadata:["name": "\(node.name)"])
+				#endif
+
+				guard node.name.text == "RAW_compare" else {
 					#if RAWDOG_MACRO_LOG
-					mainLogger.critical("unsupported base conformance")
+					mainLogger.info("found non-RAW_compare function declaration", metadata:["name": "\(node.name)"])
 					#endif
-					throw Diagnostics.unsupportedBaseConformance(identifierType.name.text)
+					return .skipChildren
 				}
-				inheritedTypes.insert(asSpecifiedImpl)
+				
+				// check for the static modifier.
+				if node.modifiers.contains(where: { $0.name.text == "static" }) == false {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.warning("found non-static RAW_compare function declaration", metadata:["name": "\(node.name)"])
+					#endif
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.missingStaticModifier), node:node)
+					return .skipChildren
+				}
+
+				#if RAWDOG_MACRO_LOG
+				mainLogger.info("found static RAW_compare function declaration. parsing will continue...", metadata:["name": "\(node.name)"])
+				#endif
+
+				return .visitChildren
+			}
+
+			override func visit(_ node:ReturnClauseSyntax) -> SyntaxVisitorContinueKind {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.info("found return clause", metadata:["return": "\(node)"])
+				#endif
+				guard let returnID = node.type.as(IdentifierTypeSyntax.self) else {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.warning("found invalid return type", metadata:["return": "\(node)"])
+					#endif
+					overrideCompare = false
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.incorrectReturnClause(node)), node:node)
+					return .skipChildren
+				}
+				guard returnID.name.text == "Int32" else {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.warning("found invalid return type", metadata:["return": "\(node)"])
+					#endif
+					overrideCompare = false
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.incorrectReturnClause(node)), node:node)
+					return .skipChildren
+				}
+				#if RAWDOG_MACRO_LOG
+				mainLogger.info("found valid return type. this is a valid override.", metadata:["return": "\(node)"])
+				#endif
+				overrideCompare = true
+				return .skipChildren
+			}
+			
+			override func visit(_ node:FunctionEffectSpecifiersSyntax) -> SyntaxVisitorContinueKind {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.info("found function effect specifiers", metadata:["specifiers": "\(node)"])
+				#endif
+				guard node.throwsSpecifier == nil else {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.warning("found throws specifier", metadata:["specifiers": "\(node)"])
+					#endif
+					overrideCompare = false
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.functionThrows), node:node)
+					return .skipChildren
+				}
+				guard node.asyncSpecifier == nil else {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.warning("found async specifier", metadata:["specifiers": "\(node)"])
+					#endif
+					overrideCompare = false
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.functionIsAsync), node:node)
+					return .skipChildren
+				}
+				#if RAWDOG_MACRO_LOG
+				mainLogger.info("found no function effect specifiers. parsing will continue...", metadata:["specifiers": "\(node)"])
+				#endif
+				return .visitChildren
+			}
+
+			override func visit(_ node:FunctionParameterListSyntax) -> SyntaxVisitorContinueKind {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.info("found function parameter list", metadata:["params": "\(node)"])
+				#endif
+				
+				guard node.count == 2 else {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.warning("found invalid number of parameters", metadata:["params": "\(node)"])
+					#endif
+					overrideCompare = false
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.incorrectArgumentList(node)), node:node)
+					return .skipChildren
+				}
+				
+				#if RAWDOG_MACRO_LOG
+				mainLogger.info("found valid parameter list. parsing will continue...", metadata:["params": "\(node)"])
+				#endif
+				
+				guard let firstItem = node[node.startIndex].as(FunctionParameterSyntax.self) else {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.warning("found invalid parameter", metadata:["param": "\(node)"])
+					#endif
+					overrideCompare = false
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.incorrectArgumentList(node)), node:node)
+					return .skipChildren
+				}
+				guard let secondItem = node[node.index(after:node.startIndex)].as(FunctionParameterSyntax.self) else {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.warning("found invalid parameter", metadata:["param": "\(node)"])
+					#endif
+					overrideCompare = false
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.incorrectArgumentList(node)), node:node)
+					return .skipChildren
+				}
+
+				guard firstItem.firstName.text == "lhs_data" && secondItem.firstName.text == "rhs_data" else {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.warning("found invalid parameter name", metadata:["param": "\(node)"])
+					#endif
+					overrideCompare = false
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.incorrectArgumentList(node)), node:node)
+					return .skipChildren
+				}
+
+				guard let firstType = firstItem.type.as(IdentifierTypeSyntax.self), let secondType = secondItem.type.as(IdentifierTypeSyntax.self) else {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.warning("found invalid parameter type", metadata:["param": "\(node)"])
+					#endif
+					overrideCompare = false
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.incorrectArgumentList(node)), node:node)
+					return .skipChildren
+				}
+
+				guard firstType.name.text == "UnsafeRawPointer" && secondType.name.text == "UnsafeRawPointer" else {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.warning("found invalid parameter type", metadata:["param": "\(node)"])
+					#endif
+					overrideCompare = false
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.incorrectArgumentList(node)), node:node)
+					return .skipChildren
+				}
+				return .skipChildren
 			}
 		}
+		let parser = AttachedStructSyntaxParser(context:context)
+		parser.walk(declaration)
 
-		func parseImplementedFunctionsAndVariables(_ memberBlockItemList:MemberBlockItemListSyntax) throws {
-			for member in memberBlockItemList {
-				switch member.decl.syntaxNodeType {
-					case is FunctionDeclSyntax.Type:
-						
-						// goal: seek the one of two possible function declaration types.
-						#if RAWDOG_MACRO_LOG
-						mainLogger.info("found function declaration")
-						#endif
-
-						let funcDecl = member.decl.as(FunctionDeclSyntax.self)!
-						switch funcDecl.name.text {
-							// the user may override the comparison function for their staticbuff implementation. this is where that overridden function would reside.
-							case "RAW_compare":
-								#if RAWDOG_MACRO_LOG
-								mainLogger.info("found RAW_compare function declaration")
-								#endif
-
-								// validate that there are only two arguments in the function declaration and that the arguments are of type UnsafeRawPointer.
-								let paramList = funcDecl.signature.parameterClause.parameters
-
-								// validate that the function is static
-								guard funcDecl.modifiers.contains(where: { $0.name.text == "static" }) else {
-									#if RAWDOG_MACRO_LOG
-									mainLogger.critical("found non-static RAW_compare function declaration")
-									#endif
-									throw Diagnostics.invalidFunctionOverride("RAW_compare")
-								}
-
-								/// validate that the function has two arguments.
-								guard paramList.count == 2 else {
-									#if RAWDOG_MACRO_LOG
-									mainLogger.critical("found invalid number of arguments in RAW_compare function declaration")
-									#endif
-									throw Diagnostics.invalidFunctionOverride("RAW_compare")
-								}
-								guard let lhsParam = paramList.first!.as(FunctionParameterSyntax.self), let lhsType = lhsParam.type.as(IdentifierTypeSyntax.self), let rhsParam = paramList.last!.as(FunctionParameterSyntax.self), let rhsType = rhsParam.type.as(IdentifierTypeSyntax.self) else {
-									#if RAWDOG_MACRO_LOG
-									mainLogger.critical("found invalid argument type in RAW_compare function declaration")
-									#endif
-									throw Diagnostics.invalidFunctionOverride("RAW_compare")
-								}
-
-								guard lhsParam.firstName.text == "lhs_data" && rhsParam.firstName.text == "rhs_data" else {
-									#if RAWDOG_MACRO_LOG
-									mainLogger.critical("found invalid argument name in RAW_compare function declaration")
-									#endif
-									throw Diagnostics.invalidFunctionOverride("RAW_compare")
-								}
-								
-								guard lhsType.name.text == "UnsafeRawPointer" && rhsType.name.text == "UnsafeRawPointer" else {
-									#if RAWDOG_MACRO_LOG
-									mainLogger.critical("found invalid argument type in RAW_compare function declaration")
-									#endif
-									throw Diagnostics.invalidFunctionOverride("RAW_compare")
-								}
-
-								#if RAWDOG_MACRO_LOG
-								mainLogger.info("found valid RAW_compare function declaration")
-								#endif
-								
-								overrideFuncs.insert(.raw_compare)
-
-							default:
-								#if RAWDOG_MACRO_LOG
-								mainLogger.critical("found invalid function declaration")
-								#endif
-								throw Diagnostics.invalidFunctionOverride(funcDecl.name.text)
-						}
-					
-					case is VariableDeclSyntax.Type: 
-						// goal: seek the storage value, if it is implemented (it is ok to not be implemented). the storage value should be the ONLY stored property in the declaration. it should be of type RAW_staticbuff_storetype.
-						let varDecl = member.as(VariableDeclSyntax.self)!
-
-						// validate that there is only one binding in the declaration.
-						let bindingList = varDecl.bindings
-						guard bindingList.count == 1 else {
-							#if RAWDOG_MACRO_LOG
-							mainLogger.critical("found multiple variable assignments in declaration syntax.")
-							#endif
-							throw Diagnostics.invalidStoredProperty(varDecl)
-						}
-
-						// parse the syntax elements of the binding, leading to the type annotation and name of the variable.
-						guard let onlyBindingItem = varDecl.bindings.first!.as(PatternBindingSyntax.self) else {
-							#if RAWDOG_MACRO_LOG
-							mainLogger.critical("found multiple variable assignments in declaration syntax.")
-							#endif
-							throw Diagnostics.invalidStoredProperty(varDecl)
-						}
-
-						// validate that the type annotation is correct.
-						guard let typeAnnotation = onlyBindingItem.typeAnnotation?.as(TypeAnnotationSyntax.self), let typeIdentifier = typeAnnotation.type.as(IdentifierTypeSyntax.self), typeIdentifier.name.text == "RAW_staticbuff_storetype" else {
-							#if RAWDOG_MACRO_LOG
-							mainLogger.info("invalid type annotation.")
-							#endif
-							throw Diagnostics.invalidStoredProperty(varDecl)
-						}
-						
-						guard let _ = onlyBindingItem.pattern.as(IdentifierPatternSyntax.self) else {
-							#if RAWDOG_MACRO_LOG
-							mainLogger.critical("invalid identifier pattern.")
-							#endif
-							throw Diagnostics.invalidStoredProperty(varDecl)
-						}
-
-					default:
-						break
-				}
-			}
+		guard let structName = parser.structName else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.critical("failed to find struct name")
+			#endif
+			context.addDiagnostics(from:Diagnostics.expectedStructDeclaration, node:declaration)
+			throw Diagnostics.expectedStructDeclaration
 		}
-
-		switch declaration.syntaxNodeType {
-			case is StructDeclSyntax.Type:
-				#if RAWDOG_MACRO_LOG
-				mainLogger.info("found struct declaration")
-				#endif
-				let structDecl = declaration.as(StructDeclSyntax.self)!
-				structureName = structDecl.name
-				structureModifiers = structDecl.modifiers
-				if let inheritanceClause = structDecl.inheritanceClause {
-					try parseInheritanceTypes(inheritanceClause)
-				}
-				try parseImplementedFunctionsAndVariables(structDecl.memberBlock.as(MemberBlockSyntax.self)!.members)
-				break
-			case is ClassDeclSyntax.Type:
-				#if RAWDOG_MACRO_LOG
-				mainLogger.info("found class declaration")
-				#endif
-				let classDecl = declaration.as(ClassDeclSyntax.self)!
-				structureName = classDecl.name
-				structureModifiers = classDecl.modifiers
-				if let inheritanceClause = classDecl.inheritanceClause {
-					try parseInheritanceTypes(inheritanceClause)
-				}
-				try parseImplementedFunctionsAndVariables(classDecl.memberBlock.as(MemberBlockSyntax.self)!.members)
-				break
-			default:
-				#if RAWDOG_MACRO_LOG
-				mainLogger.critical("expected struct or class declaration. found \(declaration)")
-				#endif
-				throw Diagnostics.mustBeStructDeclaration(declaration.syntaxNodeType)
-		}
-
-		return StaticBuffImplConfiguration(modifiers:structureModifiers, structName:structureName.text, byteCount:byteCount, specifiedConforms:inheritedTypes, implementedFunctions:overrideFuncs)
-	}
-
-	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingAttributesFor member: some SwiftSyntax.DeclSyntaxProtocol, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.AttributeSyntax] {
-		return []
-	}
-
-	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingAccessorsOf declaration: some SwiftSyntax.DeclSyntaxProtocol, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.AccessorDeclSyntax] {
-		return []
-	}
-
-	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingPeersOf declaration: some SwiftSyntax.DeclSyntaxProtocol, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-		return []
+		return StaticBuffImplConfiguration(modifiers:parser.modifiers, structName:structName, byteCount:byteCount, specifiedConforms:parser.inheritanceClauseTypes, isRAWCompareOverridden:parser.overrideCompare)
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
@@ -273,7 +309,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 		}
 		#endif
 
-		let config = try Self.parseAttachedDeclGroupSyntax(declaration, node:node)
+		let config = try Self.parseAttachedDeclGroupSyntax(declaration, node:node, context:context)
 
 		// build the returned extensions. starting with the base extension, which makes the type conform to the static buffer protocol.
 		let returnResult = [try ExtensionDeclSyntax("""
@@ -298,7 +334,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 		}
 		#endif
 		
-		let config = try Self.parseAttachedDeclGroupSyntax(declaration, node:node)
+		let config = try Self.parseAttachedDeclGroupSyntax(declaration, node:node, context:context)
 		
 		#if RAWDOG_MACRO_LOG
 		logger.trace("got structure name.", metadata:["name": "\(config.structName)"])
@@ -309,7 +345,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 		var declString:[DeclSyntax] = []
 
 		// insert the default implementation for the compare function if it is not implemented already.
-		if config.implementedFunctions.contains(.raw_compare) == false {
+		if config.isRAWCompareOverridden == false {
 			#if RAWDOG_MACRO_LOG
 			logger.notice("did not find existing RAW_compare function in declaration. a default implementation will be provided.")
 			#endif
@@ -318,7 +354,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 				\(config.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 					return RAW_memcmp(lhs_data, rhs_data, MemoryLayout<RAW_staticbuff_storetype>.size)
 				}
-				"""))
+			"""))
 		}
 
 		// insert the default implementation for the encode function if it is not implemented already.
@@ -348,12 +384,14 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 		"""))
 
 		#if RAWDOG_MACRO_LOG
-		logger.notice("did not find any existing RAW_staticbuff function in declaration. a default implementation will be provided.")
+		logger.notice("did not find any existing RAW_access_mutating function in declaration. a default implementation will be provided.")
 		#endif
 		declString.append(DeclSyntax("""
-			/// returns the underlying memory of the type.
-			\(config.modifiers) func RAW_staticbuff() -> RAW_staticbuff_storetype {
-				return \(raw:config.storageVariableName)
+			/// provides an open pointer to the encoded value. ideally, this is implemented to expose the direct memory of the value, but this is not required. the default implementation encodes the value to a temporary buffer and returns the pointer to that buffer.
+			\(config.modifiers) mutating func RAW_access_mutating<R>(_ accessFunc: (UnsafeMutableRawPointer, size_t) throws -> R) rethrows -> R {
+				return try withUnsafeMutablePointer(to:&\(raw:config.storageVariableName)) { valPtr in
+					return try accessFunc(valPtr, MemoryLayout<RAW_staticbuff_storetype>.size)
+				}
 			}
 		"""))
 
@@ -373,8 +411,10 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 			/// the byte storage of the type.
 			\(config.modifiers) var \(raw:config.storageVariableName):RAW_staticbuff_storetype
 		"""))
+
+		var nodeNames = Dictionary(grouping:config.specifiedConforms, by: { $0.name.text })
 		
-		if config.specifiedConforms.contains(.hashable) {
+		if nodeNames["Hashable"] != nil {
 			#if RAWDOG_MACRO_LOG
 			logger.notice("hashable conformance defined in base declaration. this invokes a default implementation.")
 			#endif
@@ -387,8 +427,9 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 					}
 				}
 			"""))
+			nodeNames["Hashable"] = nil
 		}
-		if config.specifiedConforms.contains(.equatable) {
+		if nodeNames["Equatable"] != nil {
 			#if RAWDOG_MACRO_LOG
 			logger.notice("equatable conformance defined in base declaration. this invokes a default implementation.")
 			#endif
@@ -402,8 +443,9 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 					}
 				}
 			"""))
+			nodeNames["Equatable"] = nil
 		}
-		if config.specifiedConforms.contains(.sequence) {
+		if nodeNames["Sequence"] != nil {
 			#if RAWDOG_MACRO_LOG
 			logger.notice("sequence conformance defined in base declaration. this invokes a default implementation.")
 			#endif
@@ -413,9 +455,10 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 					return RAW_staticbuff_iterator(staticbuff:self)
 				}
 			"""))
+			nodeNames["Sequence"] = nil
 		}
 
-		if config.specifiedConforms.contains(.collection) {
+		if nodeNames["Collection"] != nil {
 			#if RAWDOG_MACRO_LOG
 			logger.notice("collection conformance defined in base declaration. this invokes a default implementation.")
 			#endif
@@ -440,9 +483,10 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 					return i + 1
 				}
 			"""))
+			nodeNames["Collection"] = nil
 		}
 
-		if config.specifiedConforms.contains(.expressibleByArrayLiteral) {
+		if nodeNames["ExpressibleByArrayLiteral"] != nil {
 			#if RAWDOG_MACRO_LOG
 			logger.notice("expressibleByArrayLiteral conformance defined in base declaration. this invokes a default implementation.")
 			#endif
@@ -453,92 +497,94 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro, MemberAttributeM
 					guard asArray.count == \(raw:config.byteCount) else {
 						fatalError("invalid number of elements in array literal.")
 					}
-					self.init(RAW_staticbuff_storetype:asArray)
+					self.init(RAW_staticbuff:asArray)
 				}
 			"""))
+			nodeNames["ExpressibleByArrayLiteral"] = nil
 		}
 
+		for leftoverProtocol in nodeNames {
+			#if RAWDOG_MACRO_LOG
+			logger.warning("found unsupported protocol in base declaration. this will be ignored.", metadata:["protocol": "\(leftoverProtocol.key)"])
+			#endif
+			context.addDiagnostics(from:Diagnostics.unsupportedInheritance(leftoverProtocol.value.first!), node:leftoverProtocol.value.first!)
+		}
 
 		return declString
 	}
 
-	public enum Diagnostics:Swift.Error, DiagnosticMessage {
-		/// thrown when this macro is attached to a declaration that is not a class
-		case mustBeIntegerLiteral(String)
-
-		/// thrown when this macro is attached to a declaration that is not a structure. this macro only supports structures.
-		case mustBeStructDeclaration(SyntaxProtocol.Type)
-
-		/// thrown when the base declaration includes a protocol that is not supported by this macro.
-		/// - note: any users that desire to implement unsupported protocols onto their declarations can do so with standalone extensions. by placing a conformance directly at the declaration, the user is implying that they want the macro to provide default implementations.
-		case unsupportedBaseConformance(String)
-
-		/// thrown when the user declares an invalid function in the base declaration the macro is attached to.
-		/// - this macro supports overriding any of the functions required to conform to the RAW_staticbuff protoco (with the exception of the RAW_staticbuff_storetype typealias, which is based on user configurable parameters anyways).
-		/// - supported overrides are:
-		/// 	- init(RAW_staticbuff_storetype:UnsafeRawPointer)
-		///		- [static] func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32
-		///		- func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer
-		/// - overrides may be declared ONLY in the base declaration.
-		case invalidFunctionOverride(String)
-
-		/// thrown when the user declares an invalid variable in the base declaration the macro is attached to.
-		/// - ``RAW_staticbuff`` macro only supports a single stored property in the base declaration. this property must be of type ``RAW_staticbuff_storetype``.
-		case invalidStoredProperty(VariableDeclSyntax)
-	
-		/// the severity of the diagnostic.
-		public var severity:DiagnosticSeverity {
-			return .error
-		}
-
-		public var did:String {
-			switch self {
-				case .mustBeIntegerLiteral:
-					return "RAW_staticbuff_macro.mustBeIntegerLiteral"
-				case .mustBeStructDeclaration:
-					return "RAW_staticbuff_macro.mustBeStructDeclaration"
-				case .unsupportedBaseConformance(_):
-					return "RAW_staticbuff_macro.unsupportedBaseConformance"
-				case .invalidFunctionOverride(_):
-					return "RAW_staticbuff_macro.invalidFunctionOverride"
-				case .invalidStoredProperty(_):
-					return "RAW_staticbuff_macro.invalidStoredProperty"
-				
-			}
-		}
-
-		public var message:String {
-			switch self {
-				case .mustBeIntegerLiteral(let found):
-					return "this macro requires an integer literal as its argument. instead found \(found)"
-				case .mustBeStructDeclaration(let declType):
-					return "this macro must be attached to a struct declaration. instead found \(declType). this macro only supports structures."
-				case .unsupportedBaseConformance(let name):
+	internal enum Diagnostics:Swift.Error, DiagnosticMessage {
+	    var message: String {
+	        switch self {
+				case .incorrectComparisonOverride(let note):
+					switch note {
+						case .incorrectReturnClause(let found):
+							return "``RAW_comparable`` implementations must have a return type of ``Int32`` on the 'RAW_compare' function. expected function return type: 'Int32' found: '\(String(describing:found))'. please move this function to an extension declaration if this was not made in error."
+						case .incorrectArgumentList(let paramList):
+							return "``RAW_comparable`` implementations must have exactly two arguments in the 'RAW_compare' function. expected function argument list: '(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer)' found: '\(paramList)'. please move this function to an extension declaration if this was not made in error."
+						case .functionThrows:
+							return "``RAW_comparable`` implementations cannot have the 'throws' modifier on the 'RAW_compare' function. please remove the 'throws' modifier to the function declaration or move this function to an extension declaration if this was not made in error."
+						case .functionIsAsync:
+							return "``RAW_comparable`` implementations cannot have the 'async' modifier on the 'RAW_compare' function. please remove the 'async' modifier to the function declaration or move this function to an extension declaration if this was not made in error."
+						case .missingStaticModifier:
+							return "``RAW_comparable`` requires the 'static' modifier on the 'RAW_compare' function. please add the 'static' modifier to the function declaration or move this function to an extension declaration if this was not made in error."
+					}
+				case .expectedIntegerLiteral(let found):
+					return "this macro requires an integer literal as its argument. instead found \(String(describing:found))"
+				case .variableDeclarationsNotSupported:
+					return "this macro only supports a single stored property in the base declaration. this property must be of type 'RAW_staticbuff_storetype', and must be implemented by this macro directly. as such, this macro does not support the existence of any additional variable declarations in the base declaration. computed properties may be added by the user in standalone extensions."
+				case .expectedStructDeclaration:
+					return "this macro must be attached to a struct declaration."
+				case .unsupportedInheritance(let name):
 					return "this macro does not directly implement '\(name)' protocol. if you wish to implement this protocol yourself, you may do so in a standalone extension declaration."
-				case .invalidFunctionOverride(let name):
-					return "this macro does not support overriding the '\(name)' function. if you wish to implement this function yourself, you may do so in a standalone extension declaration."
-				case .invalidStoredProperty(let decl):
-					return "this macro only supports a single stored property in the base declaration. this property must be of type 'RAW_staticbuff_storetype'. instead found \(decl)."
+	        }
+	    }
+
+	    var diagnosticID:SwiftDiagnostics.MessageID {
+			switch self {
+				case .incorrectComparisonOverride(_):
+					return SwiftDiagnostics.MessageID(domain:"RAW_macros", id:"RAW_comparable.incorrectComparisonOverride")
+				case .expectedIntegerLiteral(_):
+					return SwiftDiagnostics.MessageID(domain:"RAW_macros", id:"RAW_comparable.expectedIntegerLiteral")
+				case .variableDeclarationsNotSupported:
+					return SwiftDiagnostics.MessageID(domain:"RAW_macros", id:"RAW_comparable.variableDeclarationsNotSupported")
+				case .expectedStructDeclaration:
+					return SwiftDiagnostics.MessageID(domain:"RAW_macros", id:"RAW_staticbuff_macro.expectedStructDeclaration")
+				case .unsupportedInheritance(_):
+					return SwiftDiagnostics.MessageID(domain:"RAW_macros", id:"RAW_staticbuff_macro.unsupportedInheritance")
 			}
 		}
 
-		public var diagnosticID:MessageID {
-			return MessageID(domain:"RAW_macros", id:self.did)
-		}
-	}
-}
+	    var severity: SwiftDiagnostics.DiagnosticSeverity {
+			return .error
+	    }
 
-fileprivate func generateUnsignedByteTypeExpression(byteCount:UInt16) -> SwiftSyntax.TupleTypeSyntax {
-	return generateTypeExpression(typeSyntax:IdentifierTypeSyntax(name:.identifier("UInt8")), byteCount:byteCount)
-}
-fileprivate func generateTypeExpression(typeSyntax:IdentifierTypeSyntax, byteCount:UInt16) -> SwiftSyntax.TupleTypeSyntax {
-	var buildContents = TupleTypeElementListSyntax()
-	var i:UInt16 = 0
-	while i < byteCount {
-		var byteTypeElement = TupleTypeElementSyntax(type:typeSyntax)
-		byteTypeElement.trailingComma = i + 1 < byteCount ? TokenSyntax.commaToken() : nil
-		buildContents.append(byteTypeElement)
-		i += 1
+	    var did: String {
+			switch self {
+				case .incorrectComparisonOverride(_):
+					return "RAW_comparable.incorrectComparisonOverride"
+				case .expectedIntegerLiteral(_):
+					return "RAW_comparable.expectedIntegerLiteral"
+				case .variableDeclarationsNotSupported:
+					return "RAW_comparable.variableDeclarationsNotSupported"
+				case .expectedStructDeclaration:
+					return "RAW_staticbuff_macro.expectedStructDeclaration"
+				case .unsupportedInheritance(_):
+					return "RAW_staticbuff_macro.unsupportedInheritance"
+			}
+	    }
+
+		public enum ImplementationNote {
+			case incorrectReturnClause(ReturnClauseSyntax?)
+			case incorrectArgumentList(FunctionParameterListSyntax)
+			case missingStaticModifier
+			case functionThrows
+			case functionIsAsync
+		}
+		case expectedStructDeclaration
+		case incorrectComparisonOverride(ImplementationNote)
+		case expectedIntegerLiteral(SyntaxProtocol?)
+		case variableDeclarationsNotSupported
+		case unsupportedInheritance(IdentifierTypeSyntax)
 	}
-	return TupleTypeSyntax(leftParen:TokenSyntax.leftParenToken(), elements:buildContents, rightParen:TokenSyntax.rightParenToken())
 }

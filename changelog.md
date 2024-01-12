@@ -14,10 +14,13 @@
 
 	- As such, ``RAW_staticbuff`` has dropped its explicit requirements for length-static comparisons, and simply adds this ``RAW_comparable_fixed`` as a required conformance.
 	
-- Introduction of ``RAW_staticbuff_fixedwidthinteger`` and ``RAW_staticbuff_fixedwidthinteger_explicit`` macros to automatically implement big or little endian encodings into a ``RAW_staticbuff`` conformant struct.
+- Introduction of ``@RAW_staticbuff_fixedwidthinteger_type`` (attached member) and ``#RAW_staticbuff_fixedwidthinteger_init`` (freestanding declaration) macros. These macros automatically implement big or little endian encodings into a attached struct, and 
 
 	- These macros can help developers regain the functionality lost by the dropping of ``RAW_staticbuff`` on native integer types from 4.x.x.
 	
+- Improved flexability and diagnostic capabilities of all builtin macros, making them easier and less fussy in use.
+
+
 
 ### 4.3.4
 

@@ -9,64 +9,11 @@ import Logging
 fileprivate let mainLogger = Logger(label:"RAW_staticbuff_binaryinteger_macro")
 #endif
 
-// fileprivate func validateAsRAW_compare(_ node:SwiftSyntax.FunctionDeclSyntax, context: some SwiftSyntaxMacros.MacroExpansionContext) {
-// 	// validate that this function is a valid implementation of the static RAW_buffer
-// 	// validate that there are only two arguments in the function declaration and that the arguments are of type UnsafeRawPointer.
-// 	let paramList = node.signature.parameterClause.parameters
-	
-// 	// validate the function name
-// 	guard node.name.text == "RAW_compare" else {
-// 		#if RAWDOG_MACRO_LOG
-// 		mainLogger.critical("found invalid function name in RAW_compare function declaration")
-// 		#endif
-// 		context.addDiagnostics(from:RAW_staticbuff_fixedwidthinteger_explicit_macro.Diagnostics.invalidFunctionOverride(.invalidFunctionName(node.name.text)), node:node)
-// 		return
-// 	}
-
-// 	// validate that the function is static
-// 	guard node.modifiers.contains(where: { $0.name.text == "static" }) else {
-// 		#if RAWDOG_MACRO_LOG
-// 		mainLogger.critical("found non-static RAW_compare function declaration")
-// 		#endif
-// 		context.addDiagnostics(from:RAW_staticbuff_fixedwidthinteger_explicit_macro.Diagnostics.invalidFunctionOverride(.missingStaticModifier), node:node.modifiers)
-// 		return
-// 	}
-	
-// 	/// validate that the function has two arguments.
-// 	guard paramList.count == 2 else {
-// 		#if RAWDOG_MACRO_LOG
-// 		mainLogger.critical("found invalid number of arguments in RAW_compare function declaration")
-// 		#endif
-// 		return RAW_staticbuff_fixedwidthinteger_explicit_macro.Diagnostics.invalidFunctionOverride("RAW_compare")
-// 	}
-// 	guard let lhsParam = paramList.first!.as(FunctionParameterSyntax.self), let lhsType = lhsParam.type.as(IdentifierTypeSyntax.self), let rhsParam = paramList.last!.as(FunctionParameterSyntax.self), let rhsType = rhsParam.type.as(IdentifierTypeSyntax.self) else {
-// 		#if RAWDOG_MACRO_LOG
-// 		mainLogger.critical("found invalid argument type in RAW_compare function declaration")
-// 		#endif
-// 		return RAW_staticbuff_fixedwidthinteger_explicit_macro.Diagnostics.invalidFunctionOverride("RAW_compare")
-// 	}
-
-// 	guard lhsParam.firstName.text == "lhs_data" && rhsParam.firstName.text == "rhs_data" else {
-// 		#if RAWDOG_MACRO_LOG
-// 		mainLogger.critical("found invalid argument name in RAW_compare function declaration")
-// 		#endif
-// 		return RAW_staticbuff_fixedwidthinteger_explicit_macro.Diagnostics.invalidFunctionOverride("RAW_compare")
-// 	}
-	
-// 	guard lhsType.name.text == "UnsafeRawPointer" && rhsType.name.text == "UnsafeRawPointer" else {
-// 		#if RAWDOG_MACRO_LOG
-// 		mainLogger.critical("found invalid argument type in RAW_compare function declaration")
-// 		#endif
-// 		return RAW_staticbuff_fixedwidthinteger_explicit_macro.Diagnostics.invalidFunctionOverride("RAW_compare")
-// 	}
-// 	return nil
-// }
-
 internal struct RAW_staticbuff_fixedwidthinteger_explicit_macro:MemberMacro, ExtensionMacro {
 
 	// the primary tool that parses the macro node and determines how it should expand based on user configuration input.
 	internal class MacroSyntaxVisitor:SyntaxVisitor {
-
+		
 		internal var integerType:String? = nil
 		internal var integerBytes:Int? = nil
 		internal var isBigEndian:Bool? = nil
@@ -95,7 +42,7 @@ internal struct RAW_staticbuff_fixedwidthinteger_explicit_macro:MemberMacro, Ext
 					#endif
 					integerType = idType.name.text
 					return .visitChildren
-				case .some(let intType):
+				case .some(_):
 					#if RAWDOG_MACRO_LOG
 					mainLogger.error("expected only one generic argument, but got \(node.argument)")
 					#endif
@@ -229,6 +176,10 @@ internal struct RAW_staticbuff_fixedwidthinteger_explicit_macro:MemberMacro, Ext
 		
 		let inheritedTypes = pconfig.inheritedTypes
 		let typeExpression = generateUnsignedByteTypeExpression(byteCount:UInt16(pconfig.integerBytes))
+		let loadFuncName = pconfig.integerBytes == 1 ? "load" : "loadUnaligned"
+		#if RAWDOG_MACRO_LOG
+		mainLogger.notice("generating \(pconfig.structName) with \(pconfig.integerType) and \(pconfig.integerBytes) bytes")
+		#endif
 		var buildSyntax = [DeclSyntax]()
 		buildSyntax.append(DeclSyntax("""
 			\(pconfig.modifierList) typealias RAW_staticbuff_storetype = \(typeExpression)
@@ -236,6 +187,7 @@ internal struct RAW_staticbuff_fixedwidthinteger_explicit_macro:MemberMacro, Ext
 		buildSyntax.append(DeclSyntax("""
 			\(pconfig.modifierList) var RAW_staticbuff:RAW_staticbuff_storetype
 		"""))
+		// no need to reference the loadFunctionName here because we can guarantee that the RAW_staticbuff_storetype is a tuple of UInt8s (always aligned)
 		buildSyntax.append(DeclSyntax("""
 			\(pconfig.modifierList) init(RAW_staticbuff ptr:UnsafeRawPointer) {
 				self.RAW_staticbuff = ptr.load(as:RAW_staticbuff_storetype.self)
@@ -263,9 +215,16 @@ internal struct RAW_staticbuff_fixedwidthinteger_explicit_macro:MemberMacro, Ext
 			}
 		"""))
 		buildSyntax.append(DeclSyntax("""
+			\(pconfig.modifierList) mutating func RAW_access_mutating<R>(_ accessor: (UnsafeMutableRawPointer, size_t) throws -> R) rethrows -> R {
+				return try withUnsafeMutablePointer(to:&RAW_staticbuff) { ptr in
+					return try accessor(ptr, MemoryLayout<RAW_staticbuff_storetype>.size)
+				}
+			}
+		"""))
+		buildSyntax.append(DeclSyntax("""
 			\(pconfig.modifierList) static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
-				let lhs = \(raw:pconfig.integerType)(\(raw:pconfig.endianFunctionName):lhs_data.load(as:\(raw:pconfig.integerType).self))
-				let rhs = \(raw:pconfig.integerType)(\(raw:pconfig.endianFunctionName):rhs_data.load(as:\(raw:pconfig.integerType).self))
+				let lhs = \(raw:pconfig.integerType)(\(raw:pconfig.endianFunctionName):lhs_data.\(raw:loadFuncName)(as:\(raw:pconfig.integerType).self))
+				let rhs = \(raw:pconfig.integerType)(\(raw:pconfig.endianFunctionName):rhs_data.\(raw:loadFuncName)(as:\(raw:pconfig.integerType).self))
 				if lhs < rhs {
 					return -1
 				} else if lhs > rhs {
@@ -352,15 +311,15 @@ internal struct RAW_staticbuff_fixedwidthinteger_explicit_macro:MemberMacro, Ext
 		public var did:String {
 			switch self {
 				case .missingArgument(_, _):
-					return "RAW_staticbuff_binaryinteger_macro.missingArgument"
+					return "missingArgument"
 				case .mustBeIntegerLiteral(_):
-					return "RAW_staticbuff_binaryinteger_macro.mustBeIntegerLiteral"
+					return "mustBeIntegerLiteral"
 				case .missingStructDeclOrExtension(_):
-					return "RAW_staticbuff_binaryinteger_macro.missingStructDecl"
+					return "missingStructDeclOrExtension"
 				case .unexpectedExtensionName(_, _):
-					return "RAW_staticbuff_binaryinteger_macro.unexpectedExtensionName"
+					return "unexpectedExtensionName"
 				case .unexpectedStructName(_, _):
-					return "RAW_staticbuff_binaryinteger_macro.unexpectedStructName"
+					return "unexpectedStructName"
 			}
 		}
 
@@ -383,19 +342,4 @@ internal struct RAW_staticbuff_fixedwidthinteger_explicit_macro:MemberMacro, Ext
 			return MessageID(domain:"RAW_staticbuff_binaryinteger_macro", id:self.did)
 		}
 	}
-}
-
-fileprivate func generateUnsignedByteTypeExpression(byteCount:UInt16) -> SwiftSyntax.TupleTypeSyntax {
-	return generateTypeExpression(typeSyntax:IdentifierTypeSyntax(name:.identifier("UInt8")), byteCount:byteCount)
-}
-fileprivate func generateTypeExpression(typeSyntax:IdentifierTypeSyntax, byteCount:UInt16) -> SwiftSyntax.TupleTypeSyntax {
-	var buildContents = TupleTypeElementListSyntax()
-	var i:UInt16 = 0
-	while i < byteCount {
-		var byteTypeElement = TupleTypeElementSyntax(type:typeSyntax)
-		byteTypeElement.trailingComma = i + 1 < byteCount ? TokenSyntax.commaToken() : nil
-		buildContents.append(byteTypeElement)
-		i += 1
-	}
-	return TupleTypeSyntax(leftParen:TokenSyntax.leftParenToken(), elements:buildContents, rightParen:TokenSyntax.rightParenToken())
 }

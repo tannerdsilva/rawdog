@@ -1,16 +1,16 @@
-// import XCTest
-// import RAW_hex
-// @testable import RAW
-// @testable import RAW_blake2
-// @testable import RAW_base64
-// @testable import cblake2
+import XCTest
+import RAW_hex
+@testable import RAW
+@testable import RAW_blake2
+@testable import RAW_base64
+@testable import cblake2
 
-// @RAW_staticbuff(5)
-// struct FixedBuff5:Hashable, Equatable, Collection, Sequence, ExpressibleByArrayLiteral {
-// 	internal static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
-// 		return RAW_memcmp(lhs_data, rhs_data, 5)
-// 	}
-// }
+@RAW_staticbuff(5)
+struct FixedBuff5:Hashable, Equatable, Collection, Sequence, ExpressibleByArrayLiteral {
+	internal static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+		return RAW_memcmp(lhs_data, rhs_data, 5)
+	}
+}
 
 // @ConcatBufferType(FixedBuff5, Double, Float)
 // struct MYSTRUCT {

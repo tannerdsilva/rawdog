@@ -124,6 +124,7 @@ extension Int:RAW_convertible_fixed, RAW_comparable_fixed {
 	public typealias RAW_fixed_type = Self
 
 	public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+		
 		let lhs = Self(RAW_decode:lhs_data)!
 		let rhs = Self(RAW_decode:rhs_data)!
 		if lhs < rhs {
@@ -136,13 +137,23 @@ extension Int:RAW_convertible_fixed, RAW_comparable_fixed {
 	}
 }
 
-@RAW_staticbuff_fixedwidthinteger_explicit<UInt64>(bits:64, bigEndian:true)
-public struct My64BitThinggy:Hashable, Equatable, ExpressibleByIntegerLiteral, ExpressibleByArrayLiteral {}
+@RAW_staticbuff_fixedwidthinteger_type<UInt64>(bits:64, bigEndian:true)
+public struct My64BitThinggy:Hashable, Equatable, ExpressibleByIntegerLiteral {}
 
 extension UInt64 {
-	public init(_ thinggy:My64BitThinggy) {
-		self = thinggy.RAW_access { ptr, _ in
-			return Self(bigEndian:ptr.load(as:Self.self))
-		}
-	}
+	public #RAW_staticbuff_fixedwidthinteger_init<My64BitThinggy>(bigEndian:true)
 }
+
+@RAW_staticbuff_binaryfloatingpoint_type<Float>()
+public struct EncodedDouble:ExpressibleByFloatLiteral, ExpressibleByArrayLiteral {}
+
+// extension Float {
+// 	public #RAW_staticbuff_binaryfloatingpoint_init<EncodedDouble>()
+// }
+
+// extension EncodedDouble:ExpressibleByFloatLiteral {
+// 	public typealias FloatLiteralType = Float
+// 	public init(floatLiteral value:Float) {
+// 		self.init(value)
+// 	}
+// }
