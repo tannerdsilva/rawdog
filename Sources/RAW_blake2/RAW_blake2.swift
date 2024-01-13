@@ -171,9 +171,9 @@ extension Hasher where RAW_blake2_out_type == [UInt8] {
 	}
 
 	/// initialize the hasher, preparing it for use with a specified key value.
-	public init(key:UnsafeRawPointer, keySize:size_t, outputLength:size_t) throws {
+	public init(key_data:UnsafeRawPointer, key_count:size_t, outputLength:size_t) throws {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
-		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:key, key_data_size:keySize, output_length:outputLength)
+		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:key_data, key_data_size:key_count, output_length:outputLength)
 	}
 }
 
@@ -186,9 +186,9 @@ extension Hasher where RAW_blake2_out_type:RAW_staticbuff {
 	}
 
 	/// initialize the hasher, preparing it for use with a specified key value.
-	public init(key:UnsafeRawPointer, keySize:size_t) throws {
+	public init(key_data:UnsafeRawPointer, key_count:size_t) throws {
 		var newState = RAW_blake2_func_type.RAW_blake2_statetype()
-		try Self.RAW_blake2_func_type.create(state:&newState, key_data_ptr:key, key_data_size:keySize, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
+		try Self.RAW_blake2_func_type.create(state:&newState, key_data_ptr:key_data, key_data_size:key_count, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
 		self.state = newState
 	}
 

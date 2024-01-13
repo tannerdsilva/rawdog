@@ -93,6 +93,7 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 		let structName:TokenSyntax
 		let concatStructure:[(name:IdentifierPatternSyntax, type:IdentifierTypeSyntax)]
 		let rawStaticbuffStoretype:String
+		let rawStaticbuffSynthesizedFromNames:String
 	}
 	fileprivate static func parse(node: SwiftSyntax.AttributeSyntax, attachedTo decl:DeclGroupSyntax, context:SwiftSyntaxMacros.MacroExpansionContext) throws -> ParsedConfiguration {
 		guard let asStruct = decl.as(StructDeclSyntax.self) else {
@@ -123,6 +124,8 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 		attachedParser.walk(asStruct)
 		var buildNames = [(name:IdentifierPatternSyntax, type:IdentifierTypeSyntax)]()
 		var buildRAW_staticbuff_storetype = "("
+		var buildRAW_staticbuff_synthesized_from_names = "("
+		var buildLinearRAW_compareSyntax = [String]()
 		for (i, curVar) in attachedParser.varDecls.enumerated() {
 			if i < expectedTypes.foundArgList.count {
 				defer {
@@ -159,13 +162,17 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 				context.addDiagnostics(from:Diagnostics.invalidStoredVariableDeclaration(.unexpectedVariable), node:curVar)
 			}
 		}
-		for (i, (_, curType)) in buildNames.reversed().enumerated().reversed() {
-			buildRAW_staticbuff_storetype += "\(curType.name.text).RAW_staticbuff_storetype"
+		for (i, (vname, curType)) in buildNames.reversed().enumerated().reversed() {
+			buildRAW_staticbuff_storetype += "\(curType.name.text)"
+			buildRAW_staticbuff_synthesized_from_names += "\(vname.identifier.text)"
+			buildLinearRAW_compareSyntax.append("compareResult = \(curType.name.text).RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)")
 			if i > 0 {
 				buildRAW_staticbuff_storetype += ", "
+				buildRAW_staticbuff_synthesized_from_names += ", "
 			}
 		}
 		buildRAW_staticbuff_storetype += ")"
+		buildRAW_staticbuff_synthesized_from_names += ")"
 		for curFunc in attachedParser.funcDecls {
 			context.addDiagnostics(from:Diagnostics.unsupportedFunctionDeclaration, node:curFunc)
 		}
@@ -175,7 +182,7 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 			#endif
 			context.addDiagnostics(from:Diagnostics.unimplementedStoredVariableDeclaration(expectedTypes.foundArgList.first!), node:curUnimplemented)
 		}
-		return ParsedConfiguration(modifiers:modifiers, structName:attachedName, concatStructure:buildNames, rawStaticbuffStoretype:buildRAW_staticbuff_storetype)
+		return ParsedConfiguration(modifiers:modifiers, structName:attachedName, concatStructure:buildNames, rawStaticbuffStoretype:buildRAW_staticbuff_storetype, rawStaticbuffSynthesizedFromNames:buildRAW_staticbuff_synthesized_from_names)
 	}
 
     public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
@@ -184,39 +191,83 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 		}
 		var members = [DeclSyntax]()
 		members.append(DeclSyntax("""
-			public typealias RAW_staticbuff_storetype = \(raw:parsed.rawStaticbuffStoretype)
+			\(parsed.modifiers) typealias RAW_staticbuff_storetype = \(raw:parsed.rawStaticbuffStoretype)
 		"""))
 		members.append(DeclSyntax("""
-			\(parsed.modifiers) var RAW_staticbuff:RAW_staticbuff_storetype
+			\(parsed.modifiers) var RAW_staticbuff:RAW_staticbuff_storetype {
+				return \(raw:parsed.rawStaticbuffSynthesizedFromNames)
+			}
 		"""))
+
 		members.append(DeclSyntax("""
 			\(parsed.modifiers) mutating func RAW_access_mutating<R>(_ body:(UnsafeMutableRawPointer, size_t) throws -> R) rethrows -> R {
-				return try withUnsafeMutablePointer(to:&RAW_staticbuff) {
+				return try withUnsafeMutablePointer(to:&self) {
 					return try body($0, MemoryLayout<RAW_staticbuff_storetype>.size)
 				}
 			}
 		"""))
 		members.append(DeclSyntax("""
 			\(parsed.modifiers) func RAW_access<R>(_ body:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
-				return try withUnsafePointer(to:RAW_staticbuff) {
+				return try withUnsafePointer(to:self) {
 					return try body($0, MemoryLayout<RAW_staticbuff_storetype>.size)
 				}
 			}
 		"""))
 		members.append(DeclSyntax("""
-			\(parsed.modifiers) init(RAW_staticbuff:UnsafeRawPointer) {
-				self.RAW_staticbuff = RAW_staticbuff.load(as:RAW_staticbuff_storetype.self)
+			\(parsed.modifiers) init(RAW_staticbuff ptr:UnsafeRawPointer) {
+				#if DEBUG
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is unexpected and breaks the assumptions that allow this macro to work")
+				assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is unexpected and breaks the assumptions that allow this macro to work")
+				assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is unexpected and breaks the assumptions that allow this macro to work")
+				#endif
+				self = ptr.load(as:Self.self)
 			}
 		"""))
 		members.append(DeclSyntax("""
 			\(parsed.modifiers) func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-				return withUnsafePointer(to:RAW_staticbuff) {
+				return withUnsafePointer(to:self) {
 					dest.copyMemory(from:$0, byteCount:MemoryLayout<RAW_staticbuff_storetype>.size)
 					return dest.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
 				}
 			}
 		"""))
 
+		var buildCompare = """
+		var lhs_seeker = lhs_data
+		var rhs_seeker = rhs_data
+		var precomp_lhs:UnsafeRawPointer
+		var precomp_rhs:UnsafeRawPointer
+		var compareResult:Int32 = 0
+
+		"""
+		for curCompare in parsed.concatStructure {
+			buildCompare += """
+			#if DEBUG
+			precomp_lhs = lhs_seeker
+			precomp_rhs = rhs_seeker
+			#endif
+			compareResult = \(curCompare.type.name.text).RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
+			#if DEBUG 
+			assert(lhs_seeker == precomp_lhs.advanced(by:MemoryLayout<\(curCompare.type.name.text)>.size), "unexpected seek length. this is unexpected and breaks the assumptions that allow this macro to work")
+			assert(rhs_seeker == precomp_rhs.advanced(by:MemoryLayout<\(curCompare.type.name.text)>.size), "unexpected seek length. this is unexpected and breaks the assumptions that allow this macro to work")
+			#endif
+			switch compareResult {
+				case 0:
+					break
+				default:
+					return compareResult
+			}
+			"""
+		}
+		buildCompare += """
+		return compareResult
+
+		"""
+		members.append(DeclSyntax("""
+			\(parsed.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+				\(raw:buildCompare)
+			}
+		"""))
 		return members
     }
 
@@ -225,8 +276,8 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 			return []
 	   }
 	   return [try ExtensionDeclSyntax("""
-	   	extension \(structName):RAW_staticbuff {}
-	   """)]
+			extension \(structName):RAW_staticbuff, RAW_comparable {}
+		""")]
     }
 
 	/// an accent note that is used when Diagnostics.invalidStoredVariable.invalidTypeAnnotation is thrown.

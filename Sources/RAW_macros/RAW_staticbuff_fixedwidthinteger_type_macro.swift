@@ -158,7 +158,7 @@ internal struct RAW_staticbuff_fixedwidthinteger_type_macro:MemberMacro, Extensi
 			}
 		"""))
 		buildSyntax.append(DeclSyntax("""
-			\(pconfig.modifierList) init?(_ native:\(raw:pconfig.integerType)) {
+			\(pconfig.modifierList) init(_ native:\(raw:pconfig.integerType)) {
 				self = withUnsafePointer(to:native.\(raw:pconfig.endianFunctionName)) { ptr in
 					return Self(RAW_staticbuff:ptr)
 				}
