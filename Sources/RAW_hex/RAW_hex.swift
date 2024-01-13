@@ -40,7 +40,7 @@ extension Array where Element == Value {
 	}
 
 	/// returns an array of random hex values. the length of the array is specified by the `length` parameter.
-	public static func random(length:size_t) -> Self {
+	public static func random(count length:size_t) -> Self {
 		return Self(unsafeUninitializedCapacity:length, initializingWith: { valueBuffer, valueCount in
 			valueCount = 0
 			var seekPointer = valueBuffer.baseAddress!
