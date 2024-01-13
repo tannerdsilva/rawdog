@@ -1,4 +1,4 @@
-# 5.0.0
+# 5.0.0 'Mega Macro Makeover'
 
 - Introduction of a new protocol ``RAW_fixed`` which provides many of the functions and utilities that ``RAW_staticbuff`` served in the `4.x.x` releases.
 
@@ -19,8 +19,6 @@
 	- These macros can help developers regain the functionality lost by the dropping of ``RAW_staticbuff`` on native integer types from 4.x.x.
 	
 - Improved flexability and diagnostic capabilities of all builtin macros, making them easier and less fussy in use.
-
-
 
 ### 4.3.4
 

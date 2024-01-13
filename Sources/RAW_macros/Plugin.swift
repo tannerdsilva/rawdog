@@ -9,12 +9,14 @@ struct RAW_macros:CompilerPlugin {
 		RAW_staticbuff_binaryfloatingpoint_init_macro.self,
 		RAW_staticbuff_floatingpoint_type_macro.self,
 		RAW_staticbuff_fixedwidthinteger_bridge_macro.self,
-		RAW_staticbuff_fixedwidthinteger_explicit_macro.self,
+		RAW_staticbuff_fixedwidthinteger_type_macro.self,
 		RAW_staticbuff_macro.self,
-		ConcatBufferTypeMacro.self,
+		RAW_staticbuff_concat_type_macro.self,
 	]
 }
 
+
+// captures all of the identifier types.
 internal class IdTypeLister:SyntaxVisitor {
 	internal var listedIDTypes:Set<IdentifierTypeSyntax> = []
 	override func visit(_ node:IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
@@ -23,6 +25,7 @@ internal class IdTypeLister:SyntaxVisitor {
 	}
 }
 
+// captures the single identifier type listed in a generic argument clause.
 internal class SingleTypeGenericArgumentFinder:SyntaxVisitor {
 	internal var foundType:IdentifierTypeSyntax? = nil
 

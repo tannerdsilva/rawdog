@@ -4,50 +4,27 @@ import SwiftSyntaxMacros
 import SwiftDiagnostics
 import SwiftParser
 
+fileprivate let domain = "RAW_staticbuff_fixedwidthinteger_type_macro"
+
 #if RAWDOG_MACRO_LOG
 import Logging
-fileprivate let mainLogger = Logger(label:"RAW_staticbuff_binaryinteger_macro")
+fileprivate let mainLogger = Logger(label:domain)
 #endif
 
-internal struct RAW_staticbuff_fixedwidthinteger_explicit_macro:MemberMacro, ExtensionMacro {
+
+internal struct RAW_staticbuff_fixedwidthinteger_type_macro:MemberMacro, ExtensionMacro {
 
 	// the primary tool that parses the macro node and determines how it should expand based on user configuration input.
-	internal class MacroSyntaxVisitor:SyntaxVisitor {
+	internal class MacroSyntaxVisitor:SingleTypeGenericArgumentFinder {
 		
-		internal var integerType:String? = nil
 		internal var integerBytes:Int? = nil
 		internal var isBigEndian:Bool? = nil
 
-		override func visit(_ node:GenericArgumentListSyntax) -> SyntaxVisitorContinueKind {
-			guard node.count == 1 else {
-				#if RAWDOG_MACRO_LOG
-				mainLogger.error("expected only one generic argument, but got \(node.count)")
-				#endif
-				return .skipChildren
-			}
-			return .visitChildren
-		}
+		internal let context:MacroExpansionContext
 
-		override func visit(_ node:GenericArgumentSyntax) -> SyntaxVisitorContinueKind {
-			guard let idType = node.argument.as(IdentifierTypeSyntax.self) else {
-				#if RAWDOG_MACRO_LOG
-				mainLogger.error("expected an IdentifierTypeSyntax for the generic argument, but got \(node.argument)")
-				#endif
-				return .skipChildren
-			}
-			switch integerType {
-				case .none:
-					#if RAWDOG_MACRO_LOG
-					mainLogger.notice("found integer type \(idType.name.text). parsing will continue.")
-					#endif
-					integerType = idType.name.text
-					return .visitChildren
-				case .some(_):
-					#if RAWDOG_MACRO_LOG
-					mainLogger.error("expected only one generic argument, but got \(node.argument)")
-					#endif
-					return .skipChildren
-			}
+		internal init(context:MacroExpansionContext) {
+			self.context = context
+			super.init(viewMode:.sourceAccurate)
 		}
 
 		override func visit(_ node:LabeledExprSyntax) -> SyntaxVisitorContinueKind {
@@ -93,36 +70,38 @@ internal struct RAW_staticbuff_fixedwidthinteger_explicit_macro:MemberMacro, Ext
 
 	// primary interpretation tool for the attached syntax.
 	internal class AttachedSyntaxVisitor:SyntaxVisitor {
-		internal enum AttachedType {
-			case structDecl(String)
-		}
-		
-		internal var mode:AttachedType? = nil
+		internal let context:MacroExpansionContext
 		internal var inheritedTypes:Set<IdentifierTypeSyntax> = []
-		internal var modifierList:DeclModifierListSyntax = []
 
-		override func visit(_ node:DeclModifierListSyntax) -> SyntaxVisitorContinueKind {
-			#if RAWDOG_MACRO_LOG
-			mainLogger.notice("found modifier list \(node). parsing will continue.")
-			#endif
-			modifierList = node
-			return .visitChildren
+		init(context:MacroExpansionContext) {
+			self.context = context
+			super.init(viewMode:.sourceAccurate)
 		}
 
-		override func visit(_ node:StructDeclSyntax) -> SyntaxVisitorContinueKind {
+		override func visit(_ node:InheritanceClauseSyntax) -> SyntaxVisitorContinueKind {
 			#if RAWDOG_MACRO_LOG
-			mainLogger.notice("found struct declaration \(node.name). parsing will continue.")
+			mainLogger.notice("found inherited type list \(node). parsing will continue.")
 			#endif
-			mode = .structDecl(node.name.text)
-			return .visitChildren
+			let idScanner = IdTypeLister(viewMode:.sourceAccurate)
+			idScanner.walk(node)
+			inheritedTypes = idScanner.listedIDTypes
+			return .skipChildren
 		}
 
-		override func visit(_ node:IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
+		override func visit(_ node:FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
 			#if RAWDOG_MACRO_LOG
-			mainLogger.notice("found inherited type \(node). parsing will continue.")
+			mainLogger.notice("found function declaration \(node). parsing will continue.")
 			#endif
-			inheritedTypes.update(with:node)
-			return .visitChildren
+			context.addDiagnostics(from:Diagnostics.functionDeclarationsUnsupported, node:node)
+			return .skipChildren
+		}
+
+		override func visit(_ node:VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.notice("found variable declaration \(node). parsing will continue.")
+			#endif
+			context.addDiagnostics(from:Diagnostics.variableDeclarationsNotSupported, node:node)
+			return .skipChildren
 		}
 	}
 	
@@ -140,40 +119,25 @@ internal struct RAW_staticbuff_fixedwidthinteger_explicit_macro:MemberMacro, Ext
 
 	/// parses the available syntax to determine how this macro should expand (based on user configuration).
 	internal static func parseUsageConfig(node:SwiftSyntax.AttributeSyntax, attachedTo declaration:some SyntaxProtocol, context:some SwiftSyntaxMacros.MacroExpansionContext) throws -> UsageConfiguration {
-		let parser = MacroSyntaxVisitor(viewMode:.sourceAccurate)
+		guard let structDecl = declaration.as(StructDeclSyntax.self) else {
+			context.addDiagnostics(from:Diagnostics.expectedStructDeclaration(declaration.syntaxNodeType), node:declaration)
+			throw Diagnostics.expectedStructDeclaration(declaration.syntaxNodeType)
+		}
+		let attachedStructName = structDecl.name.text
+		let modifiers = structDecl.modifiers
+		let parser = MacroSyntaxVisitor(context:context)
 		parser.walk(node)
-		guard let integerType = parser.integerType else {
-			context.addDiagnostics(from:Diagnostics.missingArgument(node, "integerType"), node:node)
-			throw Diagnostics.missingArgument(node, "integerType")
-		}
-		guard let bytes = parser.integerBytes else {
-			context.addDiagnostics(from:Diagnostics.missingArgument(node, "bits"), node:node)
-			throw Diagnostics.missingArgument(node, "bits")
-		}
-		guard let isBigEndian = parser.isBigEndian else {
-			context.addDiagnostics(from:Diagnostics.missingArgument(node, "bigEndian"), node:node)
-			throw Diagnostics.missingArgument(node, "bigEndian")
-		}
-
-		let attachedParser = AttachedSyntaxVisitor(viewMode:.sourceAccurate)
+		let bytes = parser.integerBytes!
+		let isBigEndian = parser.isBigEndian!
+		let attachedParser = AttachedSyntaxVisitor(context:context)
 		attachedParser.walk(declaration)
-		let sn:String
-		switch attachedParser.mode {
-			case .none:
-				context.addDiagnostics(from:Diagnostics.missingStructDeclOrExtension(declaration), node:declaration)
-				throw Diagnostics.missingStructDeclOrExtension(declaration)
-			case .some(.structDecl(let structName)):
-				#if RAWDOG_MACRO_LOG
-				mainLogger.notice("found struct declaration \(structName). parsing will continue.")
-				#endif
-				sn = structName
-		}
-		return UsageConfiguration(structName:sn, integerType:integerType, integerBytes:bytes, isBigEndian:isBigEndian, inheritedTypes:attachedParser.inheritedTypes, modifierList:attachedParser.modifierList)
+		return UsageConfiguration(structName:attachedStructName, integerType:parser.foundType!.name.text, integerBytes:bytes, isBigEndian:isBigEndian, inheritedTypes:attachedParser.inheritedTypes, modifierList:modifiers)
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-		let pconfig = try Self.parseUsageConfig(node:node, attachedTo:declaration, context:context)
-		
+		guard let pconfig = try? Self.parseUsageConfig(node:node, attachedTo:declaration, context:context) else {
+			return []
+		}
 		let inheritedTypes = pconfig.inheritedTypes
 		let typeExpression = generateUnsignedByteTypeExpression(byteCount:UInt16(pconfig.integerBytes))
 		let loadFuncName = pconfig.integerBytes == 1 ? "load" : "loadUnaligned"
@@ -296,50 +260,34 @@ internal struct RAW_staticbuff_fixedwidthinteger_explicit_macro:MemberMacro, Ext
 	}
 
 	public enum Diagnostics:Swift.Error, DiagnosticMessage {
-		case missingArgument(SwiftSyntax.AttributeSyntax, String)
-		case mustBeIntegerLiteral(SwiftSyntax.ExprSyntax)
-		case missingStructDeclOrExtension(SyntaxProtocol)
+	    public var message:String {
+			switch self {
+				case .expectedStructDeclaration(let node):
+					return "``@RAW_staticbuff_fixedwidthinteger_type`` expects to be attached to a struct declaration. instead, found attachment to \(node)"
+				case .functionDeclarationsUnsupported:
+					return "direct function declarations are not supported in the syntax that ``@RAW_staticbuff_fixedwidthinteger_type`` attaches to. please move this function into a standalone extension."
+				case .variableDeclarationsNotSupported:
+					return "direct variable declarations are not supported in the syntax that ``@RAW_staticbuff_fixedwidthinteger_type`` attaches to. please implement this variable as a computed property in a standalone extension."
+			}
+		}
 
-		case unexpectedExtensionName(found:String, expected:String)
-		case unexpectedStructName(found:String, expected:String)
+	    public var diagnosticID: SwiftDiagnostics.MessageID {
+			switch self {
+				case .expectedStructDeclaration(_):
+					return MessageID(domain:domain, id:"expectedStructDeclaration")
+				case .functionDeclarationsUnsupported:
+					return MessageID(domain:domain, id:"functionDeclarationsUnsupported")
+				case .variableDeclarationsNotSupported:
+					return MessageID(domain:domain, id:"variableDeclarationsNotSupported")
+			}
+		}
 
-		/// the severity of the diagnostic.
+		case expectedStructDeclaration(SyntaxProtocol.Type)
+		case functionDeclarationsUnsupported
+		case variableDeclarationsNotSupported
+
 		public var severity:DiagnosticSeverity {
 			return .error
-		}
-
-		public var did:String {
-			switch self {
-				case .missingArgument(_, _):
-					return "missingArgument"
-				case .mustBeIntegerLiteral(_):
-					return "mustBeIntegerLiteral"
-				case .missingStructDeclOrExtension(_):
-					return "missingStructDeclOrExtension"
-				case .unexpectedExtensionName(_, _):
-					return "unexpectedExtensionName"
-				case .unexpectedStructName(_, _):
-					return "unexpectedStructName"
-			}
-		}
-
-		public var message:String {
-			switch self {
-				case .missingArgument(let node, let argName):
-					return "missing argument \(argName) for \(node)"
-				case .mustBeIntegerLiteral(let node):
-					return "expected an integer literal for \(node)"
-				case .missingStructDeclOrExtension(let node):
-					return "expected a struct declaration for \(node)"
-				case .unexpectedExtensionName(let found, let expected):
-					return "expected extension of \(expected), but got \(found)"
-				case .unexpectedStructName(let found, let expected):
-					return "expected struct name \(expected), but got \(found)"
-			}
-		}
-
-		public var diagnosticID:MessageID {
-			return MessageID(domain:"RAW_staticbuff_binaryinteger_macro", id:self.did)
 		}
 	}
 }

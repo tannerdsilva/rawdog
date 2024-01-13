@@ -3,9 +3,11 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import SwiftDiagnostics
 
+fileprivate let domain = "RAW_staticbuff_macro"
+
 #if RAWDOG_MACRO_LOG
 import Logging
-fileprivate let mainLogger = Logger(label:"RAW_staticbuff_macro")
+fileprivate let mainLogger = Logger(label:domain)
 #endif
 
 public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
@@ -76,12 +78,12 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 	}
 
 	fileprivate static func parseAttachedDeclGroupSyntax(_ declaration:DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax, context:MacroExpansionContext) throws -> StaticBuffImplConfiguration {
-		guard declaration.syntaxNodeType == StructDeclSyntax.self else {
+		guard let structDecl = declaration.as(StructDeclSyntax.self) else {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.error("expected struct declaration, found \(String(describing:declaration.syntaxNodeType))")
 			#endif
-			context.addDiagnostics(from:Diagnostics.expectedStructDeclaration, node:node)
-			throw Diagnostics.expectedStructDeclaration
+			context.addDiagnostics(from:Diagnostics.expectedStructDeclaration(declaration.syntaxNodeType), node:node)
+			throw Diagnostics.expectedStructDeclaration(declaration.syntaxNodeType)
 		}
 
 		let byteCount = try Self.parseNodeConfiguration(from:node, context:context)
@@ -149,6 +151,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 					#if RAWDOG_MACRO_LOG
 					mainLogger.info("found non-RAW_compare function declaration", metadata:["name": "\(node.name)"])
 					#endif
+					context.addDiagnostics(from:Diagnostics.incorrectComparisonOverride(.incorrectFunctionName), node:node)
 					return .skipChildren
 				}
 				
@@ -288,14 +291,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 		let parser = AttachedStructSyntaxParser(context:context)
 		parser.walk(declaration)
 
-		guard let structName = parser.structName else {
-			#if RAWDOG_MACRO_LOG
-			mainLogger.critical("failed to find struct name")
-			#endif
-			context.addDiagnostics(from:Diagnostics.expectedStructDeclaration, node:declaration)
-			throw Diagnostics.expectedStructDeclaration
-		}
-		return StaticBuffImplConfiguration(modifiers:parser.modifiers, structName:structName, byteCount:byteCount, specifiedConforms:parser.inheritanceClauseTypes, isRAWCompareOverridden:parser.overrideCompare)
+		return StaticBuffImplConfiguration(modifiers:parser.modifiers, structName:structDecl.name.text, byteCount:byteCount, specifiedConforms:parser.inheritanceClauseTypes, isRAWCompareOverridden:parser.overrideCompare)
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
@@ -503,6 +499,23 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			nodeNames["ExpressibleByArrayLiteral"] = nil
 		}
 
+		if nodeNames["Comparable"] != nil {
+			#if RAWDOG_MACRO_LOG
+			logger.notice("comparable conformance defined in base declaration. this invokes a default implementation.")
+			#endif
+			declString.append(DeclSyntax("""
+				/// implements the comparable protocol by comparing the raw memory of the type.
+				\(config.modifiers) static func < (lhs:Self, rhs:Self) -> Bool {
+					return lhs.RAW_access { lhsPtr, _ in
+						return rhs.RAW_access { rhsPtr, _ in
+							return RAW_compare(lhs_data:lhsPtr, rhs_data:rhsPtr) < 0
+						}
+					}
+				}
+			"""))
+			nodeNames["Comparable"] = nil
+		}
+
 		for leftoverProtocol in nodeNames {
 			#if RAWDOG_MACRO_LOG
 			logger.warning("found unsupported protocol in base declaration. this will be ignored.", metadata:["protocol": "\(leftoverProtocol.key)"])
@@ -521,20 +534,22 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 						case .incorrectReturnClause(let found):
 							return "``RAW_comparable`` implementations must have a return type of ``Int32`` on the 'RAW_compare' function. expected function return type: 'Int32' found: '\(String(describing:found))'. please move this function to an extension declaration if this was not made in error."
 						case .incorrectArgumentList(let paramList):
-							return "``RAW_comparable`` implementations must have exactly two arguments in the 'RAW_compare' function. expected function argument list: '(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer)' found: '\(paramList)'. please move this function to an extension declaration if this was not made in error."
+							return "``RAW_comparable`` implementations must have exactly two arguments in the 'RAW_compare' function. expected function argument list: 'lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer' found: '\(paramList)'. please move this function to an extension declaration if this was not made in error."
 						case .functionThrows:
 							return "``RAW_comparable`` implementations cannot have the 'throws' modifier on the 'RAW_compare' function. please remove the 'throws' modifier to the function declaration or move this function to an extension declaration if this was not made in error."
 						case .functionIsAsync:
 							return "``RAW_comparable`` implementations cannot have the 'async' modifier on the 'RAW_compare' function. please remove the 'async' modifier to the function declaration or move this function to an extension declaration if this was not made in error."
 						case .missingStaticModifier:
 							return "``RAW_comparable`` requires the 'static' modifier on the 'RAW_compare' function. please add the 'static' modifier to the function declaration or move this function to an extension declaration if this was not made in error."
+						case .incorrectFunctionName:
+							return "``RAW_comparable`` implementations must have the name 'RAW_compare' on the function declaration. please rename this function to 'RAW_compare' or move this function to an extension declaration if this was not made in error."
 					}
 				case .expectedIntegerLiteral(let found):
 					return "this macro requires an integer literal as its argument. instead found \(String(describing:found))"
 				case .variableDeclarationsNotSupported:
 					return "this macro only supports a single stored property in the base declaration. this property must be of type 'RAW_staticbuff_storetype', and must be implemented by this macro directly. as such, this macro does not support the existence of any additional variable declarations in the base declaration. computed properties may be added by the user in standalone extensions."
-				case .expectedStructDeclaration:
-					return "this macro must be attached to a struct declaration."
+				case .expectedStructDeclaration(let found):
+					return "this macro must be attached to a struct declaration. instead, found \(String(describing:found))"
 				case .unsupportedInheritance(let name):
 					return "this macro does not directly implement '\(name)' protocol. if you wish to implement this protocol yourself, you may do so in a standalone extension declaration."
 	        }
@@ -542,36 +557,34 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 
 	    var diagnosticID:SwiftDiagnostics.MessageID {
 			switch self {
-				case .incorrectComparisonOverride(_):
-					return SwiftDiagnostics.MessageID(domain:"RAW_macros", id:"RAW_comparable.incorrectComparisonOverride")
+				case .incorrectComparisonOverride(let note):
+					switch note {
+						case .incorrectReturnClause(_):
+							return SwiftDiagnostics.MessageID(domain:domain, id:"incorrectComparisonOverride.incorrectReturnClause")
+						case .incorrectArgumentList(_):
+							return SwiftDiagnostics.MessageID(domain:domain, id:"incorrectComparisonOverride.incorrectArgumentList")
+						case .functionThrows:
+							return SwiftDiagnostics.MessageID(domain:domain, id:"incorrectComparisonOverride.functionThrows")
+						case .functionIsAsync:
+							return SwiftDiagnostics.MessageID(domain:domain, id:"incorrectComparisonOverride.functionIsAsync")
+						case .missingStaticModifier:
+							return SwiftDiagnostics.MessageID(domain:domain, id:"incorrectComparisonOverride.missingStaticModifier")
+						case .incorrectFunctionName:
+							return SwiftDiagnostics.MessageID(domain:domain, id:"incorrectComparisonOverride.incorrectFunctionName")
+					}
 				case .expectedIntegerLiteral(_):
-					return SwiftDiagnostics.MessageID(domain:"RAW_macros", id:"RAW_comparable.expectedIntegerLiteral")
+					return SwiftDiagnostics.MessageID(domain:domain, id:"expectedIntegerLiteral")
 				case .variableDeclarationsNotSupported:
-					return SwiftDiagnostics.MessageID(domain:"RAW_macros", id:"RAW_comparable.variableDeclarationsNotSupported")
+					return SwiftDiagnostics.MessageID(domain:domain, id:"variableDeclarationsNotSupported")
 				case .expectedStructDeclaration:
-					return SwiftDiagnostics.MessageID(domain:"RAW_macros", id:"RAW_staticbuff_macro.expectedStructDeclaration")
+					return SwiftDiagnostics.MessageID(domain:domain, id:"expectedStructDeclaration")
 				case .unsupportedInheritance(_):
-					return SwiftDiagnostics.MessageID(domain:"RAW_macros", id:"RAW_staticbuff_macro.unsupportedInheritance")
+					return SwiftDiagnostics.MessageID(domain:domain, id:"unsupportedInheritance")
 			}
 		}
 
 	    var severity: SwiftDiagnostics.DiagnosticSeverity {
 			return .error
-	    }
-
-	    var did: String {
-			switch self {
-				case .incorrectComparisonOverride(_):
-					return "RAW_comparable.incorrectComparisonOverride"
-				case .expectedIntegerLiteral(_):
-					return "RAW_comparable.expectedIntegerLiteral"
-				case .variableDeclarationsNotSupported:
-					return "RAW_comparable.variableDeclarationsNotSupported"
-				case .expectedStructDeclaration:
-					return "RAW_staticbuff_macro.expectedStructDeclaration"
-				case .unsupportedInheritance(_):
-					return "RAW_staticbuff_macro.unsupportedInheritance"
-			}
 	    }
 
 		public enum ImplementationNote {
@@ -580,8 +593,9 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			case missingStaticModifier
 			case functionThrows
 			case functionIsAsync
+			case incorrectFunctionName
 		}
-		case expectedStructDeclaration
+		case expectedStructDeclaration(SyntaxProtocol.Type)
 		case incorrectComparisonOverride(ImplementationNote)
 		case expectedIntegerLiteral(SyntaxProtocol?)
 		case variableDeclarationsNotSupported

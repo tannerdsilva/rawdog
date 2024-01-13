@@ -12,13 +12,32 @@ struct FixedBuff5:Hashable, Equatable, Collection, Sequence, ExpressibleByArrayL
 	}
 }
 
-// @ConcatBufferType(FixedBuff5, Double, Float)
-// struct MYSTRUCT {
-// 	// this is a test of comments in the struct. (they seem to work ok)
-// 	let firstItem:FixedBuff5
-// 	let secondItem:Double
-// 	let thirdItem:Float
-// }
+@RAW_staticbuff_binaryfloatingpoint_type<Double>()
+struct EncodedDouble:ExpressibleByFloatLiteral {}
+
+extension Double {
+	#RAW_staticbuff_binaryfloatingpoint_init<EncodedDouble>()
+}
+
+@RAW_staticbuff_binaryfloatingpoint_type<Float>()
+struct EncodedFloat:ExpressibleByFloatLiteral {}
+
+extension Float {
+	#RAW_staticbuff_binaryfloatingpoint_init<EncodedFloat>()
+}
+
+@RAW_staticbuff_concat_type(FixedBuff5, EncodedDouble, EncodedFloat, FixedBuff5)
+struct MYSTRUCT {
+	// this is a test of comments in the struct. (they seem to work ok)
+	var firstItem:FixedBuff5
+	var secondItem:EncodedDouble
+	var thirdItem:EncodedFloat
+	var fourthItem:FixedBuff5
+
+	init() {
+		// ist
+	}
+}
 
 // @ConcatBufferType(Double, Float)
 // fileprivate struct MYSTRUCT2 {

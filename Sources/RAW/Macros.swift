@@ -11,14 +11,14 @@ public macro RAW_staticbuff(_:size_t) = #externalMacro(module:"RAW_macros", type
 // defines a type of static buffer that is a concatenation of other static buffer types. these types are encoded and compared sequentially.
 @attached(member, names:arbitrary)
 @attached(extension, conformances:RAW_staticbuff, Collection, ExpressibleByArrayLiteral, Equatable, Comparable, RAW_comparable, names:arbitrary)
-public macro ConcatBufferType(_ types:any RAW_staticbuff.Type...) = #externalMacro(module:"RAW_macros", type:"ConcatBufferTypeMacro")
+public macro RAW_staticbuff_concat_type(_ types:any RAW_staticbuff.Type...) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_concat_type_macro")
 
 /// automatically implements RAW_staticbuff on any FixedWidthInteger type, allowing the macro user to specify either big or little endian encoding.
 /// - behavior is undefined if the specified bits is not the same as the size of the specified FixedWidthInteger type.
 /// - implements ``RAW_staticbuff`` on the type unconditionally, and does not allow the user to override the comparison behavior.
 @attached(member, names:arbitrary)
 @attached(extension, conformances:RAW_staticbuff)
-public macro RAW_staticbuff_fixedwidthinteger_type<T:FixedWidthInteger>(bits:size_t, bigEndian:Bool) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_fixedwidthinteger_explicit_macro")
+public macro RAW_staticbuff_fixedwidthinteger_type<T:FixedWidthInteger>(bits:size_t, bigEndian:Bool) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_fixedwidthinteger_type_macro")
 
 /// declares the initializer that allows a struct expanded with ``@RAW_staticbuff_fixedwidthinteger_type`` to be initialized from a static buffer.
 @freestanding(declaration, names:arbitrary)

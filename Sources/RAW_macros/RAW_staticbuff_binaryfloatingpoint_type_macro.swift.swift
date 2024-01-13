@@ -18,7 +18,7 @@ internal struct RAW_staticbuff_floatingpoint_type_macro:MemberMacro, ExtensionMa
 	// the primary tool that parses the macro node and determines how it should expand based on user configuration input.
 
 	// primary interpretation tool for the attached syntax.
-	fileprivate class AttachedSyntaxVisitor:SyntaxVisitor {
+	fileprivate class InheritedTypeParser:SyntaxVisitor {
 
 		internal var inheritedTypes:Set<IdentifierTypeSyntax> = []
 
@@ -32,7 +32,43 @@ internal struct RAW_staticbuff_floatingpoint_type_macro:MemberMacro, ExtensionMa
 			return .skipChildren
 		}
 	}
-	
+
+	// primary interpretation tool for the attached syntax.
+	internal class AttachedSyntaxVisitor:SyntaxVisitor {
+		internal let context:MacroExpansionContext
+		internal var inheritedTypes:Set<IdentifierTypeSyntax> = []
+
+		init(context:MacroExpansionContext) {
+			self.context = context
+			super.init(viewMode:.sourceAccurate)
+		}
+
+		override func visit(_ node:InheritanceClauseSyntax) -> SyntaxVisitorContinueKind {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.notice("found inherited type list \(node). parsing will continue.")
+			#endif
+			let idScanner = IdTypeLister(viewMode:.sourceAccurate)
+			idScanner.walk(node)
+			inheritedTypes = idScanner.listedIDTypes
+			return .skipChildren
+		}
+
+		override func visit(_ node:FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.notice("found function declaration \(node). parsing will continue.")
+			#endif
+			context.addDiagnostics(from:Diagnostics.functionDeclarationsUnsupported, node:node)
+			return .skipChildren
+		}
+
+		override func visit(_ node:VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.notice("found variable declaration \(node). parsing will continue.")
+			#endif
+			context.addDiagnostics(from:Diagnostics.variableDeclarationsNotSupported, node:node)
+			return .skipChildren
+		}
+	}
 	internal struct UsageConfiguration {
 		internal let structName:String
 		internal let floatType:IdentifierTypeSyntax
@@ -63,10 +99,10 @@ internal struct RAW_staticbuff_floatingpoint_type_macro:MemberMacro, ExtensionMa
 			#if RAWDOG_MACRO_LOG
 			mainLogger.error("unsupported type \(foundType.name.text). supported types are \(supportedTypes.keys.joined(separator:", "))")
 			#endif
-			context.addDiagnostics(from:Diagnostics.unsupportedFloatingType(foundType), node:foundType)
+			context.addDiagnostics(from:Diagnostics.unsupportedFloatingPointType(foundType), node:foundType)
 			return nil
 		}
-		let attachedParser = AttachedSyntaxVisitor(viewMode:.sourceAccurate)
+		let attachedParser = AttachedSyntaxVisitor(context:context)
 		attachedParser.walk(declaration)
 		let inheritedTypes = attachedParser.inheritedTypes
 		return UsageConfiguration(structName:structName, floatType:foundType, inheritedTypes:inheritedTypes, modifierList:modifiers)
@@ -214,11 +250,15 @@ internal struct RAW_staticbuff_floatingpoint_type_macro:MemberMacro, ExtensionMa
 	}
 
 	public enum Diagnostics:Swift.Error, DiagnosticMessage {
+		case functionDeclarationsUnsupported
+
+		case variableDeclarationsNotSupported
+
 		/// expected the macro to be attached to a struct declaration.
 		case expectedStructDeclaration(SyntaxProtocol.Type)
 	
 		/// thrown when this macro is applied to a binaryfloatingpoint type that is not supported.
-		case unsupportedFloatingType(IdentifierTypeSyntax)
+		case unsupportedFloatingPointType(IdentifierTypeSyntax)
 
 		/// thrown when an inhertance type is found but not supported.
 		case unsupportedInheritance(IdentifierTypeSyntax)
@@ -230,9 +270,13 @@ internal struct RAW_staticbuff_floatingpoint_type_macro:MemberMacro, ExtensionMa
 
 		public var did:String {
 			switch self {
+				case .functionDeclarationsUnsupported:
+					return "functionDeclarationsUnsupported"
+				case .variableDeclarationsNotSupported:
+					return "variableDeclarationsNotSupported"
 				case .expectedStructDeclaration(_):
 					return "expectedStructDeclaration"
-				case .unsupportedFloatingType(_):
+				case .unsupportedFloatingPointType(_):
 					return "unsupportedFloatingType"
 				case .unsupportedInheritance(_):
 					return "unsupportedInheritance"
@@ -241,12 +285,16 @@ internal struct RAW_staticbuff_floatingpoint_type_macro:MemberMacro, ExtensionMa
 
 		public var message:String {
 			switch self {
+				case .functionDeclarationsUnsupported:
+					return "function declarations are not supported in a struct expanded with ``@RAW_staticbuff_binaryfloatingpoint_type``."
+				case .variableDeclarationsNotSupported:
+					return "variable declarations are not supported in a struct expanded with ``@RAW_staticbuff_binaryfloatingpoint_type``."
 				case .expectedStructDeclaration(let type):
 					return "expected the macro to be attached to a struct declaration, but got \(type)"
-				case .unsupportedFloatingType(let type):
+				case .unsupportedFloatingPointType(let type):
 					return "unsupported type \(type.name.text). supported types are \(supportedTypes.keys.joined(separator:", "))"
 				case .unsupportedInheritance(let type):
-					return "unsupported inheritance type \(type.name.text). this macro cannot implement this protocol. please declare this inheritance as an extension."
+					return "unsupported inheritance type \(type.name.text). ``@RAW_staticbuff_binaryfloatingpoint_type`` cannot implement this protocol. please declare this inheritance as in a standalone extension."
 			}
 		}
 

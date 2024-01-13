@@ -124,7 +124,6 @@ extension Int:RAW_convertible_fixed, RAW_comparable_fixed {
 	public typealias RAW_fixed_type = Self
 
 	public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
-		
 		let lhs = Self(RAW_decode:lhs_data)!
 		let rhs = Self(RAW_decode:rhs_data)!
 		if lhs < rhs {
@@ -144,13 +143,23 @@ extension UInt64 {
 	public #RAW_staticbuff_fixedwidthinteger_init<My64BitThinggy>(bigEndian:true)
 }
 
-@RAW_staticbuff_binaryfloatingpoint_type<Float>()
-public struct EncodedDouble:ExpressibleByFloatLiteral, ExpressibleByArrayLiteral {}
+// public struct MyThing:RAW_staticbuff {
+//     public typealias RAW_staticbuff_storetype = 
 
-// extension Float {
-// 	public #RAW_staticbuff_binaryfloatingpoint_init<EncodedDouble>()
+//     public mutating func RAW_access_mutating<R>(_ body: (UnsafeMutableRawPointer, size_t) throws -> R) rethrows -> R {
+        
+//     }
+
+//     public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+        
+//     }
+
+//     public func RAW_encode(dest: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+        
+//     }
+
+
 // }
-
 // extension EncodedDouble:ExpressibleByFloatLiteral {
 // 	public typealias FloatLiteralType = Float
 // 	public init(floatLiteral value:Float) {
