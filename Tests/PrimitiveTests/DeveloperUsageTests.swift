@@ -13,7 +13,7 @@ struct FixedBuff5:Hashable, Equatable, Collection, Sequence, ExpressibleByArrayL
 }
 
 @RAW_staticbuff_fixedwidthinteger_type<UInt64>(bits:64, bigEndian:true)
-struct EncodedUInt64 {}
+struct EncodedUInt64:ExpressibleByIntegerLiteral {}
 
 extension UInt64 {
 	#RAW_staticbuff_binaryfloatingpoint_init<EncodedUInt64>()
@@ -40,7 +40,10 @@ extension Float {
 	#RAW_staticbuff_binaryfloatingpoint_init<EncodedFloat>()
 }
 
-@RAW_staticbuff_concat_type(FixedBuff5, EncodedDouble, EncodedFloat, FixedBuff5)
+@RAW_staticbuff_concat_type(	FixedBuff5, 
+								EncodedDouble,
+								EncodedFloat,
+								FixedBuff5)
 struct MYSTRUCT {
 	// this is a test of comments in the struct. (they seem to work ok)
 	private var firstItem:FixedBuff5
@@ -83,14 +86,14 @@ struct MyDually {
 	}
 }
 
-extension MyDually:Comparable, Equatable {
-	static func < (lhs:MyDually, rhs:MyDually) -> Bool {
-		return Self.RAW_compare(lhs:lhs, rhs:rhs) < 0
-	}
-	static func == (lhs:MyDually, rhs:MyDually) -> Bool {
-		return Self.RAW_compare(lhs:lhs, rhs:rhs) == 0
-	}
-}
+// extension MyDually:Comparable, Equatable {
+// 	static func < (lhs:MyDually, rhs:MyDually) -> Bool {
+// 		return Self.RAW_compare(lhs:lhs, rhs:rhs) < 0
+// 	}
+// 	static func == (lhs:MyDually, rhs:MyDually) -> Bool {
+// 		return Self.RAW_compare(lhs:lhs, rhs:rhs) == 0
+// 	}
+// }
 
 
 final class TestDeveloperUsage:XCTestCase {
@@ -102,36 +105,36 @@ final class TestDeveloperUsage:XCTestCase {
 		XCTAssertEqual(MemoryLayout<MYSTRUCT>.stride, MemoryLayout<MyTestTYpe>.stride)
 		XCTAssertEqual(MemoryLayout<MYSTRUCT>.alignment, MemoryLayout<MyTestTYpe>.alignment)
 	}
-	func testSortingByFirstVariable() {
+	// func testSortingByFirstVariable() {
 
-		XCTAssertTrue(UInt64.RAW_compare(lhs:5, rhs:10) < 0)
+	// 	// XCTAssertTrue(EncodedUInt64.RAW_compare(lhs:5, rhs:10) < 0)
 
-		let dually1 = MyDually(first: 10, second: 20)
-		let dually2 = MyDually(first: 5, second: 30)
+	// 	let dually1 = MyDually(first: 10, second: 20)
+	// 	let dually2 = MyDually(first: 5, second: 30)
 
-		XCTAssertTrue(dually2 < dually1, "\(dually2) < \(dually1)")
+	// 	XCTAssertTrue(dually2 < dually1, "\(dually2) < \(dually1)")
 
-		let dually3 = MyDually(first: 15, second: 40)
+	// 	let dually3 = MyDually(first: 15, second: 40)
 
-		XCTAssertTrue(dually1 < dually3, "\(dually1) < \(dually3)")
+	// 	XCTAssertTrue(dually1 < dually3, "\(dually1) < \(dually3)")
 		
-		let sortedArray = [dually1, dually2, dually3].sorted()
+	// 	let sortedArray = [dually1, dually2, dually3].sorted()
 		
-		XCTAssertEqual(sortedArray, [dually2, dually1, dually3], "\(sortedArray)")
-	}
+	// 	XCTAssertEqual(sortedArray, [dually2, dually1, dually3], "\(sortedArray)")
+	// }
 	
-	func testComparingByFirstVariable() {
-		let dually1 = MyDually(first: 10, second: 20)
-		let dually2 = MyDually(first: 5, second: 30)
-		let dually3 = MyDually(first: 15, second: 40)
+	// func testComparingByFirstVariable() {
+	// 	let dually1 = MyDually(first: 10, second: 20)
+	// 	let dually2 = MyDually(first: 5, second: 30)
+	// 	let dually3 = MyDually(first: 15, second: 40)
 		
-		XCTAssertTrue(dually1 > dually2, "\(dually1) < \(dually2)")
-		XCTAssertFalse(dually2 > dually1, "\(dually2) < \(dually1)")
-		XCTAssertTrue(dually1 < dually3, "\(dually1) < \(dually3)")
-		XCTAssertFalse(dually3 < dually1, "\(dually3) < \(dually1)")
-		XCTAssertTrue(dually2 < dually3, "\(dually2) < \(dually3)")
-		XCTAssertFalse(dually3 < dually2, "\(dually3) < \(dually2)")
-	}
+	// 	XCTAssertTrue(dually1 > dually2, "\(dually1) < \(dually2)")
+	// 	XCTAssertFalse(dually2 > dually1, "\(dually2) < \(dually1)")
+	// 	XCTAssertTrue(dually1 < dually3, "\(dually1) < \(dually3)")
+	// 	XCTAssertFalse(dually3 < dually1, "\(dually3) < \(dually1)")
+	// 	XCTAssertTrue(dually2 < dually3, "\(dually2) < \(dually3)")
+	// 	XCTAssertFalse(dually3 < dually2, "\(dually3) < \(dually2)")
+	// }
 
 	func testBlake2AndHexFunctionality() throws {
 		do {

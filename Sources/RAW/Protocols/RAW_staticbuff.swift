@@ -17,10 +17,13 @@ public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed {
 
 public struct RAW_staticbuff_iterator<T:RAW_staticbuff>:IteratorProtocol {
 	public typealias Element = UInt8
-	private let staticbuff:T
+	private let staticbuff:[UInt8]
+	private let count:size_t
 	private var index:size_t = 0
 	public init(staticbuff:T) {
-		self.staticbuff = staticbuff
+		var count = 0
+		self.staticbuff = [UInt8](RAW_encodable:staticbuff, count_out:&count)
+		self.count = count
 	}
 	public mutating func next() -> UInt8? {
 		guard index < MemoryLayout<T.RAW_staticbuff_storetype>.size else {
@@ -29,12 +32,7 @@ public struct RAW_staticbuff_iterator<T:RAW_staticbuff>:IteratorProtocol {
 		defer {
 			index += 1
 		}
-		return staticbuff.RAW_access { buff, size in
-			#if DEBUG
-			assert(size == MemoryLayout<T.RAW_staticbuff_storetype>.size)
-			#endif
-			return buff.load(fromByteOffset:index, as:UInt8.self)
-		}
+		return staticbuff[index]
 	}
 }
 

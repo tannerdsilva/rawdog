@@ -72,6 +72,7 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 	private class VariableAndDeclLister:SyntaxVisitor {
 		var varDecls = [VariableDeclSyntax]()
 		var funcDecls = [FunctionDeclSyntax]()
+		var inheritances:Set<IdentifierTypeSyntax>? = nil
 		override func visit(_ node:VariableDeclSyntax) -> SyntaxVisitorContinueKind {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("found variable declaration: '\(node)'...")
@@ -86,11 +87,24 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 			funcDecls.append(node)
 			return .skipChildren
 		}
+		override func visit(_ node:InheritanceClauseSyntax) -> SyntaxVisitorContinueKind {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.info("found inheritance clause: '\(node)'...")
+			#endif
+			if inheritances == nil {
+				let idLister = IdTypeLister(viewMode:.sourceAccurate)
+				idLister.walk(node)
+				inheritances = idLister.listedIDTypes
+				return .skipChildren
+			}
+			return .skipChildren
+		}
 	}
 	
 	fileprivate struct ParsedConfiguration {
 		let modifiers:DeclModifierListSyntax
 		let structName:TokenSyntax
+		let inheritedTypes:Set<IdentifierTypeSyntax>
 		let concatStructure:[(name:IdentifierPatternSyntax, type:IdentifierTypeSyntax)]
 		let rawStaticbuffStoretype:String
 		let rawStaticbuffSynthesizedFromNames:String
@@ -182,13 +196,16 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 			#endif
 			context.addDiagnostics(from:Diagnostics.unimplementedStoredVariableDeclaration(expectedTypes.foundArgList.first!), node:curUnimplemented)
 		}
-		return ParsedConfiguration(modifiers:modifiers, structName:attachedName, concatStructure:buildNames, rawStaticbuffStoretype:buildRAW_staticbuff_storetype, rawStaticbuffSynthesizedFromNames:buildRAW_staticbuff_synthesized_from_names)
+		return ParsedConfiguration(modifiers:modifiers, structName:attachedName, inheritedTypes:attachedParser.inheritances ?? [], concatStructure:buildNames, rawStaticbuffStoretype:buildRAW_staticbuff_storetype, rawStaticbuffSynthesizedFromNames:buildRAW_staticbuff_synthesized_from_names)
 	}
 
     public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
         guard let parsed = try? parse(node: node, attachedTo: declaration, context: context) else {
 			return []
 		}
+		let foundInheritances = parsed.inheritedTypes
+		var inherByNames = Dictionary(grouping:foundInheritances, by: { $0.name.text }).compactMapValues { $0.first }
+
 		var members = [DeclSyntax]()
 		members.append(DeclSyntax("""
 			\(parsed.modifiers) typealias RAW_staticbuff_storetype = \(raw:parsed.rawStaticbuffStoretype)
@@ -268,6 +285,31 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 				\(raw:buildCompare)
 			}
 		"""))
+
+		if inherByNames["Hashable"] != nil {
+			members.append(DeclSyntax("""
+				\(parsed.modifiers) func hash(into hasher:inout Hasher) {
+					RAW_access { 
+						let asBuffer = UnsafeRawBufferPointer(start:$0, count:MemoryLayout<RAW_staticbuff_storetype>.size)
+						hasher.combine(bytes:asBuffer)
+					}
+				}
+			"""))
+			inherByNames["Hashable"] = nil
+		}
+
+		if inherByNames["Equatable"] != nil {
+			members.append(DeclSyntax("""
+				\(parsed.modifiers) static func == (lhs:Self, rhs:Self) -> Bool {
+					return lhs.RAW_access { lhsBuff in
+						rhs.RAW_access { rhsBuff in
+							return RAW_memcmp(lhsBuff, rhsBuff, MemoryLayout<RAW_staticbuff_storetype>.size) == 0
+						}
+					}
+				}
+			"""))
+			inherByNames["Equatable"] = nil
+		}
 		return members
     }
 
@@ -300,6 +342,8 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 		let severity:DiagnosticSeverity = .note
 	}
 	enum Diagnostics:Swift.Error, DiagnosticMessage {
+		case unsupportedInheritance(IdentifierTypeSyntax)
+
 		/// thrown when the concat macro is invoked and attached to a declaration that is not a struct.
 		case expectedStructDeclaration(SyntaxProtocol.Type)
 
@@ -331,6 +375,8 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 
 	    var message: String {
 			switch self {
+				case .unsupportedInheritance(let name):
+					return "this macro does not directly implement '\(name)' protocol. if you wish to implement this protocol yourself, you may do so in a standalone extension declaration."
 				case .unsupportedFunctionDeclaration:
 					return "this macro only supports initialization functions in the base structure declaration. please move this function to an external extension to maintain this functionality."
 				case .variableDeclarationsNotSupported:
@@ -361,6 +407,8 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 
 	    var diagnosticID: SwiftDiagnostics.MessageID {
 			switch self {
+				case .unsupportedInheritance:
+					return SwiftDiagnostics.MessageID(domain:domain, id:"unsupportedInheritance")
 				case .unimplementedStoredVariableDeclaration:
 					return SwiftDiagnostics.MessageID(domain:domain, id:"unimplementedStoredVariableDeclaration")
 				case .expectedStructDeclaration:

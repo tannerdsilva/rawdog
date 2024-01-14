@@ -5,12 +5,12 @@ import RAW_macros
 /// - arguments:
 /// 	- size_t: the size of the static buffer type.
 @attached(member, names:arbitrary)
-@attached(extension, conformances:RAW_staticbuff, Collection, ExpressibleByArrayLiteral, Equatable, Comparable, names:arbitrary)
+@attached(extension, conformances:RAW_staticbuff, names:arbitrary)
 public macro RAW_staticbuff(_:size_t) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_macro")
 
 // defines a type of static buffer that is a concatenation of other static buffer types. these types are encoded and compared sequentially.
 @attached(member, names:arbitrary)
-@attached(extension, conformances:RAW_staticbuff, Collection, ExpressibleByArrayLiteral, Equatable, Comparable, RAW_comparable, names:arbitrary)
+@attached(extension, conformances:RAW_staticbuff, RAW_comparable, names:arbitrary)
 public macro RAW_staticbuff_concat_type(_ types:any RAW_staticbuff.Type...) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_concat_type_macro")
 
 /// automatically implements RAW_staticbuff on any FixedWidthInteger type, allowing the macro user to specify either big or little endian encoding.
@@ -30,3 +30,10 @@ public macro RAW_staticbuff_binaryfloatingpoint_type<T:BinaryFloatingPoint>() = 
 
 @freestanding(declaration, names:arbitrary)
 public macro RAW_staticbuff_binaryfloatingpoint_init<T:RAW_staticbuff>() = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_binaryfloatingpoint_init_macro")
+
+@attached(member, names:arbitrary)
+@attached(memberAttribute)
+public macro RAW_convertible_string_type<S:Unicode.Encoding>() = #externalMacro(module:"RAW_macros", type:"RAW_convertible_string_type_macro")
+
+@freestanding(declaration, names:arbitrary)
+public macro RAW_convertible_string_init<S:RAW_convertible_unicode>() = #externalMacro(module:"RAW_macros", type:"RAW_convertible_string_init_macro")

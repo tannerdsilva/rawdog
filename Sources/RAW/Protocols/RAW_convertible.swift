@@ -1,5 +1,12 @@
 public typealias RAW_convertible = RAW_encodable & RAW_decodable;
 
+/// this protocol exists to create a slightly cleaner relationship between the two string based RAW_convertible macros (``RAW_convertible_string_type_macro`` and ``RAW_convertible_string_init_macro``).
+public protocol RAW_convertible_unicode:RAW_convertible {
+	associatedtype RAW_convertible_unicode_encoding:Unicode.Encoding
+
+	init(_ string:String)
+}
+
 /// protocol that represents a type that can initialize from a raw representation.
 public protocol RAW_decodable {
 
@@ -53,14 +60,14 @@ public protocol RAW_encodable {
 	func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer
 
 	/// exposes the encoded bytes as an open byte buffer, with a specified closure access function. (this is typically implemented by a default extension)
-	func RAW_access<R>(_:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R
+	// func RAW_access<R>(_:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R
 }
 
 extension RAW_encodable {
-	// default implementation is to encode into a temporary buffer that can be used for for the access function.
-	public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
-		var byteCount:size_t = 0 
-		let asBytes = [UInt8](RAW_encodable:self, count_out:&byteCount)
-		return try accessFunc(asBytes, byteCount)
-	}
+	// // default implementation is to encode into a temporary buffer that can be used for for the access function.
+	// public func RAW_access<R>(_ accessFunc: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+	// 	var byteCount:size_t = 0 
+	// 	let asBytes = [UInt8](RAW_encodable:self, count_out:&byteCount)
+	// 	return try accessFunc(asBytes, byteCount)
+	// }
 }

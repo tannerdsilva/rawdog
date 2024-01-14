@@ -154,11 +154,19 @@ internal struct RAW_staticbuff_fixedwidthinteger_type_macro:MemberMacro, Extensi
 		// no need to reference the loadFunctionName here because we can guarantee that the RAW_staticbuff_storetype is a tuple of UInt8s (always aligned)
 		buildSyntax.append(DeclSyntax("""
 			\(pconfig.modifierList) init(RAW_staticbuff ptr:UnsafeRawPointer) {
+				#if DEBUG
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<\(raw:pconfig.integerType)>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				#endif
 				self.RAW_staticbuff = ptr.load(as:RAW_staticbuff_storetype.self)
 			}
 		"""))
 		buildSyntax.append(DeclSyntax("""
 			\(pconfig.modifierList) init(_ native:\(raw:pconfig.integerType)) {
+				#if DEBUG
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<\(raw:pconfig.integerType)>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				#endif
 				self = withUnsafePointer(to:native.\(raw:pconfig.endianFunctionName)) { ptr in
 					return Self(RAW_staticbuff:ptr)
 				}
@@ -166,6 +174,10 @@ internal struct RAW_staticbuff_fixedwidthinteger_type_macro:MemberMacro, Extensi
 		"""))
 		buildSyntax.append(DeclSyntax("""
 			\(pconfig.modifierList) func RAW_encode(dest: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+				#if DEBUG
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<\(raw:pconfig.integerType)>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				#endif
 				return withUnsafePointer(to:RAW_staticbuff) { ptr in
 					return RAW_memcpy(dest, ptr, MemoryLayout<RAW_staticbuff_storetype>.size)!.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
 				}
@@ -173,6 +185,10 @@ internal struct RAW_staticbuff_fixedwidthinteger_type_macro:MemberMacro, Extensi
 		"""))
 		buildSyntax.append(DeclSyntax("""
 			\(pconfig.modifierList) func RAW_access<R>(_ accessor: (UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
+				#if DEBUG
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<\(raw:pconfig.integerType)>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				#endif
 				return try withUnsafePointer(to:RAW_staticbuff) { ptr in
 					return try accessor(ptr, MemoryLayout<RAW_staticbuff_storetype>.size)
 				}
@@ -180,6 +196,10 @@ internal struct RAW_staticbuff_fixedwidthinteger_type_macro:MemberMacro, Extensi
 		"""))
 		buildSyntax.append(DeclSyntax("""
 			\(pconfig.modifierList) mutating func RAW_access_mutating<R>(_ accessor: (UnsafeMutableRawPointer, size_t) throws -> R) rethrows -> R {
+				#if DEBUG
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<\(raw:pconfig.integerType)>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				#endif
 				return try withUnsafeMutablePointer(to:&RAW_staticbuff) { ptr in
 					return try accessor(ptr, MemoryLayout<RAW_staticbuff_storetype>.size)
 				}

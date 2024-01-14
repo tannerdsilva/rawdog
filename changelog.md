@@ -20,6 +20,8 @@
 	
 - Improved flexability and diagnostic capabilities of all builtin macros, making them easier and less fussy in use.
 
+- Removed built-in ``RAW_convertible_fixed`` implementations for numerical types in ``RAW`` target. Users are expected to express their implementations directly in their projects as explicit struct trypes using ``@RAW_staticbuff...`` macros.
+
 ### 4.3.4
 
 - Expanded platform support on MacOS, from v11 to v10.15.
