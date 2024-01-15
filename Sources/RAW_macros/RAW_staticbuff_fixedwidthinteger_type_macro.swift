@@ -11,7 +11,6 @@ import Logging
 fileprivate let mainLogger = Logger(label:domain)
 #endif
 
-
 internal struct RAW_staticbuff_fixedwidthinteger_type_macro:MemberMacro, ExtensionMacro {
 
 	// the primary tool that parses the macro node and determines how it should expand based on user configuration input.
@@ -162,13 +161,24 @@ internal struct RAW_staticbuff_fixedwidthinteger_type_macro:MemberMacro, Extensi
 			}
 		"""))
 		buildSyntax.append(DeclSyntax("""
-			\(pconfig.modifierList) init(_ native:\(raw:pconfig.integerType)) {
+			\(pconfig.modifierList) init(RAW_native native:\(raw:pconfig.integerType)) {
 				#if DEBUG
 				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
 				assert(MemoryLayout<\(raw:pconfig.integerType)>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
 				#endif
 				self = withUnsafePointer(to:native.\(raw:pconfig.endianFunctionName)) { ptr in
 					return Self(RAW_staticbuff:ptr)
+				}
+			}
+		"""))
+		buildSyntax.append(DeclSyntax("""
+			\(pconfig.modifierList) func RAW_native() -> \(raw:pconfig.integerType) {
+				#if DEBUG
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<\(raw:pconfig.integerType)>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				#endif
+				return RAW_access { ptr, size in
+					return \(raw:pconfig.integerType)(\(raw:pconfig.endianFunctionName):ptr.\(raw:loadFuncName)(as:\(raw:pconfig.integerType).self))
 				}
 			}
 		"""))
@@ -274,8 +284,15 @@ internal struct RAW_staticbuff_fixedwidthinteger_type_macro:MemberMacro, Extensi
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
 		let pconfig = try Self.parseUsageConfig(node:node, attachedTo:declaration, context:context)
+		var buildSyntax = protocols.count > 0 ? ":" : ""
+		for (i, proto) in protocols.reversed().enumerated().reversed() {
+			buildSyntax += "\(proto)"
+			if i != 0 {
+				buildSyntax += ", "
+			}
+		}
 		return [try ExtensionDeclSyntax ("""
-			extension \(raw:pconfig.structName):RAW_staticbuff {}
+			extension \(raw:pconfig.structName)\(raw:buildSyntax) {}
 		""")]
 	}
 

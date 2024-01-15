@@ -17,7 +17,7 @@ public macro RAW_staticbuff_concat_type(_ types:any RAW_staticbuff.Type...) = #e
 /// - behavior is undefined if the specified bits is not the same as the size of the specified FixedWidthInteger type.
 /// - implements ``RAW_staticbuff`` on the type unconditionally, and does not allow the user to override the comparison behavior.
 @attached(member, names:arbitrary)
-@attached(extension, conformances:RAW_staticbuff)
+@attached(extension, conformances:RAW_encoded_fixedwidthinteger)
 public macro RAW_staticbuff_fixedwidthinteger_type<T:FixedWidthInteger>(bits:size_t, bigEndian:Bool) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_fixedwidthinteger_type_macro")
 
 /// declares the initializer that allows a struct expanded with ``@RAW_staticbuff_fixedwidthinteger_type`` to be initialized from a static buffer.
@@ -34,6 +34,3 @@ public macro RAW_staticbuff_binaryfloatingpoint_init<T:RAW_staticbuff>() = #exte
 @attached(member, names:arbitrary)
 @attached(memberAttribute)
 public macro RAW_convertible_string_type<S:Unicode.Encoding>() = #externalMacro(module:"RAW_macros", type:"RAW_convertible_string_type_macro")
-
-@freestanding(declaration, names:arbitrary)
-public macro RAW_convertible_string_init<S:RAW_convertible_unicode>() = #externalMacro(module:"RAW_macros", type:"RAW_convertible_string_init_macro")

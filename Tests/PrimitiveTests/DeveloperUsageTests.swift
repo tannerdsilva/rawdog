@@ -81,8 +81,8 @@ struct MyDually {
 	var second: EncodedInt64
 
 	init(first:UInt64, second:Int64) {
-		self.first = EncodedUInt64(first)
-		self.second = EncodedInt64(second)
+		self.first = EncodedUInt64(RAW_native:first)
+		self.second = EncodedInt64(RAW_native:second)
 	}
 }
 
