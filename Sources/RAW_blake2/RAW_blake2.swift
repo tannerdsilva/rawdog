@@ -142,6 +142,10 @@ public struct Hasher<H:RAW_blake2_func_impl, O> {
 
 extension Hasher {
 	public mutating func update(_ input:[UInt8]) throws {
+		var updateCopy = input
+		try update(&updateCopy)
+	}
+	public mutating func update(_ input:inout [UInt8]) throws {
 		try update(input_data_ptr:input, input_data_size:input.count)
 	}
 }
@@ -157,7 +161,7 @@ extension Hasher where RAW_blake2_out_type:RAW_decodable {
 	/// finish the hashing process and return the result as a byte array.
 	public mutating func finish() throws -> RAW_blake2_out_type {
 		let finalHashedBytes = try RAW_blake2_func_type.finalize(state:&state, type:[UInt8].self)
-		return RAW_blake2_out_type(RAW_decode: finalHashedBytes)!
+		return RAW_blake2_out_type(RAW_decode: finalHashedBytes, count:state.outlen)!
 	}
 }
 

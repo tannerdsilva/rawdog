@@ -1,38 +1,64 @@
 /// represents a raw binary value of a pre-specified, static length.
-public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed {
+public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed, RAW_accessible {
 	associatedtype RAW_fixed_type = RAW_staticbuff_storetype
 
 	/// the type that will be used to represent the raw data.
 	/// - note: this protocol assumes that the result of `MemoryLayout<Self.RAW_staticbuff_storetype>.size` is the true size of your static buffer data. behavior with this protocol is undefined if this is not the case.
 	associatedtype RAW_staticbuff_storetype
 
-	var RAW_staticbuff:RAW_staticbuff_storetype { get }
-
 	/// initialize the static buffer from a pointer to its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
 	init(RAW_staticbuff:UnsafeRawPointer)
 
 	/// allows mutating access to the raw representation of the static buffer type.
-	mutating func RAW_access_mutating<R>(_ body:(UnsafeMutableRawPointer, size_t) throws -> R) rethrows -> R
+	mutating func RAW_access_staticbuff_mutating<R>(_ body:(UnsafeMutableRawPointer) throws -> R) rethrows -> R
 }
 
-public struct RAW_staticbuff_iterator<T:RAW_staticbuff>:IteratorProtocol {
-	public typealias Element = UInt8
-	private let staticbuff:[UInt8]
-	private let count:size_t
-	private var index:size_t = 0
-	public init(staticbuff:T) {
-		var count = 0
-		self.staticbuff = [UInt8](RAW_encodable:staticbuff, count_out:&count)
-		self.count = count
+extension RAW_staticbuff {
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
+		#if DEBUG
+		assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+		assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is a misuse of the macro")
+		assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is a misuse of the macro")
+		#endif
+		return RAW_memcmp(lhs_data, rhs_data, MemoryLayout<RAW_staticbuff_storetype>.size)
 	}
-	public mutating func next() -> UInt8? {
-		guard index < MemoryLayout<T.RAW_staticbuff_storetype>.size else {
-			return nil
+
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+		#if DEBUG
+		assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+		assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is a misuse of the macro")
+		assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is a misuse of the macro")
+		#endif
+		return RAW_memcmp(lhs_data, rhs_data, MemoryLayout<RAW_staticbuff_storetype>.size)
+	}
+}
+
+extension RAW_staticbuff where Self:ExpressibleByArrayLiteral {
+	public init(arrayLiteral elements:UInt8...) {
+		#if DEBUG
+		assert(elements.count == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+		#endif
+		self.init(RAW_staticbuff:[UInt8](elements))
+	}
+}
+
+extension RAW_staticbuff where Self:Equatable, Self:RAW_comparable_fixed {
+	public static func == (lhs:Self, rhs:Self) -> Bool {
+		withUnsafePointer(to:lhs) { lhs_ptr in
+			withUnsafePointer(to:rhs) { rhs_ptr in
+				RAW_compare(lhs_data:lhs_ptr, rhs_data:rhs_ptr) == 0
+			}
 		}
-		defer {
-			index += 1
+	}
+}
+
+extension RAW_staticbuff where Self:Comparable, Self:RAW_comparable_fixed {
+	public static func < (lhs:Self, rhs:Self) -> Bool {
+		withUnsafePointer(to:lhs) { lhs_ptr in
+			withUnsafePointer(to:rhs) { rhs_ptr in
+				RAW_compare(lhs_data:lhs_ptr, rhs_data:rhs_ptr) < 0
+			}
 		}
-		return staticbuff[index]
 	}
 }
 

@@ -11,6 +11,7 @@ fileprivate let mainLogger = Logger(label:domain)
 #endif
 
 public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
+	// parse the macro node for arguments
 	private class NodeParser:SyntaxVisitor {
 		var foundArgList:[DeclReferenceExprSyntax] = []
 		private class TypeLister:SyntaxVisitor {
@@ -33,6 +34,7 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 			return .skipChildren
 		}
 	}
+	// for each instance variable that is found in the attached member, parse various parts of the variable declaration.
 	private class VarValidator:SyntaxVisitor {
 		var varName:IdentifierPatternSyntax? = nil
 		var typeAnnotation:IdentifierTypeSyntax? = nil
@@ -72,7 +74,6 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 	private class VariableAndDeclLister:SyntaxVisitor {
 		var varDecls = [VariableDeclSyntax]()
 		var funcDecls = [FunctionDeclSyntax]()
-		var inheritances:Set<IdentifierTypeSyntax>? = nil
 		override func visit(_ node:VariableDeclSyntax) -> SyntaxVisitorContinueKind {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.info("found variable declaration: '\(node)'...")
@@ -87,46 +88,21 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 			funcDecls.append(node)
 			return .skipChildren
 		}
-		override func visit(_ node:InheritanceClauseSyntax) -> SyntaxVisitorContinueKind {
-			#if RAWDOG_MACRO_LOG
-			mainLogger.info("found inheritance clause: '\(node)'...")
-			#endif
-			if inheritances == nil {
-				let idLister = IdTypeLister(viewMode:.sourceAccurate)
-				idLister.walk(node)
-				inheritances = idLister.listedIDTypes
-				return .skipChildren
-			}
-			return .skipChildren
-		}
 	}
 	
 	fileprivate struct ParsedConfiguration {
-		let modifiers:DeclModifierListSyntax
-		let structName:TokenSyntax
-		let inheritedTypes:Set<IdentifierTypeSyntax>
 		let concatStructure:[(name:IdentifierPatternSyntax, type:IdentifierTypeSyntax)]
 		let rawStaticbuffStoretype:String
 		let rawStaticbuffSynthesizedFromNames:String
 	}
-	fileprivate static func parse(node: SwiftSyntax.AttributeSyntax, attachedTo decl:DeclGroupSyntax, context:SwiftSyntaxMacros.MacroExpansionContext) throws -> ParsedConfiguration {
-		guard let asStruct = decl.as(StructDeclSyntax.self) else {
-			context.addDiagnostics(from: Diagnostics.expectedStructDeclaration(decl.syntaxNodeType), node: decl)
-			throw Diagnostics.expectedStructDeclaration(decl.syntaxNodeType)
-		}
-		let attachedName = asStruct.name
-		let modifiers = asStruct.modifiers
 
-		#if RAWDOG_MACRO_LOG
-		mainLogger.info("found struct '\(attachedName.text)' with '\(modifiers.count)' modifiers")
-		#endif
-
+	fileprivate static func parse(node: SwiftSyntax.AttributeSyntax, attachedTo decl:DeclGroupSyntax, context:SwiftSyntaxMacros.MacroExpansionContext) -> ParsedConfiguration? {
 		// parse the node's arguments.
 		let expectedTypes = NodeParser(viewMode: .sourceAccurate)
 		expectedTypes.walk(node)
 		guard expectedTypes.foundArgList.count > 1 else {
 			context.addDiagnostics(from: Diagnostics.expectedNonEmptyArgumentList, node: node)
-			throw Diagnostics.expectedNonEmptyArgumentList
+			return nil
 		}
 		var implTypes = expectedTypes.foundArgList
 		#if RAWDOG_MACRO_LOG
@@ -135,7 +111,7 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 
 		// parse the attached syntax given the expected types from the node arguments.
 		let attachedParser = VariableAndDeclLister(viewMode: .sourceAccurate)
-		attachedParser.walk(asStruct)
+		attachedParser.walk(decl)
 		var buildNames = [(name:IdentifierPatternSyntax, type:IdentifierTypeSyntax)]()
 		var buildRAW_staticbuff_storetype = "("
 		var buildRAW_staticbuff_synthesized_from_names = "("
@@ -196,42 +172,24 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 			#endif
 			context.addDiagnostics(from:Diagnostics.unimplementedStoredVariableDeclaration(expectedTypes.foundArgList.first!), node:curUnimplemented)
 		}
-		return ParsedConfiguration(modifiers:modifiers, structName:attachedName, inheritedTypes:attachedParser.inheritances ?? [], concatStructure:buildNames, rawStaticbuffStoretype:buildRAW_staticbuff_storetype, rawStaticbuffSynthesizedFromNames:buildRAW_staticbuff_synthesized_from_names)
+		return ParsedConfiguration(concatStructure:buildNames, rawStaticbuffStoretype:buildRAW_staticbuff_storetype, rawStaticbuffSynthesizedFromNames:buildRAW_staticbuff_synthesized_from_names)
 	}
 
     public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-        guard let parsed = try? parse(node: node, attachedTo: declaration, context: context) else {
+        guard let asStruct = declaration.as(StructDeclSyntax.self) else {
+			context.addDiagnostics(from:ExpectedStructAttachment(found:declaration.syntaxNodeType), node:node)
 			return []
 		}
-		let foundInheritances = parsed.inheritedTypes
-		var inherByNames = Dictionary(grouping:foundInheritances, by: { $0.name.text }).compactMapValues { $0.first }
-
+		guard let parsed = parse(node: node, attachedTo: declaration, context: context) else {
+			return []
+		}
 		var members = [DeclSyntax]()
 		members.append(DeclSyntax("""
-			\(parsed.modifiers) typealias RAW_staticbuff_storetype = \(raw:parsed.rawStaticbuffStoretype)
-		"""))
-		members.append(DeclSyntax("""
-			\(parsed.modifiers) var RAW_staticbuff:RAW_staticbuff_storetype {
-				return \(raw:parsed.rawStaticbuffSynthesizedFromNames)
-			}
+			\(asStruct.modifiers) typealias RAW_staticbuff_storetype = \(raw:parsed.rawStaticbuffStoretype)
 		"""))
 
 		members.append(DeclSyntax("""
-			\(parsed.modifiers) mutating func RAW_access_mutating<R>(_ body:(UnsafeMutableRawPointer, size_t) throws -> R) rethrows -> R {
-				return try withUnsafeMutablePointer(to:&self) {
-					return try body($0, MemoryLayout<RAW_staticbuff_storetype>.size)
-				}
-			}
-		"""))
-		members.append(DeclSyntax("""
-			\(parsed.modifiers) func RAW_access<R>(_ body:(UnsafeRawPointer, size_t) throws -> R) rethrows -> R {
-				return try withUnsafePointer(to:self) {
-					return try body($0, MemoryLayout<RAW_staticbuff_storetype>.size)
-				}
-			}
-		"""))
-		members.append(DeclSyntax("""
-			\(parsed.modifiers) init(RAW_staticbuff ptr:UnsafeRawPointer) {
+			\(asStruct.modifiers) init(RAW_staticbuff ptr:UnsafeRawPointer) {
 				#if DEBUG
 				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is unexpected and breaks the assumptions that allow this macro to work")
 				assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is unexpected and breaks the assumptions that allow this macro to work")
@@ -240,86 +198,137 @@ public struct RAW_staticbuff_concat_type_macro:MemberMacro, ExtensionMacro {
 				self = ptr.load(as:Self.self)
 			}
 		"""))
-		members.append(DeclSyntax("""
-			\(parsed.modifiers) func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-				return withUnsafePointer(to:self) {
-					dest.copyMemory(from:$0, byteCount:MemoryLayout<RAW_staticbuff_storetype>.size)
-					return dest.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
-				}
-			}
-		"""))
-
-		var buildCompare = """
-		var lhs_seeker = lhs_data
-		var rhs_seeker = rhs_data
-		var precomp_lhs:UnsafeRawPointer
-		var precomp_rhs:UnsafeRawPointer
-		var compareResult:Int32 = 0
-
-		"""
-		for curCompare in parsed.concatStructure {
-			buildCompare += """
-			#if DEBUG
-			precomp_lhs = lhs_seeker
-			precomp_rhs = rhs_seeker
-			#endif
-			compareResult = \(curCompare.type.name.text).RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
-			#if DEBUG 
-			assert(lhs_seeker == precomp_lhs.advanced(by:MemoryLayout<\(curCompare.type.name.text)>.size), "unexpected seek length. this is unexpected and breaks the assumptions that allow this macro to work")
-			assert(rhs_seeker == precomp_rhs.advanced(by:MemoryLayout<\(curCompare.type.name.text)>.size), "unexpected seek length. this is unexpected and breaks the assumptions that allow this macro to work")
-			#endif
-			switch compareResult {
-				case 0:
-					break
-				default:
-					return compareResult
-			}
-			"""
-		}
-		buildCompare += """
-		return compareResult
-
-		"""
-		members.append(DeclSyntax("""
-			\(parsed.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
-				\(raw:buildCompare)
-			}
-		"""))
-
-		if inherByNames["Hashable"] != nil {
-			members.append(DeclSyntax("""
-				\(parsed.modifiers) func hash(into hasher:inout Hasher) {
-					RAW_access { 
-						let asBuffer = UnsafeRawBufferPointer(start:$0, count:MemoryLayout<RAW_staticbuff_storetype>.size)
-						hasher.combine(bytes:asBuffer)
-					}
-				}
-			"""))
-			inherByNames["Hashable"] = nil
-		}
-
-		if inherByNames["Equatable"] != nil {
-			members.append(DeclSyntax("""
-				\(parsed.modifiers) static func == (lhs:Self, rhs:Self) -> Bool {
-					return lhs.RAW_access { lhsBuff in
-						rhs.RAW_access { rhsBuff in
-							return RAW_memcmp(lhsBuff, rhsBuff, MemoryLayout<RAW_staticbuff_storetype>.size) == 0
-						}
-					}
-				}
-			"""))
-			inherByNames["Equatable"] = nil
-		}
+		
 		return members
     }
 
     public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
-       guard let structName = declaration.as(StructDeclSyntax.self)?.name else {
-			return []
+	   guard let asStruct = declaration.as(StructDeclSyntax.self) else {
+		//    context.addDiagnostics(from:ExpectedStructAttachment(found:declaration.syntaxNodeType), node:node)
+		   return []
 	   }
-	   return [try ExtensionDeclSyntax("""
-			extension \(structName):RAW_staticbuff, RAW_comparable {}
-		""")]
+	   var buildProtos = protocols.count > 0 ? ": " : ""
+	   for (i, proto) in protocols.enumerated() {
+		   buildProtos += "\(proto)"
+		   if i < protocols.count - 1 {
+			   buildProtos += ", "
+		   }
+	   }
+	   var buildResults = [ExtensionDeclSyntax]()
+
+		for proto in protocols {
+			guard let protoId = proto.as(IdentifierTypeSyntax.self) else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected identifier type, found \(String(describing:proto.syntaxNodeType))")
+				#endif
+				fatalError()
+			}
+			let pname = protoId.name.text
+			switch pname {
+				case "RAW_accessible":
+					buildResults.append(try ExtensionDeclSyntax("""
+						extension \(type):\(raw:pname) {
+							\(asStruct.modifiers) mutating func RAW_access_mutating<R>(_ body:(inout UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R {
+								var makeBuffer = UnsafeMutableBufferPointer<UInt8>(start:&privateBytes, count:MemoryLayout<RAW_staticbuff_storetype>.size)
+								#if DEBUG
+								let buffCap = makeBuffer.baseAddress
+								defer {
+									assert(makeBuffer.baseAddress != buffCap, "you cannot change the underlying buffer of a static buffer type. this is a user error.")
+								}
+								#endif
+								return try body(&makeBuffer)
+							}
+						}
+					"""))
+				case "RAW_comparable":
+					buildResults.append(try ExtensionDeclSyntax("""
+						extension \(type):\(raw:pname) {
+							\(asStruct.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
+								#if DEBUG
+								assert(lhs_count == MemoryLayout<RAW_staticbuff_storetype>.size, "the size of the left hand side must be equal to the size of the static buffer type. this is an unexpected internal error.")
+								assert(rhs_count == MemoryLayout<RAW_staticbuff_storetype>.size, "the size of the right hand side must be equal to the size of the static buffer type. this is an unexpected internal error.")
+								#endif
+								return RAW_memcmp(lhs_data, rhs_data, MemoryLayout<RAW_staticbuff_storetype>.size)
+							}
+						}
+					"""))
+
+				case "RAW_encodable":
+					buildResults.append(try ExtensionDeclSyntax("""
+					extension \(type):\(raw:pname) {
+						/// encodes the type into the given destination pointer.
+						/// - returns: a pointer at the end of the the n + 1 memory stride that occurred during the write
+						\(asStruct.modifiers) mutating func RAW_encode(dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+							#if DEBUG
+							assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "the stride of the type must be equal to the stride of the static buffer type. this is an unexpected internal error.")
+							assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "the alignment of the type must be equal to the alignment of the static buffer type. this is an unexpected internal error.")
+							assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "the size of the type must be equal to the size of the static buffer type. this is an unexpected internal error.")
+							#endif
+							return withUnsafeMutablePointer(to:&self) { valPtr in
+								return RAW_memcpy(dest, valPtr, MemoryLayout<RAW_staticbuff_storetype>.size)!.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
+							}
+						}
+
+						/// encodes the byte count of the encoding to the given ``size_t`` pointer.
+						\(asStruct.modifiers) mutating func RAW_encode(count:inout size_t) {
+							#if DEBUG
+							assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "the stride of the type must be equal to the stride of the static buffer type. this is an unexpected internal error.")
+							assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "the alignment of the type must be equal to the alignment of the static buffer type. this is an unexpected internal error.")
+							assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "the size of the type must be equal to the size of the static buffer type. this is an unexpected internal error.")
+							#endif
+							count += MemoryLayout<RAW_staticbuff_storetype>.size
+						}
+					}
+					"""))
+				case "RAW_decodable":
+					buildResults.append(try ExtensionDeclSyntax("""
+						extension \(type):\(raw:pname) {
+							/// initializes the type from a raw pointer. it is assumed that the contents of the pointer are of correct size.
+							\(asStruct.modifiers) init?(RAW_decode:UnsafeRawPointer, count:size_t) {
+								guard count == MemoryLayout<RAW_staticbuff_storetype>.size else {
+									return nil
+								}
+								self.init(RAW_staticbuff:RAW_decode)
+							}
+						}
+					"""))
+				case "RAW_fixed":
+					buildResults.append(try ExtensionDeclSyntax("""
+						extension \(type):\(raw:pname) {
+							\(asStruct.modifiers) typealias RAW_fixed_type = RAW_staticbuff_storetype
+						}
+					"""))
+				case "RAW_convertible_fixed":
+					buildResults.append(try ExtensionDeclSyntax("""
+						extension \(type):\(raw:pname) {
+							/// initializes the type from a raw pointer. it is assumed that the contents of the pointer are of correct size.
+							\(asStruct.modifiers) init(RAW_decode ptr:UnsafeRawPointer) {
+								self.init(RAW_staticbuff:ptr)
+							}
+						}
+					"""))
+				case "RAW_comparable_fixed":
+					buildResults.append(try ExtensionDeclSyntax("""
+						extension \(type):\(raw:pname) {
+							/// compare two instances of the same type.
+							\(asStruct.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+								return RAW_memcmp(lhs_data, rhs_data, MemoryLayout<RAW_staticbuff_storetype>.size)
+							}
+						}
+					"""))
+				case "RAW_staticbuff":
+					buildResults.append(try ExtensionDeclSyntax("""
+						extension \(type):\(raw:pname) {}
+					"""))
+				default:
+					#if RAWDOG_MACRO_LOG
+					mainLogger.error("unknown protocol name '\(pname)'.")
+					#endif
+				
+			}
+		}
+
+		return buildResults
     }
 
 	/// an accent note that is used when Diagnostics.invalidStoredVariable.invalidTypeAnnotation is thrown.

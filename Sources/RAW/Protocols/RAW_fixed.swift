@@ -13,10 +13,6 @@ public protocol RAW_convertible_fixed:RAW_convertible, RAW_fixed {
 
 /// extensions that provide the expected implementations for ``RAW_convertible`` based on the knowledge gained from the ``RAW_fixed`` protocol.
 extension RAW_convertible_fixed {
-	public func RAW_encoded_size() -> size_t {
-		return MemoryLayout<RAW_fixed_type>.size
-	}
-
 	public init?(RAW_decode ptr:UnsafeRawPointer, count:size_t) {
 		guard count == MemoryLayout<RAW_fixed_type>.size else {
 			return nil
@@ -26,7 +22,7 @@ extension RAW_convertible_fixed {
 }
 
 /// a type that can be compared with another instance of the same type.
-public protocol RAW_comparable_fixed:RAW_comparable, RAW_fixed {
+public protocol RAW_comparable_fixed:RAW_fixed {
 	/// compare two instances of the same type.
 	static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32
 }
