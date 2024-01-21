@@ -13,14 +13,11 @@ struct RAW_macros:CompilerPlugin {
 		RAW_convertible_string_init_macro.self,
 		RAW_convertible_string_type_macro.self,
 
-		RAW_staticbuff_binaryfloatingpoint_init_macro.self,
 		RAW_staticbuff_floatingpoint_type_macro.self,
 
-		RAW_staticbuff_fixedwidthinteger_bridge_macro.self,
 		RAW_staticbuff_fixedwidthinteger_type_macro.self,
 		
 		RAW_staticbuff_macro.self,
-		RAW_staticbuff_concat_type_macro.self,
 	]
 }
 
@@ -55,6 +52,67 @@ internal class SingleTypeGenericArgumentFinder:SyntaxVisitor {
 		idScanner.walk(node)
 		foundType = idScanner.listedIDTypes.first
 		return .skipChildren
+	}
+}
+
+
+internal class StructFinder:SyntaxVisitor {
+	var structDecl:StructDeclSyntax? = nil
+	override func visit(_ node:StructDeclSyntax) -> SyntaxVisitorContinueKind {
+		structDecl = node
+		return .skipChildren
+	}
+}
+
+internal struct RAW_staticbuff {
+	internal enum UsageMode {
+		case bytes(Int)
+		case types([IdentifierTypeSyntax])
+	}
+	internal class SyntaxFinder:SyntaxVisitor {
+		internal var found:AttributeSyntax? = nil
+		internal var usageMode:UsageMode? = nil
+		override func visit(_ node:AttributeSyntax) -> SyntaxVisitorContinueKind {
+			guard let attr = node.attributeName.as(IdentifierTypeSyntax.self) else {
+				return .skipChildren
+			}
+			guard attr.name.text == "RAW_staticbuff" else {
+				return .skipChildren
+			}
+			guard node.arguments != nil else {
+				return .skipChildren
+			}
+			found = node
+			return .visitChildren
+		}
+		override func visit(_ node:LabeledExprListSyntax) -> SyntaxVisitorContinueKind {
+			guard let firstItem = node.first?.as(LabeledExprSyntax.self) else {
+				return .skipChildren
+			}
+			guard let firstLabel = firstItem.label else {
+				return .skipChildren
+			}
+			switch firstLabel.text {
+				case "bytes":
+					guard let isInt = firstItem.expression.as(IntegerLiteralExprSyntax.self) else {
+						return .skipChildren
+					}
+					guard let byteCount = Int(isInt.literal.text) else {
+						return .skipChildren
+					}
+					usageMode = .bytes(byteCount)
+				case "concat":
+					guard let isTypeList = firstItem.expression.as(TypeExprSyntax.self) else {
+						return .skipChildren
+					}
+					let idScanner = IdTypeLister(viewMode:.sourceAccurate)
+					idScanner.walk(node)
+					usageMode = .types(idScanner.listedIDTypes.map { $0 })
+				default:
+					return .skipChildren
+			}
+			return .skipChildren
+		}
 	}
 }
 

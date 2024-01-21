@@ -35,7 +35,7 @@ public struct UnexpectedVariableType:Swift.Error, DiagnosticMessage {
 	public let expectedType:TokenSyntax
 	/// the variable that was actually found
 	public let foundType:TokenSyntax?
-	public var message:String { "variable type annotation not found. please add a type annotation to this variable declaration." }
+	public var message:String { "unexpected variable type declaration found. expected to find variable of type \(expectedType) but instad found type \(String(describing:foundType))" }
 	public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_missing_type_annotation")}
 	public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
 }
@@ -44,6 +44,18 @@ public struct UnexpectedVariableType:Swift.Error, DiagnosticMessage {
 public struct ExtraneousVariableDeclaration:Swift.Error, DiagnosticMessage {
 	public var message:String { "extraneous variable declaration found. please move this variable to a standalone extension." }
 	public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_extraneous_variable_declaration")}
+	public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
+}
+
+public struct UnimplementedVariableMember:Swift.Error, DiagnosticMessage {
+	public var message:String { "this member is not implemented in the attached body. please implement this variable in the body to silence this error." }
+	public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_unimplemented_member")}
+	public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
+}
+
+public struct LetBindingSpecifierUnsupported:Swift.Error, DiagnosticMessage {
+	public var message:String { "let binding specifiers are not supported in this mode. please remove the let binding specifier from this variable declaration, and replace it with 'var'." }
+	public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_let_binding_specifier_unsupported")}
 	public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
 }
 
@@ -122,6 +134,16 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			return .skipChildren
 		}
 	}
+	private class VariableNameFinder:SyntaxVisitor {
+		var name:TokenSyntax? = nil
+		override func visit(_ node:PatternBindingSyntax) -> SyntaxVisitorContinueKind {
+			guard name == nil else {
+				return .skipChildren
+			}
+			name = node.pattern.as(IdentifierPatternSyntax.self)?.identifier
+			return .skipChildren
+		}
+	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
 		guard node.is(AttributeSyntax.self) else {
@@ -131,26 +153,23 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			fatalError()
 		}
 
-		guard  declaration.is(StructDeclSyntax.self) else {
+		guard declaration.is(StructDeclSyntax.self) else {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.error("expected struct declaration, found \(String(describing:declaration.syntaxNodeType))")
 			#endif
 			return []
 		}
 
-		for curProto in protocols {
-			#if RAWDOG_MACRO_LOG
-			mainLogger.info("checking protocol \(curProto.description)")
-			#endif
-		}
-
 		return [try ExtensionDeclSyntax("""
-				extension \(type):RAW_staticbuff {}
-			""")]
+			extension \(type):RAW_staticbuff {}
+		""")]
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-		guard let asStruct = declaration.as(StructDeclSyntax.self) else {
+		// parse for the attached declaration
+		let structFinder = StructFinder(viewMode: .sourceAccurate)
+		structFinder.walk(declaration)
+		guard let asStruct = structFinder.structDecl else {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.error("expected struct declaration, found \(String(describing:declaration.syntaxNodeType))")
 			#endif
@@ -158,6 +177,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			return []
 		}
 
+		// parse for the macro syntax
 		let nodeConfig = NodeUsageParser(viewMode: .sourceAccurate)
 		nodeConfig.walk(node)
 		guard let config = nodeConfig.mode else {
@@ -167,7 +187,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			fatalError()
 		}
 
-		// find the variable decls
+		// find the variable decls in the struct
 		let varScanner = VariableDeclLister(viewMode:.sourceAccurate)
 		varScanner.walk(asStruct)
 
@@ -211,7 +231,15 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 					\(raw:asStruct.modifiers) typealias RAW_staticbuff_storetype = (\(raw:buildStoreTypes.joined(separator: ", ")))
 				"""))
 				var tokensDown = tokens
+				var varNameVarType = [TokenSyntax:IdentifierTypeSyntax]()
 				varLoop: for curVar in varScanner.varDecls {
+					if curVar.bindingSpecifier.text == "let" {
+						#if RAWDOG_MACRO_LOG
+						mainLogger.error("let binding specifiers are not supported in this mode. please remove the let binding specifier from this variable declaration, and replace it with 'var'.")
+						#endif
+						context.addDiagnostics(from:LetBindingSpecifierUnsupported(), node:curVar.bindingSpecifier)
+					}
+
 					if tokensDown.count == 0 {
 						#if RAWDOG_MACRO_LOG
 						mainLogger.error("extraneous variable declaration found. this variable will be skipped.")
@@ -219,6 +247,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 						context.addDiagnostics(from:ExtraneousVariableDeclaration(), node:curVar)
 						continue varLoop
 					}
+
 					let abLister = AccessorBlockLister(viewMode:.sourceAccurate)
 					abLister.walk(curVar)
 					guard abLister.accessorBlocks.count == 0 else {
@@ -227,6 +256,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 						#endif
 						continue varLoop
 					}
+					
 					// find the type of the variable
 					let tupleFinder = TuplePatternLister(viewMode:.sourceAccurate)
 					tupleFinder.walk(curVar)
@@ -269,9 +299,59 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 						continue varLoop
 					}
 
+					let varNameFinder = VariableNameFinder(viewMode:.sourceAccurate)
+					varNameFinder.walk(curVar)
+					guard let varName = varNameFinder.name else {
+						#if RAWDOG_MACRO_LOG
+						mainLogger.error("expected exactly one variable name in variable declaration, found \(varNameFinder.name == nil ? 0 : 2)")
+						#endif
+						context.addDiagnostics(from:UnexpectedVariableType(expectedType:tokensDown.first!, foundType:typeAnnotation.name), node:curVar)
+						tokensDown.remove(at:0)
+						continue varLoop
+					}
+
 					tokensDown.remove(at:0)
+					varNameVarType[varName] = typeAnnotation
 				}
+
+				// flag leftover type tokens (in the macro syntax) as extraneous if they exist.
+				for token in tokensDown {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.error("extraneous type \(token.text) found. this type will be skipped.")
+					#endif
+					context.addDiagnostics(from:UnimplementedVariableMember(), node:token)
+				}
+
+				// write the custom compare function for this type.
+				var buildCompare = [String]()
+				for (_, curType) in varNameVarType {
+					buildCompare.append("""
+						compare_result = \(curType.name).RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
+						guard compare_result == 0 else {
+							return compare_result
+						}
+					""")
+				}
+				declString.append(DeclSyntax("""
+					/// compare two instances of the same type.
+					\(raw:asStruct.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+						#if DEBUG
+						assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+						assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is a misuse of the macro")
+						assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is a misuse of the macro")
+						#endif
+						var compare_result:Int32
+						var lhs_seeker = lhs_data
+						var rhs_seeker = rhs_data
+
+						\(raw:buildCompare.joined(separator: "\n"))
+
+						return compare_result
+					}
+				"""))
 			}
+
+		// apply the default implementations for the protocol conformance
 		declString.append(DeclSyntax("""
 			/// initialize the static buffer from a pointer to its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
 			\(asStruct.modifiers) init(RAW_staticbuff ptr:UnsafeRawPointer) {
@@ -317,6 +397,16 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 				}
 			}
 		"""))
+		declString.append(DeclSyntax("""
+			\(asStruct.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
+				#if DEBUG
+				assert(lhs_count == MemoryLayout<RAW_staticbuff_storetype>.size, "lhs_count: \\(lhs_count) != MemoryLayout<RAW_staticbuff_storetype>.size: \\(MemoryLayout<RAW_staticbuff_storetype>.size)")
+				assert(rhs_count == MemoryLayout<RAW_staticbuff_storetype>.size, "rhs_count: \\(rhs_count) != MemoryLayout<RAW_staticbuff_storetype>.size: \\(MemoryLayout<RAW_staticbuff_storetype>.size)")
+				#endif
+				return RAW_compare(lhs_data:lhs_data, rhs_data:rhs_data)
+			}
+		"""))
+		
 		return declString
 	}
 }

@@ -14,15 +14,6 @@ public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed, RAW_
 }
 
 extension RAW_staticbuff {
-	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
-		#if DEBUG
-		assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
-		assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is a misuse of the macro")
-		assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is a misuse of the macro")
-		#endif
-		return RAW_memcmp(lhs_data, rhs_data, MemoryLayout<RAW_staticbuff_storetype>.size)
-	}
-
 	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
 		#if DEBUG
 		assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -42,23 +33,36 @@ extension RAW_staticbuff where Self:ExpressibleByArrayLiteral {
 	}
 }
 
+extension RAW_staticbuff where Self:Hashable {
+	public func hash(into hasher:inout Hasher) {
+		var copy = self
+		copy.RAW_access_staticbuff_mutating({ ptr in
+			hasher.combine(bytes:UnsafeRawBufferPointer(start:ptr, count:MemoryLayout<RAW_staticbuff_storetype>.size))
+		})
+	}
+}
+
 extension RAW_staticbuff where Self:Equatable, Self:RAW_comparable_fixed {
 	public static func == (lhs:Self, rhs:Self) -> Bool {
-		withUnsafePointer(to:lhs) { lhs_ptr in
-			withUnsafePointer(to:rhs) { rhs_ptr in
+		var lhsCopy = lhs
+		var rhsCopy = rhs
+		return lhsCopy.RAW_access_staticbuff_mutating({ lhs_ptr in
+			rhsCopy.RAW_access_staticbuff_mutating({ rhs_ptr in
 				RAW_compare(lhs_data:lhs_ptr, rhs_data:rhs_ptr) == 0
-			}
-		}
+			})
+		})
 	}
 }
 
 extension RAW_staticbuff where Self:Comparable, Self:RAW_comparable_fixed {
 	public static func < (lhs:Self, rhs:Self) -> Bool {
-		withUnsafePointer(to:lhs) { lhs_ptr in
-			withUnsafePointer(to:rhs) { rhs_ptr in
+		var lhsCopy = lhs
+		var rhsCopy = rhs
+		return lhsCopy.RAW_access_staticbuff_mutating({ lhs_ptr in
+			rhsCopy.RAW_access_staticbuff_mutating({ rhs_ptr in
 				RAW_compare(lhs_data:lhs_ptr, rhs_data:rhs_ptr) < 0
-			}
-		}
+			})
+		})
 	}
 }
 
