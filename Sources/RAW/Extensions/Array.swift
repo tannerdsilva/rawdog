@@ -9,7 +9,7 @@ extension Array:RAW_accessible, RAW_encodable where Element == UInt8 {
 	}
 	public mutating func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
 		let advancedCount = withUnsafeMutableBufferPointer({ buff in
-			_ = RAW_memcpy(dest, buff.baseAddress, buff.count)!
+			_ = RAW_memcpy(dest, buff.baseAddress!, buff.count)!
 			return buff.count
 		})
 		return dest.advanced(by:advancedCount)
