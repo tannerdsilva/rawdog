@@ -163,8 +163,9 @@ class Base64Tests: XCTestCase {
 
 		let loopTestString = "SGVsbG8sIFdvcmxkIQ"
 		assert(loopTestString.count == base64Encoded.count)
+		var iter = base64Encoded.makeIterator()
 		for (i, val) in loopTestString.enumerated() {
-			XCTAssertEqual(val, base64Encoded[i].characterValue())
+			XCTAssertEqual(val, iter.next()?.characterValue())
 		}
 	}
 

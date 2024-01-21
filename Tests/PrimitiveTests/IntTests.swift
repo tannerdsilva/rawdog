@@ -68,7 +68,6 @@ class RAWInt16Tests: XCTestCase {
 	}
 }
 
-
 @RAW_staticbuff(bytes:4)
 @RAW_staticbuff_fixedwidthinteger_type<Int32>(bigEndian:true)
 fileprivate struct _Int32:ExpressibleByIntegerLiteral, Equatable {}

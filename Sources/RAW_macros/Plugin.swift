@@ -10,7 +10,6 @@ import SwiftDiagnostics
 @main
 struct RAW_macros:CompilerPlugin {
 	let providingMacros:[Macro.Type] = [
-		RAW_convertible_string_init_macro.self,
 		RAW_convertible_string_type_macro.self,
 
 		RAW_staticbuff_floatingpoint_type_macro.self,

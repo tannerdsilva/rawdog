@@ -1,10 +1,18 @@
 public typealias RAW_convertible = RAW_encodable & RAW_decodable;
 
 /// this protocol exists to create a slightly cleaner relationship between the two string based RAW_convertible macros (``RAW_convertible_string_type_macro`` and ``RAW_convertible_string_init_macro``).
-public protocol RAW_convertible_unicode:RAW_convertible {
+public protocol RAW_encoded_unicode:RAW_convertible, RAW_accessible, Sequence<Character>, RAW_comparable {
 	associatedtype RAW_convertible_unicode_encoding:Unicode.Encoding where RAW_convertible_unicode_encoding.CodeUnit:FixedWidthInteger
+
+	associatedtype RAW_integer_encoding_impl:RAW_encoded_fixedwidthinteger where RAW_integer_encoding_impl.RAW_native_type == RAW_convertible_unicode_encoding.CodeUnit
 		
-	init(_ string:String)
+	init(_ string:String.UnicodeScalarView)
+}
+
+extension RAW_encoded_unicode where Self:ExpressibleByStringLiteral {
+	public init(stringLiteral value: String) {
+		self.init(value.unicodeScalars)
+	}
 }
 
 /// protocol that represents a type that can initialize from a raw representation in memory.
