@@ -4,9 +4,14 @@ public protocol RAW_accessible:RAW_encodable {
 }
 
 extension RAW_accessible {
-	public mutating func RAW_transcode_copy<T>(to:T.Type, destination:inout T?) where T:RAW_decodable {
-		RAW_access_mutating { buff in
-			destination = T.init(RAW_accessed:buff)
-		}
+	public mutating func RAW_encode(count: inout size_t) {
+		RAW_access_mutating({ buffer in
+			count += buffer.count
+		})
+	}
+	@discardableResult public mutating func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
+		return RAW_access_mutating({ source in
+			return RAW_memcpy(dest, source.baseAddress!, source.count)!.advanced(by:source.count).assumingMemoryBound(to:UInt8.self)
+		})
 	}
 }

@@ -1,3 +1,7 @@
+## 5.1.0
+
+- Added extensions to ``UnsafeMutableBufferPointer<UInt8>`` allowing it to conform directly to ``RAW_accessible``.
+
 # 5.0.0 'Mega Macro Makeover'
 
 - Introduction of a new protocol ``RAW_fixed`` which provides many of the functions and utilities that ``RAW_staticbuff`` served in the `4.x.x` releases.
