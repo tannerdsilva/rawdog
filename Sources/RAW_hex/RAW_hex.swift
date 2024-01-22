@@ -18,7 +18,7 @@ public enum Error:Swift.Error {
 	case hexEncodeFailed
 	/// thrown when the hex string is not a valid hex character.
 	/// - valid hex characters are `0-9`, `a-f`, and `A-F` in ascii form.
-	case invalidHexEncodingCharacter(UInt8)
+	case invalidHexEncodingCharacter(Character)
 	/// thrown when a hex encoded string is not a valid size for the decoding algorithm. encoded strings must be an even number of characters, since they are represented with twice as many bytes.
 	case invalidEncodingSize(size_t)
 }
@@ -40,7 +40,7 @@ extension Array where Element == Value {
 	}
 
 	/// returns an array of random hex values. the length of the array is specified by the `length` parameter.
-	public static func random(length:size_t) -> Self {
+	public static func random(count length:size_t) -> Self {
 		return Self(unsafeUninitializedCapacity:length, initializingWith: { valueBuffer, valueCount in
 			valueCount = 0
 			var seekPointer = valueBuffer.baseAddress!

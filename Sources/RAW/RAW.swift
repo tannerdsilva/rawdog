@@ -7,8 +7,13 @@ public typealias size_t = CRAW.size_t
 
 import func CRAW.memcmp
 import func CRAW.memcpy
+import func CRAW.strlen
+
 public let RAW_memcmp = CRAW.memcmp
 public let RAW_memcpy = CRAW.memcpy
+public func RAW_strlen(_ str:UnsafeRawPointer) -> size_t {
+	return CRAW.strlen(str)
+}
 
 #if RAWDOG_LOG
 import Logging

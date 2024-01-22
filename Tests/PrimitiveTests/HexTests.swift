@@ -13,7 +13,7 @@ class HexTests: XCTestCase {
 
 	func testHexEncodeAndDecodeWithLargeRandomData() throws {
 		for _ in 0..<512 {
-			let randomData = try Encoded.from(encoded:[Value].random(length:size_t.random(in:512..<1024) * 2))
+			let randomData = try Encoded.from(encoded:[Value].random(count:size_t.random(in:512..<1024) * 2))
 			let decodedData = randomData.decoded()
 			let encString = String(Encoded.from(decoded:decodedData))
 			XCTAssertEqual(String(randomData), encString)

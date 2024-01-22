@@ -142,6 +142,10 @@ public struct Hasher<H:RAW_blake2_func_impl, O> {
 
 extension Hasher {
 	public mutating func update(_ input:[UInt8]) throws {
+		var updateCopy = input
+		try update(&updateCopy)
+	}
+	public mutating func update(_ input:inout [UInt8]) throws {
 		try update(input_data_ptr:input, input_data_size:input.count)
 	}
 }
@@ -157,7 +161,7 @@ extension Hasher where RAW_blake2_out_type:RAW_decodable {
 	/// finish the hashing process and return the result as a byte array.
 	public mutating func finish() throws -> RAW_blake2_out_type {
 		let finalHashedBytes = try RAW_blake2_func_type.finalize(state:&state, type:[UInt8].self)
-		return RAW_blake2_out_type(RAW_decode: finalHashedBytes)!
+		return RAW_blake2_out_type(RAW_decode: finalHashedBytes, count:state.outlen)!
 	}
 }
 
@@ -171,9 +175,9 @@ extension Hasher where RAW_blake2_out_type == [UInt8] {
 	}
 
 	/// initialize the hasher, preparing it for use with a specified key value.
-	public init(key:UnsafeRawPointer, keySize:size_t, outputLength:size_t) throws {
+	public init(key_data:UnsafeRawPointer, key_count:size_t, outputLength:size_t) throws {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
-		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:key, key_data_size:keySize, output_length:outputLength)
+		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:key_data, key_data_size:key_count, output_length:outputLength)
 	}
 }
 
@@ -186,9 +190,9 @@ extension Hasher where RAW_blake2_out_type:RAW_staticbuff {
 	}
 
 	/// initialize the hasher, preparing it for use with a specified key value.
-	public init(key:UnsafeRawPointer, keySize:size_t) throws {
+	public init(key_data:UnsafeRawPointer, key_count:size_t) throws {
 		var newState = RAW_blake2_func_type.RAW_blake2_statetype()
-		try Self.RAW_blake2_func_type.create(state:&newState, key_data_ptr:key, key_data_size:keySize, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
+		try Self.RAW_blake2_func_type.create(state:&newState, key_data_ptr:key_data, key_data_size:key_count, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
 		self.state = newState
 	}
 

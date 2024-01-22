@@ -64,9 +64,26 @@ extension Encoded {
 
 extension Encoded {
 	public static func from(encoded encstr:String) throws -> Self {
-		let utf8Bytes = [UInt8](encstr.utf8)
-		let getCount = utf8Bytes.count
-		return try Self.from(encoded:utf8Bytes, count:getCount)
+		return try Self.from(encoded:encstr.unicodeScalars)
+	}
+	
+	public static func from(encoded encstr:String.UnicodeScalarView) throws -> Self {
+		let encLen = encstr.count
+		return try Self.from(encoded:try [UInt8](unsafeUninitializedCapacity:encLen, initializingWith: { buff, usedCount in
+			usedCount = 0
+			var seekPointer = buff.baseAddress!
+			for scalar in encstr {
+				guard scalar.isASCII == true else {
+					throw Error.invalidHexEncodingCharacter(Character(scalar))
+				}
+				seekPointer.initialize(to:UInt8(scalar.value))
+				seekPointer += 1
+				usedCount += 1
+			}
+			#if DEBUG
+			assert(usedCount == encLen)
+			#endif
+		}), count:encLen)
 	}
 
 	public static func from(encoded values:[Value]) throws -> Self {
@@ -74,7 +91,7 @@ extension Encoded {
 	}
 }
 
-extension Encoded:Collection {
+extension Encoded:RandomAccessCollection {
 	/// ``Encoded`` strides through memory using the size_t type.
 	public typealias Index = size_t
 	
@@ -110,7 +127,7 @@ extension Encoded:Sequence {
 	/// purpose built iterator for hex encoded values. designed to ensure that compute resource is not wasted when iterating over the encoded values. no double-dipping here.
 	public struct Iterator:IteratorProtocol {
 		// the decoded bytes.
-		private let decoded_data:[UInt8]
+		private var decoded_data:[UInt8]
 		// the pending value if there is one.
 		private var pendingValue:Value? = nil
 		// the current index in the encoded bytes.
@@ -131,7 +148,7 @@ extension Encoded:Sequence {
 				guard index < endIndex else {
 					return nil
 				}
-				let (first, second) = Encode.process_inline(decoded_data:decoded_data, encoded_index:index)
+				let (first, second) = Encode.process_inline(decoded_data:&decoded_data, encoded_index:index)
 				pendingValue = second
 				index += 1
 				return first

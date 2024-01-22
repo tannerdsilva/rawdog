@@ -1,3 +1,29 @@
+# 5.0.0 'Mega Macro Makeover'
+
+- Introduction of a new protocol ``RAW_fixed`` which provides many of the functions and utilities that ``RAW_staticbuff`` served in the `4.x.x` releases.
+
+- Modified the design of the ``RAW_staticbuff`` protocol (and its macro) to optimally dovetail and operate with new sister protocol ``RAW_fixed``.
+
+- Removed many default implementations on default types.
+
+	- Native BinaryInteger types are no longer extended in this library. Use macros to enable this functionality on your own types.
+
+	- Native BinaryFloatingPoint types are no longer extended in this library. These too are available with macros.
+
+- Introduction of convenience protocols ``RAW_convertible_fixed`` and ``RAW_comparable_fixed``, allowing users to build static-length binary types with minimal implementation overhead.
+
+	- As such, ``RAW_staticbuff`` has dropped its explicit requirements for length-static comparisons, and simply adds this ``RAW_comparable_fixed`` as a required conformance.
+	
+- Introduction of two new macros that provide the functionality that the default extensions (on native types) used to provide.
+
+	- ``RAW_staticbuff_fixedwidthinteger_type`` transforms the attached struct to a static buffer type that contains encoded data for integers.
+
+	- ``RAW_staticbuff_binaryfloatingpoint_type`` transforms the attached struct to a static buffer type that contains the encoded data for floating point values.
+	
+- Improved flexability and diagnostic capabilities of all builtin macros, making them easier and less fussy in use.
+
+- Removed built-in ``RAW_convertible_fixed`` implementations for numerical types in ``RAW`` target. Users are expected to express their implementations directly in their projects as explicit struct trypes using ``@RAW_staticbuff...`` macros.
+
 ### 4.3.4
 
 - Expanded platform support on MacOS, from v11 to v10.15.

@@ -24,7 +24,6 @@ class Base64Tests: XCTestCase {
 			countup = base64_decode(buffer.baseAddress, buffer.count, stringToDecode, stringToDecode.count)
 		})
 		return (swift_truth_aligned_decoded, cref_truth_aligned_decoded)
-	
 	}
 
 	func testBase64LengthTests() {
@@ -98,9 +97,9 @@ class Base64Tests: XCTestCase {
 						}
 					})
 					let (swift_truth_misalignedByOne_encoded, cref_truth_misalignedByOne_encoded) = try Base64Tests.compareStringExports(misalignedByOneTestData)
-					XCTAssertEqual(swift_truth_misalignedByOne_encoded, cref_truth_misalignedByOne_encoded, "misalignedByOneTestData: \(misalignedByOneTestData)")
+					XCTAssertEqual(swift_truth_misalignedByOne_encoded, cref_truth_misalignedByOne_encoded)
 					let (swift_truth_misalignedByOne_decoded, cref_truth_misalignedByOne_decoded) = try Base64Tests.compareStringDecodes(swift_truth_misalignedByOne_encoded)
-					XCTAssertEqual(swift_truth_misalignedByOne_decoded, cref_truth_misalignedByOne_decoded, "misalignedByOneTestData: \(misalignedByOneTestData)")
+					XCTAssertEqual(swift_truth_misalignedByOne_decoded, cref_truth_misalignedByOne_decoded)
 				}
 
 				// - unaligned +2
@@ -145,7 +144,7 @@ class Base64Tests: XCTestCase {
 		}
 	}
 
-	// at one point in development I wrote a bug and throught there was something special about this pattern. there is nothing special about this pattern, in 
+	// at one point in development I wrote a bug and throught there was something special about this pattern. there is nothing special about this pattern, but why not test it anyways?
 	func testProblematicPattern() {
 		let troubles:[UInt8] = [159, 190, 109, 249, 241, 133, 53, 203, 146, 151, 236, 5, 151, 249, 85, 252, 68, 70, 160, 36, 37, 249, 56, 31, 43, 176, 2, 227, 7, 61, 229, 153, 64, 143, 193, 176, 46, 81, 233, 154, 242, 71, 90, 85, 69, 231, 44, 140, 167, 131, 243, 230, 183, 208, 236, 179, 127, 251, 84, 209, 211, 189, 238, 230]
 		let troublesEncoded = RAW_base64.encode(troubles)
@@ -163,9 +162,11 @@ class Base64Tests: XCTestCase {
 
 		let loopTestString = "SGVsbG8sIFdvcmxkIQ"
 		assert(loopTestString.count == base64Encoded.count)
-		for (i, val) in loopTestString.enumerated() {
-			XCTAssertEqual(val, base64Encoded[i].characterValue())
+		var iter = base64Encoded.makeIterator()
+		for val in loopTestString {
+			XCTAssertEqual(val, iter.next()?.characterValue())
 		}
+		XCTAssertNil(iter.next())
 	}
 
 	// testing base64 decoding to bytes.

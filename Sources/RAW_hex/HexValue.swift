@@ -98,7 +98,7 @@ extension Value {
 			case "f", "F":
 				self = .f
 			default:
-				throw Error.invalidHexEncodingCharacter(char.asciiValue!)
+				throw Error.invalidHexEncodingCharacter(char)
 		}
 	}
 
@@ -262,7 +262,7 @@ extension Value {
 				self = .f
 
 			default:
-				throw Error.invalidHexEncodingCharacter(byte)
+				throw Error.invalidHexEncodingCharacter(Character(UnicodeScalar(byte)))
 		}
 	}
 

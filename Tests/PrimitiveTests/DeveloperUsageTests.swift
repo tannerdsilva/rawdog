@@ -1,68 +1,98 @@
 import XCTest
 import RAW_hex
-@testable import RAW
+import RAW
 @testable import RAW_blake2
 @testable import RAW_base64
 @testable import cblake2
 
-@RAW_staticbuff(5, isUnsigned:true)
-struct FixedBuff5:Hashable, Equatable, Collection, Sequence, ExpressibleByArrayLiteral {
-	internal static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
-		return RAW_memcmp(lhs_data, rhs_data, 5)
-	}
-}
+@RAW_staticbuff(bytes:2)
+struct MyFixeDThing {}
 
-@ConcatBufferType(FixedBuff5, Double, Float)
+@RAW_staticbuff(bytes:5)
+struct FixedBuff5:ExpressibleByArrayLiteral, Equatable {}
+
+@RAW_staticbuff(bytes:8)
+@RAW_staticbuff_binaryfloatingpoint_type<Double>()
+struct EncodedDouble:ExpressibleByFloatLiteral {}
+
+@RAW_staticbuff(bytes:4)
+@RAW_staticbuff_binaryfloatingpoint_type<Float>()
+struct EncodedFloat:ExpressibleByFloatLiteral {}
+
+@RAW_staticbuff(concat:			FixedBuff5, 
+								EncodedDouble,
+								EncodedFloat,
+								FixedBuff5)
 struct MYSTRUCT {
 	// this is a test of comments in the struct. (they seem to work ok)
-	let firstItem:FixedBuff5
-	let secondItem:Double
-	let thirdItem:Float
+	private var firstItem:FixedBuff5
+	private var secondItem:EncodedDouble
+	private var thirdItem:EncodedFloat
+	private var fourthItem:FixedBuff5
 }
 
-@ConcatBufferType(Double, Float)
+@RAW_staticbuff(concat:EncodedDouble, EncodedFloat)
 fileprivate struct MYSTRUCT2 {
-	internal let firstItem:Double
-	internal let secondItem:Float
+	private var firstItem:EncodedDouble
+	private var secondItem:EncodedFloat
 }
 
-@RAW_staticbuff(8, isUnsigned:true)
+@RAW_staticbuff(bytes:8)
+@RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
 struct MyUInt64Equivalent {}
 
-@RAW_staticbuff(4, isUnsigned:true)
+@RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
+@RAW_staticbuff(bytes:4)
 struct MyUInt32Equivalent {}
 
-@RAW_staticbuff(2, isUnsigned:true)
+@RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
+@RAW_staticbuff(bytes:2)
 struct MyUInt16Equivalent {}
 
-@ConcatBufferType(MyUInt16Equivalent, MyUInt32Equivalent, MyUInt64Equivalent)
+@RAW_staticbuff(concat:MyUInt16Equivalent, MyUInt32Equivalent, MyUInt64Equivalent)
 struct MySpecialUIntType {
-	let bitVar16:MyUInt16Equivalent
-	let bitVar32:MyUInt32Equivalent
-	let bitVar64:MyUInt64Equivalent
+	var bitVar16:MyUInt16Equivalent
+	var bitVar32:MyUInt32Equivalent
+	var bitVar64:MyUInt64Equivalent
 }
 
-// mydually - this is used to test the linear sort and compare functions of the ConcatBufferType macro.
-@ConcatBufferType(UInt64, Int64)
+@RAW_staticbuff(bytes:8)
+@RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
+struct EncodedUInt64:ExpressibleByIntegerLiteral {}
+
+@RAW_staticbuff(bytes:4)
+@RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
+struct EncodedUInt32:ExpressibleByIntegerLiteral {}
+
+
+// // mydually - this is used to test the linear sort and compare functions of the ConcatBufferType macro.
+@RAW_staticbuff(concat:EncodedUInt64, EncodedUInt32)
 struct MyDually {
-	let first: UInt64
-	let second: Int64
+	var first: EncodedUInt64
+	var second: EncodedUInt32
+
+	init(first:UInt64, second:UInt32) {
+		self.first = EncodedUInt64(RAW_native:first)
+		self.second = EncodedUInt32(RAW_native:second)
+	}
 }
 
-extension MyDually:Comparable, Equatable {
-	static func < (lhs:MyDually, rhs:MyDually) -> Bool {
-		return Self.RAW_compare(lhs:lhs, rhs:rhs) < 0
-	}
-	static func == (lhs:MyDually, rhs:MyDually) -> Bool {
-		return Self.RAW_compare(lhs:lhs, rhs:rhs) == 0
-	}
-}
+extension MyDually:Comparable, Equatable {}
 
 
 final class TestDeveloperUsage:XCTestCase {
+	func testConcatMemoryLayout() {
+		let myUInt64 = MyUInt64Equivalent(RAW_native:66)
+		var myTest:FixedBuff5 = FixedBuff5(RAW_staticbuff:[0, 1, 2, 3, 4]) 
+		let myTest2:FixedBuff5 = [0, 1, 2, 3, 4]
+		// let it = myTest as! any RAW_staticbuff
+		// let thing = myTest as! any ExpressibleByArrayLiteral
+//		let thing2 = myTest as! any RAW_comparable_fixed
+		// let fooBar:FixedBuff5 = "StringfTHing"
+	}
 	func testSortingByFirstVariable() {
 
-		XCTAssertTrue(UInt64.RAW_compare(lhs:5, rhs:10) < 0)
+		// XCTAssertTrue(EncodedUInt64.RAW_compare(lhs:5, rhs:10) < 0)
 
 		let dually1 = MyDually(first: 10, second: 20)
 		let dually2 = MyDually(first: 5, second: 30)
@@ -123,6 +153,7 @@ final class TestDeveloperUsage:XCTestCase {
 			let parsedJSON = try Data(contentsOf:jsonTestContent)
 			XCTAssertGreaterThan(parsedJSON.count, 0)
 			let testScenarios = try! JSONDecoder().decode([Blake2TestScenario].self, from:parsedJSON)
+			XCTAssertGreaterThan(testScenarios.count, 512)
 			for scenario in testScenarios {
 				do {
 					let keyData = try! RAW_hex.Encoded.from(encoded:scenario.key).decoded()
@@ -139,7 +170,7 @@ final class TestDeveloperUsage:XCTestCase {
 									let reenc_result = String(RAW_hex.Encoded.from(decoded:b2sHash))
 									XCTAssertEqual(reenc_result, scenario.output)
 								default:
-									var b2sHasher = try Hasher<S, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
+									var b2sHasher = try Hasher<S, [UInt8]>(key_data:keyData, key_count:keyData.count, outputLength:expectedBinaryOutput.count)
 									try b2sHasher.update(expectedBinaryInput)
 									let b2sHash = try b2sHasher.finish()
 									XCTAssertEqual(b2sHash, expectedBinaryOutput)
@@ -156,7 +187,7 @@ final class TestDeveloperUsage:XCTestCase {
 									let reenc_result = String(RAW_hex.Encoded.from(decoded:b2bHash))
 									XCTAssertEqual(reenc_result, scenario.output)
 								default:
-									var b2bHasher = try Hasher<B, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
+									var b2bHasher = try Hasher<B, [UInt8]>(key_data:keyData, key_count:keyData.count, outputLength:expectedBinaryOutput.count)
 									try b2bHasher.update(expectedBinaryInput)
 									let b2bHash = try b2bHasher.finish()
 									XCTAssertEqual(b2bHash, expectedBinaryOutput)
@@ -173,7 +204,7 @@ final class TestDeveloperUsage:XCTestCase {
 									let reenc_result = String(RAW_hex.Encoded.from(decoded:b2bpHash))
 									XCTAssertEqual(reenc_result, scenario.output)
 								default:
-									var b2bpHasher = try Hasher<BP, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
+									var b2bpHasher = try Hasher<BP, [UInt8]>(key_data:keyData, key_count:keyData.count, outputLength:expectedBinaryOutput.count)
 									try b2bpHasher.update(expectedBinaryInput)
 									let b2bpHash = try b2bpHasher.finish()
 									XCTAssertEqual(b2bpHash, expectedBinaryOutput)
@@ -190,7 +221,7 @@ final class TestDeveloperUsage:XCTestCase {
 									let reenc_result = String(RAW_hex.Encoded.from(decoded:b2spHash))
 									XCTAssertEqual(reenc_result, scenario.output)
 								default:
-									var b2spHasher = try Hasher<SP, [UInt8]>(key:keyData, keySize:keyData.count, outputLength:expectedBinaryOutput.count)
+									var b2spHasher = try Hasher<SP, [UInt8]>(key_data:keyData, key_count:keyData.count, outputLength:expectedBinaryOutput.count)
 									try b2spHasher.update(expectedBinaryInput)
 									let b2spHash = try b2spHasher.finish()
 									XCTAssertEqual(b2spHash, expectedBinaryOutput)
@@ -206,9 +237,9 @@ final class TestDeveloperUsage:XCTestCase {
 			}
 			var blake2sHasher = try Hasher<S, FixedBuff5>()
 			try blake2sHasher.update(Array("Hello".utf8))
-			let blake2sHash = try blake2sHasher.finish()
+			var blake2sHash = try blake2sHasher.finish()
 			var countout:size_t = 0
-			let blake2sHashBytes = [UInt8](RAW_encodable:blake2sHash, count_out:&countout)
+			let blake2sHashBytes = [UInt8](RAW_encodable:&blake2sHash, byte_count_out:&countout)
 			let blake2sHashString = RAW_base64.encode(blake2sHashBytes)
 			XCTAssertEqual(blake2sHashString, "HfZQsfk=")
 			let b64Encoded:RAW_base64.Encoded = "HfZQsfk="
@@ -220,6 +251,7 @@ final class TestDeveloperUsage:XCTestCase {
 			XCTFail("error: \(error)")
 		}
 	}
+// }
 
 	// verifies that the size of a tuple is equal to the sum of the sizes of its members.
 	func testLayeredSizingOfStaticStructs() {

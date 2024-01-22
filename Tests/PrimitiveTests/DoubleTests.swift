@@ -1,47 +1,36 @@
 import XCTest
-@testable import RAW
+import RAW
+
+@RAW_staticbuff(bytes:4)
+@RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
+fileprivate struct _UInt32:Equatable {}
+
+@RAW_staticbuff(bytes:8)
+@RAW_staticbuff_binaryfloatingpoint_type<Double>()
+fileprivate struct _Double:Equatable {}
+
+@RAW_staticbuff(bytes:4)
+@RAW_staticbuff_binaryfloatingpoint_type<Float>()
+fileprivate struct _Float:Equatable {}
+
 
 final class NumberTests:XCTestCase {
-	func testArray() throws {
-		typealias TestType = UInt32
-		var makeDouble = [TestType]()
-		for _ in 0..<5120 {
-			// add a random value to the array
-			withUnsafePointer(to:(
-				UInt8.random(in:0..<255),
-				UInt8.random(in:0..<255),
-				UInt8.random(in:0..<255),
-				UInt8.random(in:0..<255),
-
-				UInt8.random(in:0..<255),
-				UInt8.random(in:0..<255),
-				UInt8.random(in:0..<255),
-				UInt8.random(in:0..<255)
-			)) {
-				let doubleValue = TestType(RAW_staticbuff_storetype:$0)
-				makeDouble.append(doubleValue)
-			}
-		}
-		let sortedItems = makeDouble.sorted(by: { TestType.RAW_compare(lhs:$0, rhs:$1) < 0 })
-		let nativeSort = makeDouble.sorted(by: { $0 < $1 })
-		XCTAssertEqual(sortedItems, nativeSort)
-	}
 
 	func testEncodingAndDecodingDouble() throws {
 		for _ in 0..<5120 {
-			let value: Double = Double.random(in:0..<Double.greatestFiniteMagnitude)
+			var value:_Double = _Double(RAW_native:Double.random(in:0..<Double.greatestFiniteMagnitude))
 			var countout:size_t = 0
-			let valueBytes = [UInt8](RAW_encodable:value, count_out:&countout)
-			let newVal = Double(RAW_staticbuff_storetype:valueBytes)
+			let valueBytes = [UInt8](RAW_encodable:&value, byte_count_out:&countout)
+			let newVal = _Double(RAW_decode:valueBytes)!
 			XCTAssertEqual(newVal, value)
 		}
 	}
 	func testEncodingAndDecodingFloat() throws {
 		for _ in 0..<5120 {
-			let value: Float = Float.random(in:0..<Float.greatestFiniteMagnitude)
+			var value:_Float = _Float(RAW_native:Float.random(in:0..<Float.greatestFiniteMagnitude))
 			var countout:size_t = 0
-			let valueBytes = [UInt8](RAW_encodable:value, count_out:&countout)
-			let newVal = Float(RAW_staticbuff_storetype:valueBytes)
+			let valueBytes = [UInt8](RAW_encodable:&value, byte_count_out:&countout)
+			let newVal = _Float(RAW_decode:valueBytes)!
 			XCTAssertEqual(newVal, value)
 		}
 	}

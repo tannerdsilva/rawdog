@@ -1,41 +1,47 @@
-extension Array where Element == UInt8 {
-	public init<E>(RAW_encodable encodableVar:E, count_out encSize:inout size_t) where E:RAW_encodable {
-		encSize = encodableVar.RAW_encoded_size()
-		self = Self(unsafeUninitializedCapacity:encSize, initializingWith: { buff, size in
-			let startPtr = UnsafeMutableRawPointer(buff.baseAddress!)
-			let stridePtr = encodableVar.RAW_encode(dest:startPtr)
-			#if DEBUG
-			assert(abs(startPtr.distance(to:stridePtr)) == encSize, "encodableVar.RAW_encode(dest:) did not return a pointer that is the correct distance from the start pointer. expected: \(encSize), actual: \(abs(startPtr.distance(to:stridePtr))). type was: \(type(of:encodableVar))")
-			#endif
-			size = encSize
+extension Array:RAW_accessible, RAW_encodable where Element == UInt8 {
+    public mutating func RAW_access_mutating<R>(_ body: (inout UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R {
+        return try withUnsafeMutableBufferPointer( {
+			return try body(&$0)
 		})
+    }
+	public mutating func RAW_encode(count: inout size_t) {
+		count += self.count
 	}
+	public mutating func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
+		let advancedCount = withUnsafeMutableBufferPointer({ buff in
+			_ = RAW_memcpy(dest, buff.baseAddress!, buff.count)!
+			return buff.count
+		})
+		return dest.advanced(by:advancedCount)
+	}
+}
 
-	public init<E>(RAW_encodables encodableVars:[E]) where E:RAW_encodable {
-		#if DEBUG
+extension Array where Element == UInt8 {
+	public init<E>(RAW_encodable ptr:UnsafeMutablePointer<E>, byte_count_out:inout size_t) where E:RAW_encodable {
+		self.init(RAW_encodables:ptr, encodables_count: 1, byte_count_out: &byte_count_out)
+	}
+	public init<E>(RAW_encodables ptr:UnsafeMutablePointer<E>, encodables_count:size_t, byte_count_out:inout size_t) where E:RAW_encodable {
 		var encSize:size_t = 0
-		var varAndExpectedSize = [(E, size_t)]()
-		for encodableVar in encodableVars {
-			let encodableVarSize = encodableVar.RAW_encoded_size()
-			encSize += encodableVarSize
-			varAndExpectedSize.append((encodableVar, encodableVarSize))
+		var seeker = ptr
+		for i in 0..<encodables_count {
+			defer {
+				seeker += 1
+			}
+			ptr.advanced(by: i).pointee.RAW_encode(count:&encSize)
 		}
-		#else
-		let encSize = encodableVars.reduce(0) { $0 + $1.RAW_encoded_size() }
-		#endif
+		byte_count_out = encSize
 
 		self = Self(unsafeUninitializedCapacity: encSize, initializingWith: { buff, size in
-			var currentPtr = UnsafeMutableRawPointer(buff.baseAddress!)
+			var readSeek = ptr
+			var writeSeek = buff.baseAddress!
+			for _ in 0..<encodables_count {
+				defer {
+					readSeek += 1
+				}
+				writeSeek = readSeek.pointee.RAW_encode(dest:writeSeek)
+			}
 			#if DEBUG
-			for (encodableVar, expectedSize) in varAndExpectedSize {
-				let stridePtr = encodableVar.RAW_encode(dest: currentPtr)
-				assert(currentPtr.distance(to: stridePtr) == expectedSize)
-				currentPtr = stridePtr
-			}
-			#else
-			for encodableVar in encodableVars {
-				currentPtr = encodableVar.RAW_encode(dest: currentPtr)
-			}
+			assert(writeSeek == buff.baseAddress!.advanced(by: encSize), "unexpected seek length. this is unexpected and breaks the assumptions that allow this macro to work")
 			#endif
 			size = encSize
 		})

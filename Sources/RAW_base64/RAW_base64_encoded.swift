@@ -18,8 +18,8 @@ public struct Encoded {
 	private let decoded_data:[UInt8] // data buffer for the decoded value
 
 	/// primary internal initializer. initializes an encoded value from a buffer of base64 values and a tail.
-	internal init(decoded_bytes decoded:[UInt8], decoded_count:size_t) {
-		self.decoded_data = decoded
+	internal init(decoded_bytes decoded:UnsafePointer<UInt8>, decoded_count:size_t) {
+		self.decoded_data = [UInt8](UnsafeBufferPointer<UInt8>(start:decoded, count:decoded_count))
 		self.decoded_count = decoded_count
 	}
 }
@@ -51,11 +51,30 @@ extension Encoded {
 
 // encoded initializers
 extension Encoded {
-	/// initialize a base64 encoded value from a string representation of its value
 	public static func from(encoded encString:String) throws -> Self {
-		let utf8Bytes = [UInt8](encString.utf8)
-		let getCount = utf8Bytes.count
-		return try Self.from(encoded:utf8Bytes, count:getCount)
+		return try Self.from(encoded:encString.unicodeScalars)
+	}
+
+	/// initialize a base64 encoded value from a string representation of its value
+	public static func from(encoded encString:String.UnicodeScalarView) throws -> Self {
+		let getCount = encString.count
+		return try Self.from(encoded:try [UInt8](unsafeUninitializedCapacity:getCount, initializingWith: { buff, buffcount in
+			buffcount = 0
+			var iterator = encString.makeIterator()
+			var curItem:UnicodeScalar? = iterator.next()
+			var writeHead = buff.baseAddress!
+			while curItem != nil {
+				defer {
+					curItem = iterator.next()
+				}
+				guard curItem!.isASCII == true else {
+					throw Error.invalidBase64EncodingCharacter(Character(curItem!))
+				}
+				writeHead.initialize(to:UInt8(curItem!.value))
+				writeHead += 1
+				buffcount += 1
+			}
+		}), count:getCount)
 	}
 
 	/// initialize a base64 encoded value from a byte buffer of utf8 bytes.
@@ -88,23 +107,6 @@ extension Encoded {
 	}
 }
 
-extension Encoded:Collection {
-	public typealias Index = size_t
-	public typealias Element = Value
-	public var startIndex:Index {
-		return 0
-	}
-	public var endIndex:Index {
-		return Encode.unpadded_length(unencoded_byte_count:decoded_count)
-	}
-	public func index(after i:Index) -> Index {
-		return i + 1
-	}
-	public subscript(position:Index) -> Element {
-		return Encode.chunk_parse_inline(decoded_bytes:self.decoded_data, decoded_byte_count:self.decoded_count, encoded_index:position)
-	}
-}
-
 extension Encoded:Sequence {
 	public struct Iterator:IteratorProtocol {
 		public mutating func next() -> Value? {
@@ -114,11 +116,11 @@ extension Encoded:Sequence {
 			defer {
 				position += 1
 			}
-			return Encode.chunk_parse_inline(decoded_bytes:data, decoded_byte_count:data_count, encoded_index:position)
+			return Encode.chunk_parse_inline(decoded_bytes:&data, decoded_byte_count:data_count, encoded_index:position)
 		}
 		private let encoded_count:size_t
 		private let data_count:size_t
-		private let data:[UInt8]
+		private var data:[UInt8]
 		private var position:size_t
 		fileprivate init(data:[UInt8], data_count:size_t) {
 			#if DEBUG
