@@ -24,3 +24,14 @@ public protocol RAW_encodable {
 	/// - returns: the pointer advanced by the number of bytes written. unexpected behavior may occur if the pointer is not advanced by the number of bytes returned in ``RAW_byte_count``.
 	@discardableResult mutating func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8>
 }
+
+extension RAW_encodable {
+	public mutating func RAW_access_mutating(_ body:(inout UnsafeMutableBufferPointer<UInt8>) throws -> Void) rethrows {
+		var bcount:size_t = 0
+		self.RAW_encode(count:&bcount)
+		var buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:bcount)
+		defer { buffer.deallocate() }
+		self.RAW_encode(dest:buffer.baseAddress!)
+		try body(&buffer)
+	}
+}

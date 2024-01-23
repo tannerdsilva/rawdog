@@ -1,3 +1,19 @@
+## 5.2.0
+
+- Minor tweaks to protocol conformances regarding ``RAW_accessible`` and ``RAW_encodable``, specifically how these two nest and relate to each other.
+
+	- Prior versions of this library had ``RAW_encodable`` as a required protocol to ``RAW_accessible``. This is no longer the case.
+	
+	- ``RAW_accessible`` and ``RAW_encodable`` are standalone protocols with no additional conformance requirements.
+
+		- Both protocols offer default extensions that allow one to behave as the other.
+
+			- ``RAW_accessible`` will use its existing bytes to implement ``RAW_encodable`` function names by default.
+
+			- ``RAW_encodable`` will encode its contents into a standalone buffer for the accessor function.
+
+		- Users can conform to both of these protocols to offer the most efficient implementations for both.
+
 ## 5.1.0
 
 - Added extensions to ``UnsafeMutableBufferPointer<UInt8>`` allowing it to conform directly to ``RAW_accessible``.
