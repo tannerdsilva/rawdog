@@ -1,11 +1,11 @@
-public protocol RAW_accessible {
+public protocol RAW_accessible:RAW_encodable {
 	/// allows mutating access to the raw representation of the static buffer type.
 	mutating func RAW_access_mutating<R>(_ body:(inout UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R
 }
 
 extension RAW_accessible {
 	public mutating func RAW_encode(count:inout size_t) {
-		self.RAW_access_mutating { buffer in
+		RAW_access_mutating { buffer in
 			count = buffer.count
 		}
 	}

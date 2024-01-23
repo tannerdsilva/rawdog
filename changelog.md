@@ -1,3 +1,9 @@
+## 6.0.0
+
+- Effectively rolls back the changes applied in v5.2.0 after a failed attempt to integrate with a downstream project (QuickLMDB, in this case). While it made sense at the time to separate the two distinct functions/roles behind ``RAW_accessible`` and ``RAW_encodable``, in reality, it is very tedious to try and efficiently develop against both of these protocols without some relationships being introduced into the landscape here.
+
+	- ``RAW_accessible`` is inheritly ``RAW_encodable``, since its byte representation is already known in memory, it simply needs to be copied.
+
 ## 5.2.0
 
 - Minor tweaks to protocol conformances regarding ``RAW_accessible`` and ``RAW_encodable``, specifically how these two nest and relate to each other.
