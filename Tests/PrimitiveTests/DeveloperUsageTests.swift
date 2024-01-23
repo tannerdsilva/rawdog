@@ -69,6 +69,7 @@ struct EncodedUInt32:ExpressibleByIntegerLiteral {}
 @RAW_staticbuff(concat:EncodedUInt64, EncodedUInt32)
 struct MyDually {
 	var first: EncodedUInt64
+	static var myThing:MyDually = MyDually(first: 10, second: 20)
 	var second: EncodedUInt32
 
 	init(first:UInt64, second:UInt32) {

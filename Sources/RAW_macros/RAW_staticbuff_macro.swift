@@ -213,7 +213,11 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 				for curVar in varScanner.varDecls {
 					let abLister = AccessorBlockLister(viewMode:.sourceAccurate)
 					abLister.walk(curVar)
-					if abLister.accessorBlocks.count == 0 {
+					let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
+					staticFinder.walk(curVar)
+
+					// functions that are NOT static AND NOT computed are blocked from being used in this macro.
+					if abLister.accessorBlocks.count == 0 && staticFinder.foundStaticModifier == nil {
 						context.addDiagnostics(from:StoredVariablesUnsupported(), node:curVar)
 					}
 				}
@@ -253,6 +257,15 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 					guard abLister.accessorBlocks.count == 0 else {
 						#if RAWDOG_MACRO_LOG
 						mainLogger.error("this variable was found to have a computed accessor block. this variable will be skipped.")
+						#endif
+						continue varLoop
+					}
+
+					let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
+					staticFinder.walk(curVar)
+					guard staticFinder.foundStaticModifier == nil else {
+						#if RAWDOG_MACRO_LOG
+						mainLogger.error("this variable was found to have a static modifier. this variable will be skipped.")
 						#endif
 						continue varLoop
 					}

@@ -1,4 +1,8 @@
-## 6.0.0
+### 6.0.1
+
+- ``RAW_staticbuff`` macro is now friendly to static variables in attached bodies and no longer markes these declarations as errors.
+
+# 6.0.0
 
 - Effectively rolls back the changes applied in v5.2.0 after a failed attempt to integrate with a downstream project (QuickLMDB, in this case). While it made sense at the time to separate the two distinct functions/roles behind ``RAW_accessible`` and ``RAW_encodable``, in reality, it is very tedious to try and efficiently develop against both of these protocols without some relationships being introduced into the landscape here.
 

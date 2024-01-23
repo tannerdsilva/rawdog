@@ -63,6 +63,17 @@ internal class StructFinder:SyntaxVisitor {
 	}
 }
 
+internal class StaticModifierFinder:SyntaxVisitor {
+	internal var foundStaticModifier:DeclModifierSyntax? = nil
+	override func visit(_ node:DeclModifierSyntax) -> SyntaxVisitorContinueKind {
+		guard node.name.text == "static" else {
+			return .skipChildren
+		}
+		foundStaticModifier = node
+		return .skipChildren
+	}
+}
+
 internal struct RAW_staticbuff {
 	internal enum UsageMode {
 		case bytes(Int)
