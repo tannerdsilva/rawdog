@@ -44,8 +44,8 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 			return .skipChildren
 		}
 	}
-    static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-        let np = NodeParser(viewMode:.sourceAccurate)
+	static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+		let np = NodeParser(viewMode:.sourceAccurate)
 		np.walk(node)
 		guard let intType = np.intType, let unicodeType = np.unicodeType else {
 			return []
@@ -154,13 +154,13 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 		return buildDecls
-    }
+	}
 
-    static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
+	static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
 		return [
 			try ExtensionDeclSyntax("""
 				extension \(type):RAW_encoded_unicode {}
 			""")
 		]
-    }
+	}
 }

@@ -12,7 +12,7 @@ import RAW_macros
 										named(RAW_access_mutating),
 										named(RAW_compare(lhs_data:lhs_count:rhs_data:rhs_count:)),
 										named(RAW_compare(lhs_data:rhs_data:)))
-@attached(extension,	conformances:	RAW_staticbuff)
+@attached(extension,	conformances:	RAW_staticbuff, Sendable)
 public macro RAW_staticbuff(bytes:size_t) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_macro")
 
 @attached(member, 		names:			named(RAW_staticbuff_storetype),

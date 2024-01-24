@@ -1,3 +1,7 @@
+### 6.0.2
+
+- ``RAW_staticbuff`` protocol now adds required conformance: ``Sendable``. The fundamental requirements for ``Sendable`` are perfectly encompassed by the requirements for ``RAW_staticbuff``, so it will be applied without condition so that the implemented types feel more natively integrated with Swift language paradigms, especially in high-concurrency environments.
+
 ### 6.0.1
 
 - ``RAW_staticbuff`` macro is now friendly to static variables in attached bodies and no longer markes these declarations as errors.
