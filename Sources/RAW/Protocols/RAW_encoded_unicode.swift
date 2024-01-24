@@ -1,5 +1,5 @@
 /// this protocol exists to create a slightly cleaner relationship between the two string based RAW_convertible macros (``RAW_convertible_string_type_macro`` and ``RAW_convertible_string_init_macro``).
-public protocol RAW_encoded_unicode:RAW_convertible, RAW_accessible, Sequence<Character>, RAW_comparable {
+public protocol RAW_encoded_unicode:RAW_convertible, RAW_accessible, Sequence<Character>, RAW_comparable, Comparable, Equatable {
 	associatedtype RAW_convertible_unicode_encoding:UnicodeCodec where RAW_convertible_unicode_encoding.CodeUnit:FixedWidthInteger
 
 	associatedtype RAW_integer_encoding_impl:RAW_encoded_fixedwidthinteger where RAW_integer_encoding_impl.RAW_native_type == RAW_convertible_unicode_encoding.CodeUnit
@@ -21,7 +21,7 @@ public struct RAW_native_translation_iterator<T:RAW_encoded_fixedwidthinteger>:I
 			return nil
 		}
 		let startPtr = head
-		var native = T.init(RAW_staticbuff_seeking: &head)
+		let native = T.init(RAW_staticbuff_seeking: &head)
 		count_up += startPtr.distance(to:head)
 		return native.RAW_native()
 	}

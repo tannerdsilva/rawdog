@@ -17,3 +17,27 @@ extension RAW_comparable {
 		return lhs_count < rhs_count ? -1 : (lhs_count > rhs_count ? 1 : 0)
 	}
 }
+
+extension RAW_accessible where Self:Equatable, Self:RAW_comparable {
+	public static func == (lhs:Self, rhs:Self) -> Bool {
+		var lhsCopy = lhs
+		var rhsCopy = rhs
+		return lhsCopy.RAW_access_mutating({ lhsBuff in
+			rhsCopy.RAW_access_mutating({ rhsBuff in
+				return RAW_compare(lhs_data:lhsBuff.baseAddress!, lhs_count:lhsBuff.count, rhs_data:rhsBuff.baseAddress!, rhs_count:rhsBuff.count) == 0
+			})
+		})
+	}
+}
+
+extension RAW_accessible where Self:Comparable, Self:RAW_comparable {
+	public static func < (lhs:Self, rhs:Self) -> Bool {
+		var lhsCopy = lhs
+		var rhsCopy = rhs
+		return lhsCopy.RAW_access_mutating({ lhsBuff in
+			rhsCopy.RAW_access_mutating({ rhsBuff in
+				return RAW_compare(lhs_data:lhsBuff.baseAddress!, lhs_count:lhsBuff.count, rhs_data:rhsBuff.baseAddress!, rhs_count:rhsBuff.count) < 0
+			})
+		})
+	}
+}

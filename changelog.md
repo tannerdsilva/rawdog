@@ -1,12 +1,20 @@
+## 6.2.0
+
+- ``RAW_accessible`` types that are already ``RAW_comparable`` and proclaim ``Comparable`` or ``Equatable`` will receive automatic implementations that are backed by the ``RAW_comparable`` type.
+
+- ``RAW_encoded_unicode`` requires and automatically implements ``Comparable`` and ``Equatable`` based on the underlying (existing) ``RAW_comparable`` conformance.
+
 ## 6.1.0
 
-- Rolls back on 
+- Rolls back on prior release, as it was a completely ineffective change that yielded no discernable outcome.
+
+- Modified RAW_native getter function (``RAW_native()``) to no longer be mutating.
 
 ### 6.0.2 (revoked - changes involving Sendable protocol were completely ineffective)
 
 ### 6.0.1
 
-- ``RAW_staticbuff`` macro is now friendly to static variables in attached bodies and no longer markes these declarations as errors.
+- ``RAW_staticbuff`` macro is now friendly to static variables in attached bodies and no longer marks these declarations as errors.
 
 # 6.0.0
 
