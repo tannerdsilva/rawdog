@@ -339,7 +339,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 				var buildCompare = [String]()
 				for (_, curType) in varNameVarType {
 					buildCompare.append("""
-						compare_result = \(curType.name).RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
+						compare_result = \(curType.name.text).RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
 						guard compare_result == 0 else {
 							return compare_result
 						}
