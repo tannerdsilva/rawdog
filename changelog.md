@@ -1,3 +1,7 @@
+### 6.2.3
+
+- Another small fix to an internal type that users should never need to interact with (internal changes, once again).
+
 ### 6.2.2
 
 - Fixed bug where comments could leak into RAW_comparable macro output.

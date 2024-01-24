@@ -73,7 +73,7 @@ extension RAW_encoded_unicode where Self:ExpressibleByStringLiteral {
 public struct RAW_encoded_unicode_iterator<T:UnicodeCodec>:IteratorProtocol {
 	private var encoded_bytes:[T.CodeUnit].Iterator
 	private var decoder:T
-	internal init(_ bytes:[T.CodeUnit].Iterator, encoding:T.Type) {
+	public init(_ bytes:[T.CodeUnit].Iterator, encoding:T.Type) {
 		encoded_bytes = bytes
 		decoder = T()
 	}
