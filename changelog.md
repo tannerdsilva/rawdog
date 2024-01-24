@@ -1,3 +1,7 @@
+### 6.2.4
+
+- Fixed extraneous warning thrown from syntax output in ``RAW_encoded_unicode`` macro.
+
 ### 6.2.3
 
 - Another small fix to an internal type that users should never need to interact with (internal changes, once again).

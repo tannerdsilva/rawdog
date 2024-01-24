@@ -83,8 +83,7 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 						var bytes_base = UnsafeRawPointer(encBytes.baseAddress!)
 						let bytes_end = bytes_base.advanced(by:\(countVarName))
 						while bytes_base < bytes_end {
-							var asNative = RAW_integer_encoding_impl.init(RAW_staticbuff_seeking:&bytes_base)
-							buff[usedCount] = asNative.RAW_native()
+							buff[usedCount] = RAW_integer_encoding_impl.init(RAW_staticbuff_seeking:&bytes_base).RAW_native()
 							usedCount += 1
 						}
 					}).makeIterator(), encoding:RAW_convertible_unicode_encoding.self)
