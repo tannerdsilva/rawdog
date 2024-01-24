@@ -1,3 +1,11 @@
+### 6.2.2
+
+- Fixed bug where comments could leak into RAW_comparable macro output.
+
+### 6.2.1
+
+- Modified access level on a public type that users should never need to interact with (internal change).
+
 ## 6.2.0
 
 - ``RAW_accessible`` types that are already ``RAW_comparable`` and proclaim ``Comparable`` or ``Equatable`` will receive automatic implementations that are backed by the ``RAW_comparable`` type.
