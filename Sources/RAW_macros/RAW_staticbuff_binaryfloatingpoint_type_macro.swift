@@ -75,13 +75,13 @@ internal struct RAW_staticbuff_floatingpoint_type_macro:MemberMacro, ExtensionMa
 		""")
 
 		let nativeGet = DeclSyntax("""
-			\(asStruct.modifiers) mutating func RAW_native() -> \(raw:floatType) {
+			\(asStruct.modifiers) func RAW_native() -> \(raw:floatType) {
 				#if DEBUG
 				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
 				assert(MemoryLayout<\(raw:floatType)>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
 				#endif
-				return RAW_access_staticbuff_mutating { ptr in
-					return \(raw:floatType)(\(raw:nativeTranslatorName):ptr.loadUnaligned(as:\(raw:bitPatternType).self))
+				return withUnsafePointer(to:self) { selfPtr in
+					return \(raw:floatType)(\(raw:nativeTranslatorName):UnsafeRawPointer(selfPtr).loadUnaligned(as:\(raw:bitPatternType).self))
 				}
 			}
 		""")

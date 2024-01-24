@@ -1,5 +1,5 @@
 /// represents a raw binary value of a pre-specified, static length.
-public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed, RAW_accessible, Sendable {
+public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed, RAW_accessible {
 	associatedtype RAW_fixed_type = RAW_staticbuff_storetype
 
 	/// the type that will be used to represent the raw data.

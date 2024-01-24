@@ -2,7 +2,7 @@
 public protocol RAW_native {
 	associatedtype RAW_native_type
 	init(RAW_native:RAW_native_type)
-	mutating func RAW_native() -> RAW_native_type
+	func RAW_native() -> RAW_native_type
 }
 
 public protocol RAW_encoded_fixedwidthinteger:RAW_native, RAW_staticbuff where RAW_native_type:FixedWidthInteger {}
