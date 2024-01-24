@@ -11,7 +11,7 @@ public struct RAW_native_translation_iterator<T:RAW_encoded_fixedwidthinteger>:I
 	internal var count_up:size_t
 	internal let count:size_t
 	private var head:UnsafeRawPointer
-	internal init(buffer:UnsafeBufferPointer<UInt8>) {
+	public init(buffer:UnsafeBufferPointer<UInt8>) {
 		count = buffer.count
 		count_up = 0
 		head = UnsafeRawPointer(buffer.baseAddress!)
