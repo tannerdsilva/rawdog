@@ -1,3 +1,7 @@
+### 6.2.5
+
+- Blake2 hasher can now update with any ``RAW_accessible`` (including `[UInt8]` which is conformant by default) instead of strictly `[UInt8]`.
+
 ### 6.2.4
 
 - Fixed extraneous warning thrown from syntax output in ``RAW_encoded_unicode`` macro.

@@ -141,12 +141,14 @@ public struct Hasher<H:RAW_blake2_func_impl, O> {
 }
 
 extension Hasher {
-	public mutating func update(_ input:[UInt8]) throws {
-		var updateCopy = input
-		try update(&updateCopy)
+	public mutating func update<A>(_ accessible:A) throws where A:RAW_accessible {
+		var mutatingCopy = accessible
+		try self.update(&mutatingCopy)
 	}
-	public mutating func update(_ input:inout [UInt8]) throws {
-		try update(input_data_ptr:input, input_data_size:input.count)
+	public mutating func update<A>(_ accessible:inout A) throws where A:RAW_accessible {
+		try accessible.RAW_access_mutating { buffer in
+			try self.update(input_data_ptr:buffer.baseAddress!, input_data_size:buffer.count)
+		}
 	}
 }
 
