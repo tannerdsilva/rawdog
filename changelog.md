@@ -1,6 +1,10 @@
+### 6.2.6
+
+- Added additional conformances to native `[UInt8]` type. In addition to the previous conformances (`RAW_encodable` and `RAW_accessible`), it now conforms to `RAW_comparable` and `RAW_decodable` by default.
+
 ### 6.2.5
 
-- Blake2 hasher can now update with any ``RAW_accessible`` (including `[UInt8]` which is conformant by default) instead of strictly `[UInt8]`.
+- Blake2 hasher can now update with any `RAW_accessible` (including `[UInt8]` which is conformant by default) instead of strictly `[UInt8]`.
 
 ### 6.2.4
 

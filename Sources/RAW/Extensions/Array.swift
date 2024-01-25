@@ -16,6 +16,15 @@ extension Array:RAW_accessible, RAW_encodable where Element == UInt8 {
 	}
 }
 
+extension Array:RAW_decodable where Element == UInt8 {
+	public init(RAW_decode ptr:UnsafeRawPointer, count:size_t) {
+		let asByteBuffer = UnsafeBufferPointer<UInt8>(start:ptr.assumingMemoryBound(to:UInt8.self), count:count)
+		self.init(asByteBuffer)
+	}
+}
+
+extension Array:RAW_comparable where Element == UInt8 {}
+
 extension Array where Element == UInt8 {
 	public init<E>(RAW_encodable ptr:UnsafeMutablePointer<E>, byte_count_out:inout size_t) where E:RAW_encodable {
 		self.init(RAW_encodables:ptr, encodables_count: 1, byte_count_out: &byte_count_out)
