@@ -1,3 +1,7 @@
+### 6.2.7
+
+- ``RAW_staticbuff`` validation no longer seeks within codeblocks
+
 ### 6.2.6
 
 - Added additional conformances to native `[UInt8]` type. In addition to the previous conformances (`RAW_encodable` and `RAW_accessible`), it now conforms to `RAW_comparable` and `RAW_decodable` by default.

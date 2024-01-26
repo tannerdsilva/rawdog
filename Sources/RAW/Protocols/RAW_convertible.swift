@@ -9,6 +9,14 @@ public protocol RAW_decodable {
 	init?(RAW_decode:UnsafeRawPointer, count:size_t)
 }
 
+/// a special decodable type that is capable of returning a decoded Self from an unbounded forward seeking buffer read.
+public protocol RAW_decodable_unbounded {
+
+	/// initialize from the contents of a raw data buffer that has no known boundaries on the forward end.
+	/// - WARNING: this protocol is SUPER RIDICULOUSLY, IRRESPONSIBLY UNSAFE. Implement this ONLY if you know that you need it and why.
+	static func RAW_decode(unbounded:inout UnsafeRawPointer) -> Self?
+}
+
 extension RAW_decodable {
 	/// initialize from the contents of a raw data buffer, as a mutable buffer pointer.
 	public init?(RAW_accessed ptr:UnsafeMutableBufferPointer<UInt8>) {

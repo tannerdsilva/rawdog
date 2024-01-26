@@ -13,7 +13,7 @@ class StringTests: XCTestCase {
 	func testRAWEncodeAndDecodeUTF16() {
 		var myStarterString:MyUTF16 = "Hello, world!"
 		var bcount = 0
-		let bytes = [UInt8](RAW_encodable:&myStarterString, byte_count_out:&bcount)
+		let _ = [UInt8](RAW_encodable:&myStarterString, byte_count_out:&bcount)
 		XCTAssertEqual(bcount, 26)
 		XCTAssertEqual(String(myStarterString), "Hello, world!")
 	}

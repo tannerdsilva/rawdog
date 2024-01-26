@@ -100,6 +100,9 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			varDecls.append(node)
 			return .skipChildren
 		}
+		override func visit(_ node:CodeBlockSyntax) -> SyntaxVisitorContinueKind {
+			return .skipChildren
+		}
 	}
 	private class AccessorBlockLister:SyntaxVisitor {
 		var accessorBlocks = [AccessorBlockSyntax]()
