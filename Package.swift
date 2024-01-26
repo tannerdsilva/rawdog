@@ -74,13 +74,13 @@ let package = Package(
 			.product(name: "SwiftParserDiagnostics", package: "swift-syntax"),
 			.product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
 			.product(name: "Logging", package:"swift-log")
-		], swiftSettings: [.define("RAWDOG_MACRO_LOG")]),
+		], swiftSettings: [/*.define("RAWDOG_MACRO_LOG")*/]),
 
 		// raw targets
 		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2"]),
 		.target(name:"RAW_base64", dependencies:rawBase64Dependencies(), swiftSettings:[/*.define("RAWDOG_BASE64_LOG")*/]),
 		.target(name:"RAW_hex", dependencies:rawHexDependencies(), swiftSettings: [/*.define("RAWDOG_HEX_LOG")*/]),
-		.target(name:"RAW", dependencies:rawTargetDependencies, swiftSettings: [.define("RAWDOG_MACRO_LOG")]),
+		.target(name:"RAW", dependencies:rawTargetDependencies, swiftSettings: [/*.define("RAWDOG_MACRO_LOG")*/]),
 
 		// c implementations
 		.target(name:"CRAW"),

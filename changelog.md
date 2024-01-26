@@ -1,3 +1,7 @@
+### 6.2.8
+
+- Removes `RAWDOG_MACRO_LOG` from default package configuration.
+
 ### 6.2.7
 
 - ``RAW_staticbuff`` validation no longer seeks within codeblocks
