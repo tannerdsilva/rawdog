@@ -1,3 +1,7 @@
+### 6.2.9
+
+- Removes the only declaration from the CRAW header (and its underlying implementation in the `.c` file). `CRAW` is now header-only.
+
 ### 6.2.8
 
 - Removes `RAWDOG_MACRO_LOG` from default package configuration.
