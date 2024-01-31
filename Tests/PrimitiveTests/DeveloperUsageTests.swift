@@ -54,6 +54,7 @@ struct MySpecialUIntType {
 	var bitVar16:MyUInt16Equivalent
 	var bitVar32:MyUInt32Equivalent
 	var bitVar64:MyUInt64Equivalent
+	static var myComputedVar:String = "Hello"
 }
 
 @RAW_staticbuff(bytes:8)

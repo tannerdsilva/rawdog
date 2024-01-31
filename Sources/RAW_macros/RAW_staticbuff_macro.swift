@@ -247,14 +247,6 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 						context.addDiagnostics(from:LetBindingSpecifierUnsupported(), node:curVar.bindingSpecifier)
 					}
 
-					if tokensDown.count == 0 {
-						#if RAWDOG_MACRO_LOG
-						mainLogger.error("extraneous variable declaration found. this variable will be skipped.")
-						#endif
-						context.addDiagnostics(from:ExtraneousVariableDeclaration(), node:curVar)
-						continue varLoop
-					}
-
 					let abLister = AccessorBlockLister(viewMode:.sourceAccurate)
 					abLister.walk(curVar)
 					guard abLister.accessorBlocks.count == 0 else {
@@ -272,6 +264,18 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 						#endif
 						continue varLoop
 					}
+
+					if tokensDown.count == 0 {
+						guard abLister.accessorBlocks.count > 0 || staticFinder.foundStaticModifier != nil else {
+							#if RAWDOG_MACRO_LOG
+							mainLogger.error("extraneous variable declaration found. this variable will be skipped.")
+							#endif
+							context.addDiagnostics(from:ExtraneousVariableDeclaration(), node:curVar)
+							continue varLoop
+						}
+						continue varLoop
+					}
+
 					
 					// find the type of the variable
 					let tupleFinder = TuplePatternLister(viewMode:.sourceAccurate)

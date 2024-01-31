@@ -1,3 +1,7 @@
+### 6.2.10
+
+- Updated `RAW_staticbuff` macro to allow extraneous variables that are computed and/or static. 
+
 ### 6.2.9
 
 - Removes the only declaration from the CRAW header (and its underlying implementation in the `.c` file). `CRAW` is now header-only.
