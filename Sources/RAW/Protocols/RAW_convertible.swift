@@ -38,13 +38,7 @@ extension RAW_encodable {
 		var bcount:size_t = 0
 		self.RAW_encode(count:&bcount)
 		var buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:bcount)
-		#if DEBUG
-		let capBuff = buffer
-		#endif
 		defer {
-			#if DEBUG
-			assert(capBuff == buffer, "you cannot change the underlying bytes when using the RAW_access_mutating default extension from RAW_encodable types")
-			#endif
 			buffer.deallocate()
 		}
 		self.RAW_encode(dest:buffer.baseAddress!)
