@@ -34,12 +34,31 @@ public protocol RAW_encodable {
 }
 
 extension RAW_encodable {
-	public mutating func RAW_access_mutating(_ body:(inout UnsafeMutableBufferPointer<UInt8>) throws -> Void) rethrows {
+	public mutating func RAW_access_mutating<R>(_ body:(inout UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R {
 		var bcount:size_t = 0
 		self.RAW_encode(count:&bcount)
 		var buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:bcount)
-		defer { buffer.deallocate() }
+		#if DEBUG
+		let capBuff = buffer
+		#endif
+		defer {
+			#if DEBUG
+			assert(capBuff == buffer, "you cannot change the underlying bytes when using the RAW_access_mutating default extension from RAW_encodable types")
+			#endif
+			buffer.deallocate()
+		}
 		self.RAW_encode(dest:buffer.baseAddress!)
-		try body(&buffer)
+		return try body(&buffer)
+	}
+	
+	public func RAW_access<R>(_ body:(UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
+		var bcount:size_t = 0
+		self.RAW_encode(count:&bcount)
+		var buffer = UnsafeBufferPointer<UInt8>.allocate(capacity:bcount)
+		defer {
+			buffer.deallocate()
+		}
+		self.RAW_encode(dest:buffer.baseAddress!)
+		return try body(buffer)
 	}
 }
