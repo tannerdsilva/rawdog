@@ -1,3 +1,19 @@
+# 7.0.0
+
+- Added nonmutating memory access to the standard suite of protocols and macros.
+
+	- `func RAW_access_staticbuff` added to protocol `RAW_staticbuff`
+	
+	- `func RAW_access` added to protocol `RAW_accessible`
+	
+	- `@RAW_convertible_string_type` macro.
+	
+	- `@RAW_staticbuff` macro.
+	
+- Re-implemented some extensions to make use of new immutable functions.
+
+- `RAW_encodable` changed to use non-mutating implementations.
+
 ### 6.2.10
 
 - Updated `RAW_staticbuff` macro to allow extraneous variables that are computed and/or static. 

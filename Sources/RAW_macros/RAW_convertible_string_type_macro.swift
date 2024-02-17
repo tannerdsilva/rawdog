@@ -143,12 +143,17 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
-			\(structDecl.modifiers) mutating func RAW_encode(count:inout size_t) {
+			\(structDecl.modifiers) func RAW_access<R>(_ body:(UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
+				return try \(bytesVarName).RAW_access(body)
+			}
+		"""))
+		buildDecls.append(DeclSyntax("""
+			\(structDecl.modifiers) func RAW_encode(count:inout size_t) {
 				count += \(countVarName)
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
-			@discardableResult \(structDecl.modifiers) mutating func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
+			@discardableResult \(structDecl.modifiers) func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
 				return \(bytesVarName).RAW_encode(dest:dest)
 			}
 		"""))

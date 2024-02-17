@@ -26,11 +26,11 @@ extension RAW_decodable {
 
 public protocol RAW_encodable {
 	/// encodes the size of the given instance to a size_t inout parameter.
-	mutating func RAW_encode(count:inout size_t)
+	func RAW_encode(count:inout size_t)
 
 	/// encodes the value to the specified pointer.
 	/// - returns: the pointer advanced by the number of bytes written. unexpected behavior may occur if the pointer is not advanced by the number of bytes returned in ``RAW_byte_count``.
-	@discardableResult mutating func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8>
+	@discardableResult func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8>
 }
 
 extension RAW_encodable {
