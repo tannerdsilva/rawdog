@@ -9,11 +9,7 @@ public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed, RAW_
 	/// initialize the static buffer from a pointer to its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
 	init(RAW_staticbuff:UnsafeRawPointer)
 
-	/// allows mutating access to the raw representation of the static buffer instance.
-	mutating func RAW_access_staticbuff_mutating<R>(_ body:(UnsafeMutableRawPointer) throws -> R) rethrows -> R
-
-	/// allows for non-mutating access to the raw representation of the static buffer instance.
-	func RAW_access_staticbuff<R>(_ body:(UnsafeRawPointer) throws -> R) rethrows -> R
+	borrowing func RAW_access_staticbuff<R>(_ body:(UnsafeRawPointer) throws -> R) rethrows -> R
 }
 
 extension RAW_staticbuff {
@@ -38,8 +34,7 @@ extension RAW_staticbuff where Self:ExpressibleByArrayLiteral {
 
 extension RAW_staticbuff where Self:Hashable {
 	public func hash(into hasher:inout Hasher) {
-		var copy = self
-		copy.RAW_access_staticbuff_mutating({ ptr in
+		RAW_access_staticbuff({ ptr in
 			hasher.combine(bytes:UnsafeRawBufferPointer(start:ptr, count:MemoryLayout<RAW_staticbuff_storetype>.size))
 		})
 	}
@@ -47,10 +42,8 @@ extension RAW_staticbuff where Self:Hashable {
 
 extension RAW_staticbuff where Self:Equatable, Self:RAW_comparable_fixed {
 	public static func == (lhs:Self, rhs:Self) -> Bool {
-		var lhsCopy = lhs
-		var rhsCopy = rhs
-		return lhsCopy.RAW_access_staticbuff_mutating({ lhs_ptr in
-			rhsCopy.RAW_access_staticbuff_mutating({ rhs_ptr in
+		return lhs.RAW_access_staticbuff({ lhs_ptr in
+			rhs.RAW_access_staticbuff({ rhs_ptr in
 				RAW_compare(lhs_data:lhs_ptr, rhs_data:rhs_ptr) == 0
 			})
 		})
@@ -59,10 +52,8 @@ extension RAW_staticbuff where Self:Equatable, Self:RAW_comparable_fixed {
 
 extension RAW_staticbuff where Self:Comparable, Self:RAW_comparable_fixed {
 	public static func < (lhs:Self, rhs:Self) -> Bool {
-		var lhsCopy = lhs
-		var rhsCopy = rhs
-		return lhsCopy.RAW_access_staticbuff_mutating({ lhs_ptr in
-			rhsCopy.RAW_access_staticbuff_mutating({ rhs_ptr in
+		return lhs.RAW_access_staticbuff({ lhs_ptr in
+			rhs.RAW_access_staticbuff({ rhs_ptr in
 				RAW_compare(lhs_data:lhs_ptr, rhs_data:rhs_ptr) < 0
 			})
 		})
@@ -87,6 +78,6 @@ extension RAW_staticbuff {
 		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		#endif
-		self.init(RAW_staticbuff:bytes.assumingMemoryBound(to:RAW_staticbuff_storetype.self))
+		self.init(RAW_staticbuff:bytes)
 	}
 }

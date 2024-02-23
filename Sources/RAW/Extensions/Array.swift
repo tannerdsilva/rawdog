@@ -1,9 +1,4 @@
 extension Array:RAW_accessible, RAW_encodable where Element == UInt8 {
-    public mutating func RAW_access_mutating<R>(_ body: (inout UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R {
-        return try withUnsafeMutableBufferPointer( {
-			return try body(&$0)
-		})
-    }
 	public func RAW_access<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
 		return try withUnsafeBufferPointer({
 			try body($0)

@@ -8,10 +8,8 @@ import RAW_macros
 										named(RAW_access_staticbuff),
 										named(RAW_access),
 										named(init(RAW_staticbuff:)),
-										named(RAW_access_staticbuff_mutating),
 										named(RAW_encode(count:)),
 									 	named(RAW_encode(dest:)),
-										named(RAW_access_mutating),
 										named(RAW_compare(lhs_data:lhs_count:rhs_data:rhs_count:)),
 										named(RAW_compare(lhs_data:rhs_data:)))
 @attached(extension,	conformances:	RAW_staticbuff, Sendable)
@@ -21,10 +19,8 @@ public macro RAW_staticbuff(bytes:size_t) = #externalMacro(module:"RAW_macros", 
 										named(init(RAW_staticbuff:)),
 										named(RAW_access_staticbuff),
 										named(RAW_access),
-										named(RAW_access_staticbuff_mutating),
 										named(RAW_encode(count:)),
 									 	named(RAW_encode(dest:)),
-										named(RAW_access_mutating),
 										named(RAW_compare(lhs_data:lhs_count:rhs_data:rhs_count:)),
 										named(RAW_compare(lhs_data:rhs_data:)))
 @attached(extension,	conformances:	RAW_staticbuff)
@@ -50,7 +46,6 @@ public macro RAW_staticbuff_binaryfloatingpoint_type<T:BinaryFloatingPoint>() = 
 @attached(member,		names:			named(init(_:)),
 										named(makeIterator()),
 										named(RAW_access),
-										named(RAW_access_mutating(_:)),
 										named(RAW_integer_encoding_impl),
 										named(RAW_convertible_unicode_encoding),
 										named(init(RAW_decode:count:)),

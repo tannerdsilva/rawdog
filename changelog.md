@@ -1,18 +1,10 @@
 # 7.0.0
 
-- Added nonmutating memory access to the standard suite of protocols and macros.
+- Re-imagined memory paradigm with Swift 5.9 in mind. Swift 5.9 has been a requirement of this library since version 6.x.x, so optimizing the library around these newer memory contepts are yielding much better performance.
 
-	- `func RAW_access_staticbuff` added to protocol `RAW_staticbuff`
-	
-	- `func RAW_access` added to protocol `RAW_accessible`
-	
-	- `@RAW_convertible_string_type` macro.
-	
-	- `@RAW_staticbuff` macro.
-	
-- Re-implemented some extensions to make use of new immutable functions.
+	- Mutating memory concepts have been fully deleted from the project.
 
-- `RAW_encodable` changed to use non-mutating implementations.
+		- In its place, zero-copy memory is guranteed by way of the new `borrowing` and `consuming` keywords in Swift.
 
 ### 6.2.10
 
