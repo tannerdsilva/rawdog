@@ -384,36 +384,30 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 		declString.append(DeclSyntax("""
-			\(asStruct.modifiers) mutating func RAW_access_staticbuff_mutating<R>(_ body:(UnsafeMutableRawPointer) throws -> R) rethrows -> R {
-				return try withUnsafeMutablePointer(to:&self) { buff in
-					return try body(buff)
-				}
-			}
-		"""))
-		declString.append(DeclSyntax("""
-			\(asStruct.modifiers) mutating func RAW_encode(count: inout size_t) {
+			\(asStruct.modifiers) borrowing func RAW_encode(count: inout size_t) {
 				count += MemoryLayout<RAW_staticbuff_storetype>.size
 			}
 		"""))
 		declString.append(DeclSyntax("""
-			@discardableResult \(asStruct.modifiers) mutating func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
-				withUnsafeMutablePointer(to:&self) { buff in
+			@discardableResult \(asStruct.modifiers) borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
+				withUnsafePointer(to:self) { buff in
 					_ = RAW_memcpy(dest, buff, MemoryLayout<RAW_staticbuff_storetype>.size)!
 				}
 				return dest.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
 			}
 		"""))
 		declString.append(DeclSyntax("""
-			\(asStruct.modifiers) mutating func RAW_access_mutating<R>(_ body: (inout UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R {
-				return try withUnsafeMutablePointer(to:&self) { buff in
-					var asBuffer = UnsafeMutableBufferPointer<UInt8>(start:UnsafeMutableRawPointer(buff).assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size)
-					#if DEBUG
-					let storeBuff = asBuffer
-					defer {
-						assert(asBuffer.baseAddress == storeBuff.baseAddress, "you are not allowed to replace the underlying buffer point on a static stack buffer")
-					}
-					#endif
-					return try body(&asBuffer)
+			\(asStruct.modifiers) borrowing func RAW_access<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
+				return try withUnsafePointer(to:self) { buff in
+					let asBuffer = UnsafeBufferPointer<UInt8>(start:UnsafeRawPointer(buff).assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size)
+					return try body(asBuffer)
+				}
+			}
+		"""))
+		declString.append(DeclSyntax("""
+			\(asStruct.modifiers) borrowing func RAW_access_staticbuff<R>(_ body:(UnsafeRawPointer) throws -> R) rethrows -> R {
+				return try withUnsafePointer(to:self) { buff in
+					return try body(buff)
 				}
 			}
 		"""))

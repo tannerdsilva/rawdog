@@ -9,7 +9,7 @@ public protocol RAW_comparable {
 
 extension RAW_comparable {
 	// lexi sort is applied to the data
-	public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_count: size_t, rhs_data: UnsafeRawPointer, rhs_count: size_t) -> Int32 {
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
 		let result = memcmp(lhs_data, rhs_data, min(lhs_count, rhs_count))
 		if result != 0 {
 			return result
@@ -20,10 +20,8 @@ extension RAW_comparable {
 
 extension RAW_accessible where Self:Equatable, Self:RAW_comparable {
 	public static func == (lhs:Self, rhs:Self) -> Bool {
-		var lhsCopy = lhs
-		var rhsCopy = rhs
-		return lhsCopy.RAW_access_mutating({ lhsBuff in
-			rhsCopy.RAW_access_mutating({ rhsBuff in
+		return lhs.RAW_access({ lhsBuff in
+			rhs.RAW_access({ rhsBuff in
 				return RAW_compare(lhs_data:lhsBuff.baseAddress!, lhs_count:lhsBuff.count, rhs_data:rhsBuff.baseAddress!, rhs_count:rhsBuff.count) == 0
 			})
 		})
@@ -32,10 +30,8 @@ extension RAW_accessible where Self:Equatable, Self:RAW_comparable {
 
 extension RAW_accessible where Self:Comparable, Self:RAW_comparable {
 	public static func < (lhs:Self, rhs:Self) -> Bool {
-		var lhsCopy = lhs
-		var rhsCopy = rhs
-		return lhsCopy.RAW_access_mutating({ lhsBuff in
-			rhsCopy.RAW_access_mutating({ rhsBuff in
+		return lhs.RAW_access({ lhsBuff in
+			rhs.RAW_access({ rhsBuff in
 				return RAW_compare(lhs_data:lhsBuff.baseAddress!, lhs_count:lhsBuff.count, rhs_data:rhsBuff.baseAddress!, rhs_count:rhsBuff.count) < 0
 			})
 		})

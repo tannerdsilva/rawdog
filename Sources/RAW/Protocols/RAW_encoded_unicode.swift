@@ -28,7 +28,7 @@ public struct RAW_native_translation_iterator<T:RAW_encoded_fixedwidthinteger>:I
 }
 
 extension RAW_encoded_unicode {
-	public init(_ str:String) {
+	public init(_ str:borrowing String) {
 		self.init(str.unicodeScalars)
 	}
 
@@ -73,8 +73,8 @@ extension RAW_encoded_unicode where Self:ExpressibleByStringLiteral {
 public struct RAW_encoded_unicode_iterator<T:UnicodeCodec>:IteratorProtocol {
 	private var encoded_bytes:[T.CodeUnit].Iterator
 	private var decoder:T
-	public init(_ bytes:[T.CodeUnit].Iterator, encoding:T.Type) {
-		encoded_bytes = bytes
+	public init(_ bytes:borrowing [T.CodeUnit].Iterator, encoding:T.Type) {
+		encoded_bytes = copy bytes
 		decoder = T()
 	}
 	public mutating func next() -> Character? {

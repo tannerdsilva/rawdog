@@ -1,3 +1,17 @@
+# 7.0.0
+
+- Re-imagined memory paradigm with Swift 5.9 in mind. Swift 5.9 has been a requirement of this library since version 6.x.x, so optimizing the library around these newer memory contepts are yielding much better performance.
+
+	- Mutating memory concepts have been fully deleted from the project. 
+	
+		- Applying mutations to existing regions of memory was never a primary focus of this library.
+			
+			- Existing API for mutating data was far from flexible enough in v6, and also required mutability in contexts where it ideally wouldn't be needed.
+			
+			- Now with borrowing/consuming, there are better ways of providing direct access to memory without having to hack mutability into the project.
+
+		- In its place, zero-copy memory is guranteed by way of the new `borrowing` and `consuming` keywords in Swift.
+
 ### 6.2.10
 
 - Updated `RAW_staticbuff` macro to allow extraneous variables that are computed and/or static. 

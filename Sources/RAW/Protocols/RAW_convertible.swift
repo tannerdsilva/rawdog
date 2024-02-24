@@ -26,20 +26,22 @@ extension RAW_decodable {
 
 public protocol RAW_encodable {
 	/// encodes the size of the given instance to a size_t inout parameter.
-	mutating func RAW_encode(count:inout size_t)
+	borrowing func RAW_encode(count:inout size_t)
 
 	/// encodes the value to the specified pointer.
 	/// - returns: the pointer advanced by the number of bytes written. unexpected behavior may occur if the pointer is not advanced by the number of bytes returned in ``RAW_byte_count``.
-	@discardableResult mutating func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8>
+	@discardableResult borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8>
 }
 
 extension RAW_encodable {
-	public mutating func RAW_access_mutating(_ body:(inout UnsafeMutableBufferPointer<UInt8>) throws -> Void) rethrows {
+	public borrowing func RAW_access<R>(_ body:(UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
 		var bcount:size_t = 0
 		self.RAW_encode(count:&bcount)
-		var buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:bcount)
-		defer { buffer.deallocate() }
+		let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:bcount)
+		defer {
+			buffer.deallocate()
+		}
 		self.RAW_encode(dest:buffer.baseAddress!)
-		try body(&buffer)
+		return try body(UnsafeBufferPointer<UInt8>(buffer))
 	}
 }

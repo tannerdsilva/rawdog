@@ -76,7 +76,7 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 			\(structDecl.modifiers) typealias RAW_integer_encoding_impl = \(intType)
 		"""))
 		buildDecls.append(DeclSyntax("""
-			\(structDecl.modifiers) func makeIterator() -> RAW_encoded_unicode_iterator<RAW_convertible_unicode_encoding> {
+			\(structDecl.modifiers) borrowing func makeIterator() -> RAW_encoded_unicode_iterator<RAW_convertible_unicode_encoding> {
 				return \(bytesVarName).withUnsafeBufferPointer({ encBytes in
 					return RAW_encoded_unicode_iterator([RAW_convertible_unicode_encoding.CodeUnit](unsafeUninitializedCapacity:(\(countVarName) / MemoryLayout<RAW_convertible_unicode_encoding.CodeUnit>.size), initializingWith: { buff, usedCount in
 						usedCount = 0
@@ -138,17 +138,17 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
-			\(structDecl.modifiers) mutating func RAW_access_mutating<R>(_ body:(inout UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R {
-				return try \(bytesVarName).RAW_access_mutating(body)
+			\(structDecl.modifiers) borrowing func RAW_access<R>(_ body:(UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
+				return try \(bytesVarName).RAW_access(body)
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
-			\(structDecl.modifiers) mutating func RAW_encode(count:inout size_t) {
+			\(structDecl.modifiers) borrowing func RAW_encode(count:inout size_t) {
 				count += \(countVarName)
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
-			@discardableResult \(structDecl.modifiers) mutating func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
+			@discardableResult \(structDecl.modifiers) borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
 				return \(bytesVarName).RAW_encode(dest:dest)
 			}
 		"""))

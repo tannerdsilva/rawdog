@@ -30,7 +30,6 @@ internal struct ExpectedStructAttachment:Swift.Error, DiagnosticMessage {
 	}
 }
 
-
 // captures all of the identifier types.
 internal class IdTypeLister:SyntaxVisitor {
 	internal var listedIDTypes:Set<IdentifierTypeSyntax> = []
