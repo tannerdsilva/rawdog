@@ -1,13 +1,13 @@
 extension Array:RAW_accessible, RAW_encodable where Element == UInt8 {
-	public func RAW_access<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
+	public borrowing func RAW_access<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
 		return try withUnsafeBufferPointer({
 			try body($0)
 		})
 	}
-	public func RAW_encode(count: inout size_t) {
+	public borrowing func RAW_encode(count: inout size_t) {
 		count += self.count
 	}
-	public func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
+	public borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
 		let advancedCount = withUnsafeBufferPointer({ buff in
 			_ = RAW_memcpy(dest, buff.baseAddress!, buff.count)!
 			return buff.count

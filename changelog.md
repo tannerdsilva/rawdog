@@ -1,3 +1,7 @@
+### 7.0.1
+
+- Default array extensions are now borrowing.
+
 # 7.0.0
 
 - Re-imagined memory paradigm with Swift 5.9 in mind. Swift 5.9 has been a requirement of this library since version 6.x.x, so optimizing the library around these newer memory contepts are yielding much better performance.
