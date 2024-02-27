@@ -4,19 +4,21 @@ public protocol RAW_encoded_unicode:RAW_convertible, RAW_accessible, Sequence<Ch
 
 	associatedtype RAW_integer_encoding_impl:RAW_encoded_fixedwidthinteger where RAW_integer_encoding_impl.RAW_native_type == RAW_convertible_unicode_encoding.CodeUnit
 		
-	init(_ string:String.UnicodeScalarView)
+	init(_ string:consuming String.UnicodeScalarView)
+
+	consuming func makeIterator() -> RAW_encoded_unicode_iterator<Self>
 }
 
-public struct RAW_native_translation_iterator<T:RAW_encoded_fixedwidthinteger>:IteratorProtocol {
+fileprivate struct RAW_native_translation_iterator<T:RAW_encoded_fixedwidthinteger>:IteratorProtocol {
 	internal var count_up:size_t
 	internal let count:size_t
 	private var head:UnsafeRawPointer
-	public init(buffer:UnsafeBufferPointer<UInt8>) {
+	fileprivate init(buffer:UnsafeBufferPointer<UInt8>) {
 		count = buffer.count
 		count_up = 0
 		head = UnsafeRawPointer(buffer.baseAddress!)
 	}
-	public mutating func next() -> T.RAW_native_type? {
+	fileprivate mutating func next() -> T.RAW_native_type? {
 		guard count_up < count else {
 			return nil
 		}
@@ -28,7 +30,7 @@ public struct RAW_native_translation_iterator<T:RAW_encoded_fixedwidthinteger>:I
 }
 
 extension RAW_encoded_unicode {
-	public init(_ str:borrowing String) {
+	public init(_ str:consuming String) {
 		self.init(str.unicodeScalars)
 	}
 
@@ -70,15 +72,34 @@ extension RAW_encoded_unicode where Self:ExpressibleByStringLiteral {
 	}
 }
 
-public struct RAW_encoded_unicode_iterator<T:UnicodeCodec>:IteratorProtocol {
-	private var encoded_bytes:[T.CodeUnit].Iterator
-	private var decoder:T
-	public init(_ bytes:borrowing [T.CodeUnit].Iterator, encoding:T.Type) {
-		encoded_bytes = copy bytes
-		decoder = T()
+fileprivate struct RAW_string_bytes_to_codeunit_unicode<I:RAW_encoded_unicode>:IteratorProtocol {
+	private let storedBytes:[UInt8]
+	private var byte_seeker:size_t = 0
+	fileprivate init(storedBytes:consuming [UInt8]) {
+		self.storedBytes = storedBytes
+	}
+	fileprivate mutating func next() -> I.RAW_convertible_unicode_encoding.CodeUnit? {
+		return storedBytes.RAW_access({ bytes in
+			guard byte_seeker < bytes.count && (bytes.count - byte_seeker) >= MemoryLayout<I.RAW_convertible_unicode_encoding.CodeUnit>.size else {
+				return nil
+			}
+			let start = bytes.baseAddress!.advanced(by:byte_seeker)
+			let nextItem = I.RAW_integer_encoding_impl(RAW_staticbuff:start).RAW_native()
+			byte_seeker += MemoryLayout<I.RAW_convertible_unicode_encoding.CodeUnit>.size
+			return nextItem
+		})
+	}
+}
+
+public struct RAW_encoded_unicode_iterator<T:RAW_encoded_unicode>:IteratorProtocol {
+	private var codeUnitTranslator:RAW_string_bytes_to_codeunit_unicode<T>
+	private var decoder:T.RAW_convertible_unicode_encoding
+	public init(_ encodedType:consuming [UInt8], encoding:T.Type) {
+		codeUnitTranslator = RAW_string_bytes_to_codeunit_unicode<T>(storedBytes:encodedType)
+		decoder = T.RAW_convertible_unicode_encoding()
 	}
 	public mutating func next() -> Character? {
-		switch decoder.decode(&encoded_bytes) {
+		switch decoder.decode(&codeUnitTranslator) {
 		case .scalarValue(let scalar):
 			return Character(scalar)
 		default:

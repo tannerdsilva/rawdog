@@ -1,3 +1,11 @@
+## 7.1.0
+
+- Revised string macro implementation with better informed encode/decode implementation (through internal sequence implementations).
+
+	- Copies have been better optimized with borrow/consume.
+
+	- String types created with the `RAW_convertible_string_type` are now better adherent to `Sequence` protocol in that they take O(1) time to `makeIterator()`.
+
 ### 7.0.1
 
 - Default array extensions are now borrowing.

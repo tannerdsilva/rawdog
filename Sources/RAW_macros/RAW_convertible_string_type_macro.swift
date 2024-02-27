@@ -63,11 +63,11 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 		var buildDecls = [DeclSyntax]()
 		buildDecls.append(DeclSyntax("""
 			/// the length of the string without the null terminator
-			private var \(countVarName):size_t
+			private let \(countVarName):size_t
 		"""))
 		buildDecls.append(DeclSyntax("""
 			/// this is stored with a terminating byte for C compatibility but this null terminator is not included in the count variable that this instance stores
-			private var \(bytesVarName):[UInt8]
+			private let \(bytesVarName):[UInt8]
 		"""))
 		buildDecls.append(DeclSyntax("""
 			\(structDecl.modifiers) typealias RAW_convertible_unicode_encoding = \(unicodeType)
@@ -76,18 +76,8 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 			\(structDecl.modifiers) typealias RAW_integer_encoding_impl = \(intType)
 		"""))
 		buildDecls.append(DeclSyntax("""
-			\(structDecl.modifiers) borrowing func makeIterator() -> RAW_encoded_unicode_iterator<RAW_convertible_unicode_encoding> {
-				return \(bytesVarName).withUnsafeBufferPointer({ encBytes in
-					return RAW_encoded_unicode_iterator([RAW_convertible_unicode_encoding.CodeUnit](unsafeUninitializedCapacity:(\(countVarName) / MemoryLayout<RAW_convertible_unicode_encoding.CodeUnit>.size), initializingWith: { buff, usedCount in
-						usedCount = 0
-						var bytes_base = UnsafeRawPointer(encBytes.baseAddress!)
-						let bytes_end = bytes_base.advanced(by:\(countVarName))
-						while bytes_base < bytes_end {
-							buff[usedCount] = RAW_integer_encoding_impl.init(RAW_staticbuff_seeking:&bytes_base).RAW_native()
-							usedCount += 1
-						}
-					}).makeIterator(), encoding:RAW_convertible_unicode_encoding.self)
-				})
+			\(structDecl.modifiers) consuming func makeIterator() -> RAW_encoded_unicode_iterator<Self> {
+				return RAW_encoded_unicode_iterator(\(bytesVarName), encoding:Self.self)
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
@@ -98,43 +88,20 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
-			\(structDecl.modifiers) init(_ string:String.UnicodeScalarView) {
-				var codeUnitView = string.makeIterator()
-				var codeUnit:Unicode.Scalar? = codeUnitView.next()
-				
+			\(structDecl.modifiers) init(_ string:consuming String.UnicodeScalarView) {	
 				// a character may produce multiple code units. count the required number of code units first.
-				var codeUnits:size_t = 0
-				while codeUnit != nil {
-					defer {
-						codeUnit = codeUnitView.next()
+				var byteCount:size_t = 0
+				var bytes:[UInt8] = []
+				for curScalar in string {
+					RAW_convertible_unicode_encoding.encode(curScalar) { codeUnit in
+						RAW_integer_encoding_impl(RAW_native:codeUnit).RAW_access { buffer in
+							bytes.append(contentsOf:buffer)
+							byteCount += buffer.count
+						}
 					}
-					codeUnits += RAW_convertible_unicode_encoding.width(codeUnit!)
 				}
-
-				// reset the iterator
-				codeUnitView = string.makeIterator()
-
-				// code units may be larger than one byte
-				let encoded_bytes = codeUnits * MemoryLayout<RAW_convertible_unicode_encoding.CodeUnit>.size
-				
-				\(countVarName) = encoded_bytes
-				\(bytesVarName) = [UInt8](unsafeUninitializedCapacity:encoded_bytes, initializingWith: { asBuffer, countout in
-					var scalar:Unicode.Scalar? = codeUnitView.next()
-					var curHead = asBuffer.baseAddress!
-					while scalar != nil {
-						defer {
-							scalar = codeUnitView.next()
-						}
-						RAW_convertible_unicode_encoding.encode(scalar!) { codeUnit in
-							var nativeCU = RAW_integer_encoding_impl(RAW_native:codeUnit)
-							curHead = nativeCU.RAW_encode(dest:curHead)
-						}
-					}
-					countout = asBuffer.baseAddress!.distance(to: curHead)
-					#if DEBUG
-					assert(countout == encoded_bytes, "countout is not equal to encoded_bytes")
-					#endif
-				})
+				\(countVarName) = byteCount
+				\(bytesVarName) = bytes
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
@@ -148,7 +115,7 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
-			@discardableResult \(structDecl.modifiers) borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
+			\(structDecl.modifiers) borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
 				return \(bytesVarName).RAW_encode(dest:dest)
 			}
 		"""))
