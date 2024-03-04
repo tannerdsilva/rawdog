@@ -150,7 +150,7 @@ extension Hasher {
 
 extension Hasher where O == Array<UInt8> {
 	/// finish the hashing process and return the result as a byte array.
-	public mutating func finish() throws -> RAW_blake2_out_type {
+	public mutating func finish() throws -> Array<UInt8> {
 		return try RAW_blake2_func_type.finalize(state:&state, type:[UInt8].self)
 	}
 }
@@ -167,15 +167,21 @@ extension Hasher where RAW_blake2_out_type:RAW_decodable {
 extension Hasher where RAW_blake2_out_type == [UInt8] {
 
 	/// initialize the hasher, preparing it for use without a given key value.
-	public init(outputLength:size_t) throws {
+	public init(outputLength:consuming size_t) throws {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
 		try Self.RAW_blake2_func_type.create(state:&state, output_length:outputLength)
 	}
-
-	/// initialize the hasher, preparing it for use with a specified key value.
-	public init(key_data:UnsafeRawPointer, key_count:size_t, outputLength:size_t) throws {
+	
+	public init<A:RAW_accessible>(key:borrowing A, outputLength:consuming size_t) throws {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
-		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:key_data, key_data_size:key_count, output_length:outputLength)
+		try key.RAW_access { keyPtr in
+			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
+		}
+	}
+	
+	public init(key keyBuffer:UnsafeBufferPointer<UInt8>, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:outputLength)
 	}
 }
 
@@ -186,12 +192,17 @@ extension Hasher where RAW_blake2_out_type:RAW_staticbuff {
 		try Self.RAW_blake2_func_type.create(state:&newState, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
 		self.state = newState
 	}
+	
+	public init<A:RAW_accessible>(key:borrowing A, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try key.RAW_access { keyPtr in
+			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
+		}
+	}
 
-	/// initialize the hasher, preparing it for use with a specified key value.
-	public init(key_data:UnsafeRawPointer, key_count:size_t) throws {
-		var newState = RAW_blake2_func_type.RAW_blake2_statetype()
-		try Self.RAW_blake2_func_type.create(state:&newState, key_data_ptr:key_data, key_data_size:key_count, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
-		self.state = newState
+	public init(key keyBuffer:UnsafeBufferPointer<UInt8>, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:outputLength)
 	}
 
 	/// finish the hashing process and return the result as a byte array.

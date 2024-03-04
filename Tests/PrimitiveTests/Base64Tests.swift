@@ -161,7 +161,7 @@ class Base64Tests: XCTestCase {
 		XCTAssertEqual(base64Encoded, "SGVsbG8sIFdvcmxkIQ==")
 
 		let loopTestString = "SGVsbG8sIFdvcmxkIQ"
-		assert(loopTestString.count == base64Encoded.count)
+		assert(loopTestString.count == base64Encoded.unpaddedEncodedByteCount())
 		var iter = base64Encoded.makeIterator()
 		for val in loopTestString {
 			XCTAssertEqual(val, iter.next()?.characterValue())

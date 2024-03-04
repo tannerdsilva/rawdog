@@ -5,89 +5,22 @@ import RAW
 public struct Encoded {
 	// encoded representation is still stored as decoded bytes for memory efficiency (takes half the space).
 	// this is where the decoded data is stored, and the encoded representation is computed on the fly as needed.
-	private let decoded_data:[UInt8]
-	private let decoded_count:size_t
+	internal let decoded_data:[UInt8]
 
 	/// initialize an encoded value from a decoded byte sequence.
-	fileprivate init(decoded_bytes bytes:[UInt8], decoded_size:size_t) {
-		#if DEBUG
-		assert(decoded_size == bytes.count, "decoded size must match decoded bytes count. \(decoded_size) != \(bytes.count)")
-		#endif
-
+	internal init(decoded_bytes bytes:consuming [UInt8]) {
 		self.decoded_data = bytes
-		self.decoded_count = decoded_size
+	}
+
+	public init(values bytes:consuming [Value]) {
+		self.decoded_data = [UInt8](_decode_main_values(bytes))
 	}
 }
 
 extension Encoded {
-	/// returns the decoded byte sequence for this encoded value.
-	public func decoded() -> [UInt8] {
-		return decoded_data
-	}
-
 	/// returns the byte count for this encoded value
 	public var count:size_t {
-		return Encode.length(decoded_count)
-	}
-}
-
-// decoded initializers
-extension Encoded {
-	/// initialize a hex encoded value from a byte buffer of unencoded bytes
-	public static func from(decoded bytes:[UInt8]) -> Self {
-		return Self(decoded_bytes:bytes, decoded_size:bytes.count)
-	}
-}
-
-// encoded initializers
-extension Encoded {
-	/// initialize an encoded value by validating an existing encoding in byte form with size specified (utf8 bytes).
-	public static func from(encoded bytes:UnsafePointer<UInt8>, count:size_t) throws -> Self {
-		guard count % 2 == 0 else {
-			throw Error.invalidEncodingSize(count)
-		}
-		// initialize based on the decoded values.
-		let decodedBytes = try Decode.process(bytes:bytes, count:count)
-		return Self(decoded_bytes:decodedBytes.0, decoded_size:decodedBytes.1)
-	}
-	
-	/// initialize an encoded value by validating an existing encoding in byte form with size specified (utf8 bytes).
-	public static func from(encoded values:UnsafePointer<Value>, count:size_t) throws -> Self {
-		guard count % 2 == 0 else {
-			throw Error.invalidEncodingSize(count)
-		}
-		// initialize based on the decoded values.
-		let decodedBytes = try Decode.process(values:values, count:count)
-		return Self(decoded_bytes:decodedBytes.0, decoded_size:decodedBytes.1)
-	}
-}
-
-extension Encoded {
-	public static func from(encoded encstr:String) throws -> Self {
-		return try Self.from(encoded:encstr.unicodeScalars)
-	}
-	
-	public static func from(encoded encstr:String.UnicodeScalarView) throws -> Self {
-		let encLen = encstr.count
-		return try Self.from(encoded:try [UInt8](unsafeUninitializedCapacity:encLen, initializingWith: { buff, usedCount in
-			usedCount = 0
-			var seekPointer = buff.baseAddress!
-			for scalar in encstr {
-				guard scalar.isASCII == true else {
-					throw Error.invalidHexEncodingCharacter(Character(scalar))
-				}
-				seekPointer.initialize(to:UInt8(scalar.value))
-				seekPointer += 1
-				usedCount += 1
-			}
-			#if DEBUG
-			assert(usedCount == encLen)
-			#endif
-		}), count:encLen)
-	}
-
-	public static func from(encoded values:[Value]) throws -> Self {
-		return try Self.from(encoded:values, count:values.count)
+		return Encode.length(decoded_data.count)
 	}
 }
 
@@ -105,7 +38,7 @@ extension Encoded:RandomAccessCollection {
 
 	/// the ending index for this collection is always the encoded byte count.
 	public var endIndex:Index {
-		return Encode.length(decoded_count)
+		return Encode.length(decoded_data.count)
 	}
 
 	/// the index after the given index.
@@ -138,7 +71,7 @@ extension Encoded:Sequence {
 		/// initialize a new iterator for the given encoded value.
 		fileprivate init(encoded:Encoded) {
 			self.decoded_data = encoded.decoded_data
-			self.endIndex = Encode.length(encoded.decoded_count)
+			self.endIndex = Encode.length(encoded.decoded_data.count)
 		}
 
 		/// returns the next character in the encoded value.
@@ -160,7 +93,7 @@ extension Encoded:Sequence {
 		}
 	}
 
-	public func makeIterator() -> Iterator {
+	public consuming func makeIterator() -> Iterator {
 		return Iterator(encoded:self)
 	}
 }
@@ -179,16 +112,14 @@ extension Encoded:Hashable, Equatable {
 
 extension Encoded:ExpressibleByStringLiteral {
 	public typealias StringLiteralType = String
-
 	public init(stringLiteral value:String) {
-		self = try! Self.from(encoded:value)
+		self = Self(decoded_bytes:try! decode(value))
 	}
 }
 
 extension Encoded:ExpressibleByArrayLiteral {
 	public typealias ArrayLiteralElement = Value
-
 	public init(arrayLiteral elements:Value...) {
-		self = try! Self.from(encoded:elements, count:elements.count)
+		self = Self(values:elements)
 	}
 }

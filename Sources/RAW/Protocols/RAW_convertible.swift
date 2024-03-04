@@ -19,7 +19,7 @@ public protocol RAW_decodable_unbounded {
 
 extension RAW_decodable {
 	/// initialize from the contents of a raw data buffer, as a mutable buffer pointer.
-	public init?(RAW_accessed ptr:UnsafeMutableBufferPointer<UInt8>) {
+	public init?(RAW_accessed ptr:UnsafeBufferPointer<UInt8>) {
 		self.init(RAW_decode:ptr.baseAddress!, count:ptr.count)
 	}
 }
@@ -31,17 +31,4 @@ public protocol RAW_encodable {
 	/// encodes the value to the specified pointer.
 	/// - returns: the pointer advanced by the number of bytes written. unexpected behavior may occur if the pointer is not advanced by the number of bytes returned in ``RAW_byte_count``.
 	@discardableResult borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8>
-}
-
-extension RAW_encodable {
-	public borrowing func RAW_access<R>(_ body:(UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
-		var bcount:size_t = 0
-		self.RAW_encode(count:&bcount)
-		let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:bcount)
-		defer {
-			buffer.deallocate()
-		}
-		self.RAW_encode(dest:buffer.baseAddress!)
-		return try body(UnsafeBufferPointer<UInt8>(buffer))
-	}
 }

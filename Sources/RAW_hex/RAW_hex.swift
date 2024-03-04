@@ -24,21 +24,6 @@ public enum Error:Swift.Error {
 }
 
 extension Array where Element == Value {
-	/// initialize a new array of hex values from a byte buffer.
-	/// - throws: ``Error.invalidHexEncodingCharacter`` if the byte buffer contains a byte that is not a valid hex character.
-	public init(validate data:UnsafePointer<UInt8>, count:size_t) throws {
-		self = try Self(unsafeUninitializedCapacity:count, initializingWith: { valueBuffer, valueCount in
-			valueCount = 0
-			while valueCount < count {
-				valueBuffer[valueCount] = try Value(validate:data[valueCount])
-				valueCount += 1
-			}
-			#if DEBUG
-			assert(valueCount == count)
-			#endif
-		})
-	}
-
 	/// returns an array of random hex values. the length of the array is specified by the `length` parameter.
 	public static func random(count length:size_t) -> Self {
 		return Self(unsafeUninitializedCapacity:length, initializingWith: { valueBuffer, valueCount in
@@ -54,55 +39,50 @@ extension Array where Element == Value {
 			#endif
 		})
 	}
+}
 
-	public init(_ encoded:Encoded) {
-		self.init(unsafeUninitializedCapacity:encoded.count, initializingWith: { valueBuffer, valueCount in
-			valueCount = 0
-			var seekPointer = valueBuffer.baseAddress!
-			for value in encoded {
-				seekPointer.initialize(to:value)
-				seekPointer += 1
-				valueCount += 1
-			}
-			#if DEBUG
-			assert(valueCount == encoded.count)
-			#endif
-		})
+public func encode<A:RAW_accessible>(_ accessibleBytes:borrowing A) -> Encoded {
+	accessibleBytes.RAW_access { decodedBytesToEncode in
+		return Encoded(decoded_bytes:[UInt8](decodedBytesToEncode))
 	}
+}
+public func encode(_ input:consuming [UInt8]) -> Encoded {
+	return Encoded(decoded_bytes:input)
+}
+public func encode(_ inputByte:UnsafeBufferPointer<UInt8>) -> Encoded {
+	return Encoded(decoded_bytes:[UInt8](inputByte))
+}
+
+// decode functions
+/// decode a base64 encoded string to a decoded byte array.
+public func decode<S>(_ str:consuming S) throws -> [UInt8] where S:Sequence, S.Element == Character {
+	var buildValues = [Value]()
+	for char in str {
+		guard char.isASCII == true else {
+			throw Error.invalidHexEncodingCharacter(char)
+		}
+		buildValues.append(try Value(validate:char))
+	}
+	return [UInt8](_decode_main_values(buildValues))
+}
+
+public func decode<S>(_ str:consuming S) throws -> [UInt8] where S:RAW_encoded_unicode {
+	return try decode(String(str))
+}
+
+public func decode(_ encoded:borrowing Encoded) -> [UInt8] {
+	return encoded.decoded_data
 }
 
 extension String {
-
 	/// initialize a string from a hex encoded value. the resulting string will be the ascii-based hex string of representing the byte values.
-	public init(_ encoded:Encoded) {
-		self.init([Character](unsafeUninitializedCapacity:encoded.count, initializingWith: { charBuffer, charCount in
-			charCount = 0
-			var curPtr = charBuffer.baseAddress!
-			for value in encoded {
-				defer {
-					curPtr += 1
-					charCount += 1
-				}
-				curPtr.initialize(to:value.characterValue())
-			}
-		}))
+	public init(_ encoded:consuming Encoded) {
+		self = .init(_encoder_main_char(encoded))
 	}
 }
 
-extension Array where Element == UInt8 {
-
-	/// initialize a new byte array from a hex encoded value. the resulting byte array will be the hex-encoded ascii string of the byte array.
-	public init(_ encoded:Encoded) {
-		self.init([UInt8](unsafeUninitializedCapacity:encoded.count, initializingWith: { byteBuffer, byteCount in
-			byteCount = 0
-			var curPtr = byteBuffer.baseAddress!
-			for value in encoded {
-				defer {
-					curPtr += 1
-					byteCount += 1
-				}
-				curPtr.initialize(to:value.asciiValue())
-			}
-		}))
+extension RAW_encoded_unicode {
+	public init(_ encoded:consuming Encoded) {
+		self.init(String(_encoder_main_char(encoded)))
 	}
 }
