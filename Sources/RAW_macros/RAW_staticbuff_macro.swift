@@ -240,12 +240,6 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 				var tokensDown = tokens
 				var varNameVarType = [TokenSyntax:IdentifierTypeSyntax]()
 				varLoop: for curVar in varScanner.varDecls {
-					if curVar.bindingSpecifier.text == "let" {
-						#if RAWDOG_MACRO_LOG
-						mainLogger.error("let binding specifiers are not supported in this mode. please remove the let binding specifier from this variable declaration, and replace it with 'var'.")
-						#endif
-						context.addDiagnostics(from:LetBindingSpecifierUnsupported(), node:curVar.bindingSpecifier)
-					}
 
 					let abLister = AccessorBlockLister(viewMode:.sourceAccurate)
 					abLister.walk(curVar)

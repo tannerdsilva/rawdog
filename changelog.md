@@ -1,3 +1,7 @@
+### 8.0.1
+
+- Allow `let` binding specifier for member variables of RAW_staticbuff macro.
+
 # 8.0.0
 
 - Changed keyed initializer functions offered by extension on ``RAW_blake2\Hasher``, these key arguments now accept any `RAW_accessible`. Now has a slightly less confusing public API on paper.
