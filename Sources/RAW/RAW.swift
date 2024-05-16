@@ -25,6 +25,10 @@ internal func makeDefaultLogger(label loggerLabel:String, level:Logger.Level) ->
 internal let mainLogger = Logger(label:"RAW")
 #endif
 
+@RAW_staticbuff(bytes:1)
+@RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
+public struct RAW_byte {}
+
 // /// a default implementation of the ``RAW_val`` protocol.
 // @frozen public struct val:RAW_val {
 // 	/// the raw data that the structure instance represents.

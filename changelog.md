@@ -1,3 +1,7 @@
+## 8.1.0
+
+- Created `RAW_byte` struct to allow for convenient and consistent byte applications across applications.
+
 ### 8.0.1
 
 - Allow `let` binding specifier for member variables of RAW_staticbuff macro.
