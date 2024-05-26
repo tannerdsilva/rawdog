@@ -406,6 +406,13 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 		declString.append(DeclSyntax("""
+			\(asStruct.modifiers) mutating func RAW_access_staticbuff_mutating<R>(_ body:(UnsafeMutableRawPointer) throws -> R) rethrows -> R {
+				return try withUnsafeMutablePointer(to:&self) { buff in
+					return try body(UnsafeMutableRawPointer(buff))
+				}
+			}
+		"""))
+		declString.append(DeclSyntax("""
 			\(asStruct.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
 				#if DEBUG
 				assert(lhs_count == MemoryLayout<RAW_staticbuff_storetype>.size, "lhs_count: \\(lhs_count) != MemoryLayout<RAW_staticbuff_storetype>.size: \\(MemoryLayout<RAW_staticbuff_storetype>.size)")

@@ -67,7 +67,7 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 		"""))
 		buildDecls.append(DeclSyntax("""
 			/// this is stored with a terminating byte for C compatibility but this null terminator is not included in the count variable that this instance stores
-			private let \(bytesVarName):[UInt8]
+			private var \(bytesVarName):[UInt8]
 		"""))
 		buildDecls.append(DeclSyntax("""
 			\(structDecl.modifiers) typealias RAW_convertible_unicode_encoding = \(unicodeType)
@@ -107,6 +107,11 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 		buildDecls.append(DeclSyntax("""
 			\(structDecl.modifiers) borrowing func RAW_access<R>(_ body:(UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
 				return try \(bytesVarName).RAW_access(body)
+			}
+		"""))
+		buildDecls.append(DeclSyntax("""
+			\(structDecl.modifiers) mutating func RAW_access_mutating<R>(_ body:(UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R {
+				return try \(bytesVarName).RAW_access_mutating(body)
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""

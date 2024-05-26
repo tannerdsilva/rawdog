@@ -1,3 +1,7 @@
+# 9.0.0
+
+- Reintroduction of mutating access functions into the `RAW_accessible` and `RAW_staticbuff` protocols.
+
 ## 8.1.0
 
 - Created `RAW_byte` struct to allow for convenient and consistent byte applications across applications.
