@@ -9,9 +9,13 @@ public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed, RAW_
 	/// initialize the static buffer from a pointer to its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
 	init(RAW_staticbuff:UnsafeRawPointer)
 
+	init(RAW_staticbuff:consuming RAW_staticbuff_storetype)
+
 	borrowing func RAW_access_staticbuff<R>(_ body:(UnsafeRawPointer) throws -> R) rethrows -> R
 
 	mutating func RAW_access_staticbuff_mutating<R>(_ body:(UnsafeMutableRawPointer) throws -> R) rethrows -> R
+
+	consuming func RAW_staticbuff() -> RAW_staticbuff_storetype
 }
 
 extension RAW_staticbuff {

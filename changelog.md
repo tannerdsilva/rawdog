@@ -1,3 +1,13 @@
+# 10.0.0
+
+- Introduced pointer-less functions into `RAW_staticbuff`.
+
+	- Pointer-free initializer with a consuming `RAW_staticbuff_storetype` argument.
+
+	- Pointer-free self-consuming function that returns `RAW_staticbuff_storetype`.
+
+- `RAW_comparable_fixed` protocol now includes `RAW_comparable`.
+
 # 9.0.0
 
 - Reintroduction of mutating access functions into the `RAW_accessible` and `RAW_staticbuff` protocols.

@@ -22,7 +22,7 @@ extension RAW_convertible_fixed {
 }
 
 /// a type that can be compared with another instance of the same type.
-public protocol RAW_comparable_fixed:RAW_fixed {
+public protocol RAW_comparable_fixed:RAW_comparable, RAW_fixed {
 	/// compare two instances of the same type.
 	static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32
 }
