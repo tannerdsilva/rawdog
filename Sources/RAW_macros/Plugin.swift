@@ -40,7 +40,7 @@ internal class IdTypeLister:SyntaxVisitor {
 }
 
 // captures the single identifier type listed in a generic argument clause.
-internal class SingleTypeGenericArgumentFinder:SyntaxVisitor {
+internal final class SingleTypeGenericArgumentFinder:SyntaxVisitor {
 	internal var foundType:IdentifierTypeSyntax? = nil
 	override func visit(_ node:GenericArgumentListSyntax) -> SyntaxVisitorContinueKind {
 		guard node.count == 1 else {
@@ -54,10 +54,46 @@ internal class SingleTypeGenericArgumentFinder:SyntaxVisitor {
 }
 
 
-internal class StructFinder:SyntaxVisitor {
+internal final class StructFinder:SyntaxVisitor {
 	var structDecl:StructDeclSyntax? = nil
 	override func visit(_ node:StructDeclSyntax) -> SyntaxVisitorContinueKind {
 		structDecl = node
+		return .skipChildren
+	}
+}
+
+internal final class FunctionFinder:SyntaxVisitor {
+	internal var validMatches:Set<String> = []
+	internal var funcDecl:[FunctionDeclSyntax] = []
+	override func visit(_ node:FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+		guard validMatches.contains(node.name.text) else {
+			return .skipChildren
+		}
+		funcDecl.append(node)
+		return .visitChildren
+	}
+}
+
+internal final class FunctionParameterLister:SyntaxVisitor {
+	internal var parameters:[FunctionParameterSyntax] = []
+	override func visit(_ node:FunctionParameterSyntax) -> SyntaxVisitorContinueKind {
+		parameters.append(node)
+		return .skipChildren
+	}
+}
+
+internal final class ReturnClauseFinder:SyntaxVisitor {
+	internal var returnClause:ReturnClauseSyntax? = nil
+	override func visit(_ node:ReturnClauseSyntax) -> SyntaxVisitorContinueKind {
+		returnClause = node
+		return .skipChildren
+	}
+}
+
+internal final class FunctionEffectSpecifiersFinder:SyntaxVisitor {
+	internal var effectSpecifier:FunctionEffectSpecifiersSyntax? = nil
+	override func visit(_ node:FunctionEffectSpecifiersSyntax) -> SyntaxVisitorContinueKind {
+		effectSpecifier = node
 		return .skipChildren
 	}
 }

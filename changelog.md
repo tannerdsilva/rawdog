@@ -1,3 +1,9 @@
+## 10.1.0
+
+- `RAW_staticbuff` macro now allows users to define or override the default logic for `RAW_comparable_fixed`, which was previously implemented blindly by the macro or extensions depending on the configuration of the macro.
+
+	- Macro includes 3 helpful diagnostic messages that can be thrown in this context to help the user understand what to do when trying to override the comparison logic.
+
 # 10.0.0
 
 - Introduced pointer-less functions into `RAW_staticbuff`.

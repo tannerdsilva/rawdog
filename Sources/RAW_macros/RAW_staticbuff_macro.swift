@@ -59,6 +59,24 @@ public struct LetBindingSpecifierUnsupported:Swift.Error, DiagnosticMessage {
 	public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
 }
 
+public struct InvalidRAW_compareOverride {
+	public struct MissingStaticModifier:Swift.Error, DiagnosticMessage {
+		public var message:String { "expected to find a static modifier on the compare function override, but none was found." }
+		public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_compare_missing_static_modifier")}
+		public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
+	}
+	public struct InvalidRAW_comparable_fixedFunction:Swift.Error, DiagnosticMessage {
+		public var message:String { "expected to find a function with the signature `static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32` but found a function with a different signature." }
+		public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_compare_invalid_signature")}
+		public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
+	}
+	public struct IncorrectAccessLevel:Swift.Error, DiagnosticMessage {
+		public var message:String { "expected to find a function with the signature `static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32` but found a function with a different signature." }
+		public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_compare_invalid_signature")}
+		public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
+	}
+}
+
 public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 	/// defines the two types of usages for this macro code.
 	public enum MacroUsageMode {
@@ -194,6 +212,63 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 		let varScanner = VariableDeclLister(viewMode:.sourceAccurate)
 		varScanner.walk(asStruct)
 
+		// find the RAW_compare functions in the struct
+		let compareFinder = FunctionFinder(viewMode:.sourceAccurate)
+		compareFinder.validMatches.update(with:"RAW_compare")
+		compareFinder.walk(asStruct)
+		var compareOverridden = false
+		for foundFunc in compareFinder.funcDecl {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.info("found RAW_compare override in struct declaration. validating format and naming...")
+			#endif
+
+			let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
+			staticFinder.walk(foundFunc)
+			if staticFinder.foundStaticModifier == nil {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("static modifier not found on compare function. this function will be skipped.")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.MissingStaticModifier(), node:foundFunc)
+				continue
+			}
+
+			var fparams = FunctionParameterLister(viewMode:.sourceAccurate)
+			fparams.walk(foundFunc)
+			guard fparams.parameters.count == 2, fparams.parameters[0].firstName.text == "lhs_data", let idL = fparams.parameters[0].type.as(IdentifierTypeSyntax.self), let idR = fparams.parameters[1].type.as(IdentifierTypeSyntax.self), fparams.parameters[1].firstName.text == "rhs_data" && idL.name.text == "UnsafeRawPointer" && idR.name.text == "UnsafeRawPointer" else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected exactly one parameter in compare function, found \(fparams.parameters.count)")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				continue
+			}
+
+			let returnClauseFinder = ReturnClauseFinder(viewMode:.sourceAccurate)
+			returnClauseFinder.walk(foundFunc)
+			guard returnClauseFinder.returnClause?.type.as(IdentifierTypeSyntax.self)?.name.text == "Int32" else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected return type of Int32, found \(returnClauseFinder.returnClause?.type)")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				continue
+			}
+
+			let effectSpecifier = FunctionEffectSpecifiersFinder(viewMode:.sourceAccurate)
+			effectSpecifier.walk(foundFunc)
+			guard effectSpecifier.effectSpecifier == nil || (effectSpecifier.effectSpecifier!.throwsSpecifier == nil && effectSpecifier.effectSpecifier!.asyncSpecifier == nil) else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected no effect specifier on compare function, found \(effectSpecifier.effectSpecifier)")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				continue
+			}
+
+			compareOverridden = true
+		}
+
+		#if RAWDOG_MACRO_LOG
+		mainLogger.notice("is comparison operator overridden? \(compareOverridden)")
+		#endif
+
 		var declString = [DeclSyntax]()
 		switch config {
 
@@ -226,7 +301,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 				}
 
 				declString.append(DeclSyntax("""
-					/// initialize the static buffer from  its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
+					/// initialize the static buffer from its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
 					\(asStruct.modifiers) init(RAW_staticbuff storetype:consuming RAW_staticbuff_storetype) {
 						#if DEBUG
 						assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -364,24 +439,26 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 						}
 					""")
 				}
-				declString.append(DeclSyntax("""
-					/// compare two instances of the same type.
-					\(raw:asStruct.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
-						#if DEBUG
-						assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
-						assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is a misuse of the macro")
-						assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is a misuse of the macro")
-						#endif
-						var compare_result:Int32
-						var lhs_seeker = lhs_data
-						var rhs_seeker = rhs_data
 
-						\(raw:buildCompare.joined(separator: "\n"))
+				if compareOverridden == false {
+					declString.append(DeclSyntax("""
+						/// compare two instances of the same type.
+						\(raw:asStruct.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+							#if DEBUG
+							assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+							assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is a misuse of the macro")
+							assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is a misuse of the macro")
+							#endif
+							var compare_result:Int32
+							var lhs_seeker = lhs_data
+							var rhs_seeker = rhs_data
 
-						return compare_result
-					}
-				"""))
+							\(raw:buildCompare.joined(separator: "\n"))
 
+							return compare_result
+						}
+					"""))
+				}
 				declString.append(DeclSyntax("""
 					\(raw:asStruct.modifiers) init(RAW_staticbuff storetype:consuming RAW_staticbuff_storetype) {
 						#if DEBUG
@@ -449,15 +526,6 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 				return try withUnsafeMutablePointer(to:&self) { buff in
 					return try body(UnsafeMutableRawPointer(buff))
 				}
-			}
-		"""))
-		declString.append(DeclSyntax("""
-			\(asStruct.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
-				#if DEBUG
-				assert(lhs_count == MemoryLayout<RAW_staticbuff_storetype>.size, "lhs_count: \\(lhs_count) != MemoryLayout<RAW_staticbuff_storetype>.size: \\(MemoryLayout<RAW_staticbuff_storetype>.size)")
-				assert(rhs_count == MemoryLayout<RAW_staticbuff_storetype>.size, "rhs_count: \\(rhs_count) != MemoryLayout<RAW_staticbuff_storetype>.size: \\(MemoryLayout<RAW_staticbuff_storetype>.size)")
-				#endif
-				return RAW_compare(lhs_data:lhs_data, rhs_data:rhs_data)
 			}
 		"""))
 		

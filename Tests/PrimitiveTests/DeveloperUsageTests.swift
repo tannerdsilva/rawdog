@@ -35,6 +35,16 @@ struct MYSTRUCT {
 fileprivate struct MYSTRUCT2 {
 	private var firstItem:EncodedDouble
 	private var secondItem:EncodedFloat
+
+	fileprivate static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+		var lhs = lhs_data.load(as:Self.self)
+		var rhs = rhs_data.load(as:Self.self)
+		let lastItemCompare = EncodedFloat.RAW_compare(lhs_data:&lhs.secondItem, rhs_data:&rhs.secondItem)
+		if lastItemCompare != 0 {
+			return lastItemCompare
+		}
+		return EncodedDouble.RAW_compare(lhs_data:&lhs.firstItem, rhs_data:&rhs.firstItem)
+	}
 }
 
 @RAW_staticbuff(bytes:8)
