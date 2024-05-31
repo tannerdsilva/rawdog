@@ -1,3 +1,7 @@
+## 11.0.0
+
+- `RAW_staticbuff` protocol now requires Sendable. This cannot be implemented behind the scenes with the core macro, however, the macro has been updated to make the new requirement clear to users.
+
 ## 10.1.0
 
 - `RAW_staticbuff` macro now allows users to define or override the default logic for `RAW_comparable_fixed`, which was previously implemented blindly by the macro or extensions depending on the configuration of the macro.

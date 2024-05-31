@@ -62,7 +62,7 @@ let package = Package(
 			targets: ["RAW_blake2"])
 	],
 	dependencies: [
-		.package(url:"https://github.com/apple/swift-syntax.git", from:"509.0.1"),
+		.package(url:"https://github.com/apple/swift-syntax.git", "509.0.1"..<"510.0.1"),
 		.package(url:"https://github.com/apple/swift-log.git", from:"1.4.2")
 	],
 	targets: [

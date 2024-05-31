@@ -27,7 +27,7 @@ internal let mainLogger = Logger(label:"RAW")
 
 @RAW_staticbuff(bytes:1)
 @RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
-public struct RAW_byte {}
+public struct RAW_byte:Sendable {}
 
 // /// a default implementation of the ``RAW_val`` protocol.
 // @frozen public struct val:RAW_val {

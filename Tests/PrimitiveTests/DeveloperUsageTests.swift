@@ -6,24 +6,24 @@ import RAW
 @testable import cblake2
 
 @RAW_staticbuff(bytes:2)
-struct MyFixeDThing {}
+struct MyFixeDThing:Sendable {}
 
 @RAW_staticbuff(bytes:5)
-struct FixedBuff5:ExpressibleByArrayLiteral, Equatable {}
+struct FixedBuff5:Sendable, ExpressibleByArrayLiteral, Equatable {}
 
 @RAW_staticbuff(bytes:8)
 @RAW_staticbuff_binaryfloatingpoint_type<Double>()
-struct EncodedDouble:ExpressibleByFloatLiteral {}
+struct EncodedDouble:Sendable, ExpressibleByFloatLiteral {}
 
 @RAW_staticbuff(bytes:4)
 @RAW_staticbuff_binaryfloatingpoint_type<Float>()
-struct EncodedFloat:ExpressibleByFloatLiteral {}
+struct EncodedFloat:Sendable, ExpressibleByFloatLiteral {}
 
 @RAW_staticbuff(concat:			FixedBuff5, 
 								EncodedDouble,
 								EncodedFloat,
 								FixedBuff5)
-struct MYSTRUCT {
+struct MYSTRUCT:Sendable {
 	// this is a test of comments in the struct. (they seem to work ok)
 	private var firstItem:FixedBuff5
 	private var secondItem:EncodedDouble
@@ -32,7 +32,7 @@ struct MYSTRUCT {
 }
 
 @RAW_staticbuff(concat:EncodedDouble, EncodedFloat)
-fileprivate struct MYSTRUCT2 {
+fileprivate struct MYSTRUCT2:Sendable {
 	private var firstItem:EncodedDouble
 	private var secondItem:EncodedFloat
 
@@ -49,18 +49,18 @@ fileprivate struct MYSTRUCT2 {
 
 @RAW_staticbuff(bytes:8)
 @RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
-struct MyUInt64Equivalent {}
+struct MyUInt64Equivalent:Sendable {}
 
 @RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 @RAW_staticbuff(bytes:4)
-struct MyUInt32Equivalent {}
+struct MyUInt32Equivalent:Sendable {}
 
 @RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
 @RAW_staticbuff(bytes:2)
-struct MyUInt16Equivalent {}
+struct MyUInt16Equivalent:Sendable {}
 
 @RAW_staticbuff(concat:MyUInt16Equivalent, MyUInt32Equivalent, MyUInt64Equivalent)
-struct MySpecialUIntType {
+struct MySpecialUIntType:Sendable {
 	var bitVar16:MyUInt16Equivalent
 	var bitVar32:MyUInt32Equivalent
 	var bitVar64:MyUInt64Equivalent
@@ -69,16 +69,15 @@ struct MySpecialUIntType {
 
 @RAW_staticbuff(bytes:8)
 @RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
-struct EncodedUInt64:ExpressibleByIntegerLiteral {}
+struct EncodedUInt64:ExpressibleByIntegerLiteral, Sendable {}
 
 @RAW_staticbuff(bytes:4)
 @RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
-struct EncodedUInt32:ExpressibleByIntegerLiteral {}
-
+struct EncodedUInt32:ExpressibleByIntegerLiteral, Sendable {}
 
 // // mydually - this is used to test the linear sort and compare functions of the ConcatBufferType macro.
 @RAW_staticbuff(concat:EncodedUInt64, EncodedUInt32)
-struct MyDually {
+struct MyDually:Sendable {
 	var first: EncodedUInt64
 	static var myThing:MyDually = MyDually(first: 10, second: 20)
 	var second: EncodedUInt32

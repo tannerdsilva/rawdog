@@ -113,6 +113,13 @@ internal struct RAW_staticbuff_floatingpoint_type_macro:MemberMacro, ExtensionMa
 			#endif
 			return []
 		}
+
+		guard isMarkedSendable(structFinder.structDecl!) else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected struct to be marked Sendable")
+			#endif
+			return []
+		}
 		
 		return [try! ExtensionDeclSyntax("""
 			extension \(type):RAW_encoded_binaryfloatingpoint {}

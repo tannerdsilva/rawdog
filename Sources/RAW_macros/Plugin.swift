@@ -62,6 +62,42 @@ internal final class StructFinder:SyntaxVisitor {
 	}
 }
 
+
+internal func isMarkedSendable(_ declaration:StructDeclSyntax, withInheritanceClause:UnsafeMutablePointer<InheritanceClauseSyntax?>? = nil) -> Bool {
+	let sendableFinder = InheritedTypeFinder(viewMode:.sourceAccurate)
+	sendableFinder.walk(declaration)
+	if withInheritanceClause != nil {
+		withInheritanceClause!.pointee = sendableFinder.inheritanceClause
+	}
+	if sendableFinder.inheritedTypes["Sendable"] != nil {
+		return true
+	} else {
+		return false
+	}
+}
+
+
+// do not use on syntax that my contain multiple 
+internal final class InheritedTypeFinder:SyntaxVisitor {
+	internal var inheritanceClause:InheritanceClauseSyntax? = nil
+	internal var inheritedTypes:[String:InheritedTypeSyntax] = [:]
+	override func visit(_ node:InheritanceClauseSyntax) -> SyntaxVisitorContinueKind {
+		if inheritanceClause == nil {
+			inheritanceClause = node
+			return .visitChildren
+		} else {
+			return .skipChildren
+		}
+	}
+	override func visit(_ node:IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
+		guard let parent = node.parent?.as(InheritedTypeSyntax.self) else {
+			return .skipChildren
+		}
+		inheritedTypes[node.name.text] = parent
+		return .skipChildren
+	}
+}
+
 internal final class FunctionFinder:SyntaxVisitor {
 	internal var validMatches:Set<String> = []
 	internal var funcDecl:[FunctionDeclSyntax] = []

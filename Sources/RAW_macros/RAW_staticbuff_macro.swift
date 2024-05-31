@@ -59,6 +59,12 @@ public struct LetBindingSpecifierUnsupported:Swift.Error, DiagnosticMessage {
 	public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
 }
 
+public struct StructMustBeSendable:Swift.Error, DiagnosticMessage {
+	public var message:String { "the attached struct must be marked as Sendable to use this macro." }
+	public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_struct_must_be_sendable")}
+	public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
+}
+
 public struct InvalidRAW_compareOverride {
 	public struct MissingStaticModifier:Swift.Error, DiagnosticMessage {
 		public var message:String { "expected to find a static modifier on the compare function override, but none was found." }
@@ -181,6 +187,11 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			return []
 		}
 
+		if isMarkedSendable(declaration.as(StructDeclSyntax.self)!) == false {
+			// a diagnostic will be thrown here by the attached member macro. in this condition, adding the extension would only cause more errors, so we do nothing to avoid confusion to the end developer.
+			return []
+		}
+
 		return [try ExtensionDeclSyntax("""
 			extension \(type):RAW_staticbuff {}
 		""")]
@@ -195,6 +206,20 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			mainLogger.error("expected struct declaration, found \(String(describing:declaration.syntaxNodeType))")
 			#endif
 			context.addDiagnostics(from:ExpectedStructAttachment(found:declaration.syntaxNodeType), node:node)
+			return []
+		}
+
+		// parse for the sendable protocol conformance
+		var foundInheritanceClause:InheritanceClauseSyntax?
+		guard isMarkedSendable(asStruct, withInheritanceClause:&foundInheritanceClause) else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected struct to conform to Sendable protocol, but it does not.")
+			#endif
+			var attachSyntax:SyntaxProtocol? = foundInheritanceClause
+			if attachSyntax == nil {
+				attachSyntax = asStruct
+			}
+			context.addDiagnostics(from:StructMustBeSendable(), node:attachSyntax!)
 			return []
 		}
 

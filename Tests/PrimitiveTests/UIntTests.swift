@@ -29,7 +29,7 @@ import RAW
 
 @RAW_staticbuff(bytes:1)
 @RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:true)
-fileprivate struct _UInt8:ExpressibleByIntegerLiteral, Equatable {}
+fileprivate struct _UInt8:Sendable, ExpressibleByIntegerLiteral, Equatable {}
 
 // test that the UInt8 type is correctly converting to and from a raw representation.
 class RAWUInt8Tests: XCTestCase {
@@ -50,7 +50,7 @@ class RAWUInt8Tests: XCTestCase {
 
 @RAW_staticbuff(bytes:2)
 @RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
-fileprivate struct _UInt16:ExpressibleByIntegerLiteral, Equatable {}
+fileprivate struct _UInt16:Sendable, ExpressibleByIntegerLiteral, Equatable {}
 
 class RAWUInt16Tests: XCTestCase {
 	func testAsRAWVal() throws {
@@ -70,7 +70,7 @@ class RAWUInt16Tests: XCTestCase {
 
 @RAW_staticbuff(bytes:4)
 @RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
-fileprivate struct _UInt32:ExpressibleByIntegerLiteral, Equatable {}
+fileprivate struct _UInt32:Sendable, ExpressibleByIntegerLiteral, Equatable {}
 
 class RAWUInt32Tests: XCTestCase {
 	func testAsRAWVal() throws {
@@ -90,7 +90,7 @@ class RAWUInt32Tests: XCTestCase {
 
 @RAW_staticbuff(bytes:8)
 @RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
-fileprivate struct _UInt64:ExpressibleByIntegerLiteral, Equatable {}
+fileprivate struct _UInt64:Sendable, ExpressibleByIntegerLiteral, Equatable {}
 
 class RAWUInt64Tests: XCTestCase {
 	func testAsRAWVal() throws {

@@ -3,7 +3,7 @@ import XCTest
 
 @RAW_staticbuff(bytes:2)
 @RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
-fileprivate struct _UTF16_CHAR {}
+fileprivate struct _UTF16_CHAR:Sendable {}
 
 @RAW_convertible_string_type<_UTF16_CHAR>(UTF16)
 fileprivate struct MyUTF16:ExpressibleByStringLiteral {}

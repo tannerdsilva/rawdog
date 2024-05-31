@@ -3,15 +3,15 @@ import RAW
 
 @RAW_staticbuff(bytes:4)
 @RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
-fileprivate struct _UInt32:Equatable {}
+fileprivate struct _UInt32:Equatable, Sendable {}
 
 @RAW_staticbuff(bytes:8)
 @RAW_staticbuff_binaryfloatingpoint_type<Double>()
-fileprivate struct _Double:Equatable {}
+fileprivate struct _Double:Equatable, Sendable {}
 
 @RAW_staticbuff(bytes:4)
 @RAW_staticbuff_binaryfloatingpoint_type<Float>()
-fileprivate struct _Float:Equatable {}
+fileprivate struct _Float:Sendable, Equatable {}
 
 
 final class NumberTests:XCTestCase {

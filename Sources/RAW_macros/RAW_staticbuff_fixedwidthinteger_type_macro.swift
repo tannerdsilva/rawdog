@@ -150,6 +150,14 @@ internal struct RAW_staticbuff_fixedwidthinteger_type_macro:ExtensionMacro, Memb
 			#endif
 			return []
 		}
+
+		// verify the type is sendable before adding the conformance.
+		guard isMarkedSendable(structFinder.structDecl!) else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected struct to be marked Sendable")
+			#endif
+			return []
+		}
 		
 		return [try! ExtensionDeclSyntax("""
 			extension \(type):RAW_encoded_fixedwidthinteger {}
