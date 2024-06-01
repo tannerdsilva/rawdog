@@ -193,16 +193,16 @@ extension Hasher where RAW_blake2_out_type:RAW_staticbuff {
 		self.state = newState
 	}
 	
-	public init<A:RAW_accessible>(key:borrowing A, outputLength:consuming size_t) throws {
+	public init<A:RAW_accessible>(key:borrowing A) throws {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
 		try key.RAW_access { keyPtr in
-			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
+			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
 		}
 	}
 
-	public init(key keyBuffer:UnsafeBufferPointer<UInt8>, outputLength:consuming size_t) throws {
+	public init(key keyBuffer:UnsafeBufferPointer<UInt8>) throws {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
-		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:outputLength)
+		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
 	}
 
 	/// finish the hashing process and return the result as a byte array.

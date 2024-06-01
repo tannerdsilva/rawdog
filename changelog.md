@@ -1,3 +1,7 @@
+# 12.0.0
+
+- Revised public API of Blake2 hashing initializers when output type is a RAW_staticbuff compliant type.
+
 # 11.0.0
 
 - `RAW_staticbuff` protocol now requires Sendable. This cannot be implemented behind the scenes with the core macro, however, the macro has been updated to make the new requirement clear to users.
