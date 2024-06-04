@@ -7,7 +7,7 @@ import CompilerPluginSupport
 let rawTargetDependencies:[Target.Dependency] = [
 	"CRAW",
 	"RAW_macros"
-	.product(name: "Logging", package:"swift-log")
+	.product(name:"Logging", package:"swift-log")
 ]
 #else
 let rawTargetDependencies:[Target.Dependency] = [
@@ -75,7 +75,7 @@ let package = Package(
 			.product(name: "SwiftParserDiagnostics", package: "swift-syntax"),
 			.product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
 			.product(name: "Logging", package:"swift-log")
-		], swiftSettings: []),
+		], swiftSettings:[]),
 
 		// raw targets
 		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2"]),
@@ -107,7 +107,6 @@ let package = Package(
 			],
 			publicHeadersPath:"include",
 			cSettings:[
-				// ed25519-donna requires a BYO hash and random function when building dependency-free (no openssl)
 				.define("ED25519_CUSTOMHASH"),
 				// custom random cannot be unit tested in a deterministic way so we do not use the flag here like we do in the main target
 				.define("ED25519_TEST")
@@ -115,6 +114,6 @@ let package = Package(
 		),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "ced25519-tests"], resources:[.process("blake2-kat.json")], cSettings:[.define("ED25519_TEST")], swiftSettings:[.define("ED25519_TEST")]),
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "ced25519-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST")]),
 	]
 )
