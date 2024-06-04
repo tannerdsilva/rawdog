@@ -87,8 +87,33 @@ let package = Package(
 		.target(name:"CRAW"),
 		.target(name:"CRAW_base64", dependencies:[.product(name:"Logging", package:"swift-log")]),
 		.target(name:"cblake2"),
+		.target(name:"csha512",
+			publicHeadersPath:"."),
+		/*.target(
+			name:"ced25519",
+			dependencies:[
+				"csha512" // using blake2 for the hash function in place of openssl
+			],
+			publicHeadersPath:"include",
+			cSettings:[
+				.define("ED25519_CUSTOMHASH"),		// byo SHA512 in place of openssl
+				.define("ED25519_CUSTOMRANDOM")		// byo random function in place of openssl - this case we read from /dev/urandom
+			]
+		),*/
+		.target(
+			name:"ced25519-tests",
+			dependencies:[
+				"csha512" // using blake2 for the hash function in place of openssl
+			],
+			publicHeadersPath:"include",
+			cSettings:[
+				// ed25519-donna requires a BYO hash and random function when building dependency-free (no openssl)
+				.define("ED25519_CUSTOMHASH"),
+				.define("ED25519_TEST")
+			]
+		),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64"], resources:[.process("blake2-kat.json")]),
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "ced25519-tests"], resources:[.process("blake2-kat.json")], cSettings:[.define("ED25519_TEST")], swiftSettings:[.define("ED25519_TEST")]),
 	]
 )
