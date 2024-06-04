@@ -63,7 +63,7 @@ let package = Package(
 	],
 	dependencies: [
 		.package(url:"https://github.com/apple/swift-syntax.git", "509.0.1"..<"510.0.1"),
-		.package(url:"https://github.com/apple/swift-log.git", from:"1.4.2")
+		.package(url:"https://github.com/apple/swift-log.git", "1.0.0"..<"2.0.0")
 	],
 	targets: [
 		// the macros in this package are implemented here.
@@ -78,21 +78,38 @@ let package = Package(
 		], swiftSettings:[]),
 
 		// raw targets
+		.target(name:"RAW_bcrypt_blowfish", dependencies:["RAW", "ccrypt_blowfish"]),
 		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2"]),
 		.target(name:"RAW_base64", dependencies:rawBase64Dependencies(), swiftSettings:[/*.define("RAWDOG_BASE64_LOG")*/]),
 		.target(name:"RAW_hex", dependencies:rawHexDependencies(), swiftSettings: [/*.define("RAWDOG_HEX_LOG")*/]),
 		.target(name:"RAW", dependencies:rawTargetDependencies, swiftSettings: [/*.define("RAWDOG_MACRO_LOG")*/]),
 
 		// c implementations
-		.target(name:"CRAW"),
-		.target(name:"CRAW_base64", dependencies:[.product(name:"Logging", package:"swift-log")]),
+		.target(
+			name:"ccrypt_blowfish",
+			publicHeadersPath:"include"
+		),
+		.target(
+			name:"ccrypt_blowfish-tests",
+			publicHeadersPath:"include",
+			cSettings: [.define("TEST")]
+		),
+		.target(
+			name:"CRAW",
+			publicHeadersPath:"."
+		),
+		.target(
+			name:"CRAW_base64"
+		),
 		.target(name:"cblake2"),
-		.target(name:"csha512",
-			publicHeadersPath:"."),
+		.target(
+			name:"csha512",
+			publicHeadersPath:"."
+		),
 		.target(
 			name:"ced25519",
 			dependencies:[
-				"csha512" // using blake2 for the hash function in place of openssl
+				"csha512"
 			],
 			publicHeadersPath:"include",
 			cSettings:[
@@ -103,16 +120,17 @@ let package = Package(
 		.target(
 			name:"ced25519-tests",
 			dependencies:[
-				"csha512" // using blake2 for the hash function in place of openssl
+				"csha512"
 			],
 			publicHeadersPath:"include",
 			cSettings:[
 				.define("ED25519_CUSTOMHASH"),
+				/* custom random (ED25519_CUSTOMRANDOM) cannot be tested and that is ok - unit tests here will use a determinstic RNG anyways */
 				.define("ED25519_TEST"),
 			]
 		),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "ced25519-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST")]),
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "ced25519-tests", "ccrypt_blowfish-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )
