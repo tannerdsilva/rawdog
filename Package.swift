@@ -108,8 +108,7 @@ let package = Package(
 			publicHeadersPath:"include",
 			cSettings:[
 				.define("ED25519_CUSTOMHASH"),
-				// custom random cannot be unit tested in a deterministic way so we do not use the flag here like we do in the main target
-				.define("ED25519_TEST")
+				.define("ED25519_TEST"),
 			]
 		),
 

@@ -236,11 +236,11 @@ test_main(void) {
 	edassert_equal(curved25519_expected, csk[0], sizeof(curved25519_key), "curve25519 failed to generate correct value");
 
 	for (i = 0; i < 2048; i++) {
-		timeit(ed25519_publickey(dataset[0].sk, pk), pkticks)
+		timeit(ed25519_publickey(dataset[0].sk, pk), pkticks);
 		edassert_equal_round(dataset[0].pk, pk, sizeof(pk), i, "public key didn't match");
-		timeit(ed25519_sign((unsigned char *)dataset[0].m, 0, dataset[0].sk, pk, sig), signticks)
+		timeit(ed25519_sign((unsigned char *)dataset[0].m, 0, dataset[0].sk, pk, sig), signticks);
 		edassert_equal_round(dataset[0].sig, sig, sizeof(sig), i, "signature didn't match");
-		timeit(res = ed25519_sign_open((unsigned char *)dataset[0].m, 0, pk, sig), openticks)
+		timeit(res = ed25519_sign_open((unsigned char *)dataset[0].m, 0, pk, sig), openticks);
 		edassert(!res, 0, "failed to open message");
 		timeit(curved25519_scalarmult_basepoint(csk[1], csk[0]), curvedticks);
 	}

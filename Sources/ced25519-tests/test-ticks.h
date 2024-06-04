@@ -1,8 +1,8 @@
 #include "ed25519-donna-portable-identify.h"
 
-/* ticks - not tested on anything other than x86 */
-static uint64_t
-get_ticks(void) {
+#include <sys/time.h>
+
+static uint64_t get_ticks(void) {
 #if defined(CPU_X86) || defined(CPU_X86_64)
 	#if defined(COMPILER_INTEL)
 		return _rdtsc();
@@ -13,7 +13,15 @@ get_ticks(void) {
 		__asm__ __volatile__("rdtsc" : "=a" (lo), "=d" (hi));
 		return ((uint64_t)lo | ((uint64_t)hi << 32));
 	#else
-		need rdtsc for this compiler
+		#error "Need rdtsc for this compiler"
+	#endif
+#elif defined(CPU_ARM)
+	#if defined(__ARM_ARCH) && (__ARM_ARCH >= 8)
+		uint64_t val;
+		__asm__ __volatile__("mrs %0, cntvct_el0" : "=r" (val));
+		return val;
+	#else
+		#error "Unsupported ARM architecture or ARM version not detected"
 	#endif
 #elif defined(OS_SOLARIS)
 	return (uint64_t)gethrtime();
@@ -30,21 +38,21 @@ get_ticks(void) {
 	__asm__ __volatile__("mov %0=ar.itc" : "=r" (t));
 	return t;
 #elif defined(OS_NIX)
-	timeval t2;
+	struct timeval t2;
 	gettimeofday(&t2, NULL);
-	t = ((uint64_t)t2.tv_usec << 32) | (uint64_t)t2.tv_sec;
-	return t;
+	return ((uint64_t)t2.tv_usec << 32) | (uint64_t)t2.tv_sec;
 #else
-	need ticks for this platform
+	#error "Need ticks for this platform"
 #endif
 }
 
-#define timeit(x,minvar)         \
-	ticks = get_ticks();         \
- 	x;                           \
-	ticks = get_ticks() - ticks; \
-	if (ticks < minvar)          \
-		minvar = ticks;
+#define timeit(x, minvar)        \
+    do {                         \
+        uint64_t ticks = get_ticks();\
+        x;                       \
+        ticks = get_ticks() - ticks; \
+        if (ticks < minvar)      \
+            minvar = ticks;      \
+    } while (0)
 
 #define maxticks 0xffffffffffffffffull
-
