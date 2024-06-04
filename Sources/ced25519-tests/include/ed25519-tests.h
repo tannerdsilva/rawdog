@@ -1,11 +1,7 @@
-// #ifdef ED25519_TEST
-
 #ifndef ED25519_TESTS_H
 #define ED25519_TESTS_H
 
-#include "test.h"
-#include "test-internals.h"
+int _ED25519_TEST_INTERNALS();
+int _ED25519_TEST_MAINF();
 
 #endif // ED25519_TESTS_H
-
-// #endif // ED25519_TEST

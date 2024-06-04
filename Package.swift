@@ -109,7 +109,7 @@ let package = Package(
 			cSettings:[
 				// ed25519-donna requires a BYO hash and random function when building dependency-free (no openssl)
 				.define("ED25519_CUSTOMHASH"),
-				.define("ED25519_TEST")
+				.define("ED25519_TEST"),
 			]
 		),
 
