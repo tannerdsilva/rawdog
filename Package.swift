@@ -89,7 +89,7 @@ let package = Package(
 		.target(name:"cblake2"),
 		.target(name:"csha512",
 			publicHeadersPath:"."),
-		/*.target(
+		.target(
 			name:"ced25519",
 			dependencies:[
 				"csha512" // using blake2 for the hash function in place of openssl
@@ -99,7 +99,7 @@ let package = Package(
 				.define("ED25519_CUSTOMHASH"),		// byo SHA512 in place of openssl
 				.define("ED25519_CUSTOMRANDOM")		// byo random function in place of openssl - this case we read from /dev/urandom
 			]
-		),*/
+		),
 		.target(
 			name:"ced25519-tests",
 			dependencies:[
@@ -109,6 +109,7 @@ let package = Package(
 			cSettings:[
 				// ed25519-donna requires a BYO hash and random function when building dependency-free (no openssl)
 				.define("ED25519_CUSTOMHASH"),
+				// custom random cannot be unit tested in a deterministic way so we do not use the flag here like we do in the main target
 				.define("ED25519_TEST")
 			]
 		),

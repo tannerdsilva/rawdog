@@ -12,8 +12,6 @@
 	mu = floor( b^(k*2) / m ) = 0xfffffffffffffffffffffffffffffffeb2106215d086329a7ed9ce5a30a2c131b
 */
 
-#ifdef ED25519_32BITCONFIG
-
 #define bignum256modm_bits_per_limb 30
 #define bignum256modm_limb_size 9
 
@@ -469,5 +467,3 @@ isatmost128bits256_modm_batch(const bignum256modm a) {
 
 	return (mask == 0);
 }
-
-#endif // ED25519_32BITCONFIG

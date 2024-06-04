@@ -7,13 +7,6 @@
 extern "C" {
 #endif
 
-#ifdef ED25519_TEST
-
-#include "test.h"
-#include "test-internals.h"
-
-#endif
-
 typedef unsigned char ed25519_signature[64];
 typedef unsigned char ed25519_public_key[32];
 typedef unsigned char ed25519_secret_key[32];

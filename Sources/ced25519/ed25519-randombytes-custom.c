@@ -1,3 +1,5 @@
+#ifndef ED25519_TEST
+
 #include "ed25519-randombytes-custom.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,3 +32,5 @@ void ED25519_FN(randombytes_unsafe)(void *p, size_t len) {
 	// close the /dev/urandom device
     fclose(f);
 }
+
+#endif // ED25519_TEST

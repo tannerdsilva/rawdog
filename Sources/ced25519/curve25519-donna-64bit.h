@@ -410,3 +410,4 @@ curve25519_swap_conditional(bignum25519 a, bignum25519 b, uint64_t iswap) {
 #endif /* ED25519_GCC_64BIT_CHOOSE */
 
 #define ED25519_64BIT_TABLES
+
