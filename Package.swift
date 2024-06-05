@@ -79,7 +79,7 @@ let package = Package(
 
 		// raw targets
 		.target(name:"RAW_bcrypt_blowfish", dependencies:["RAW", "ccrypt_blowfish"]),
-		.target(name:"RAW_blake2", dependencies:["RAW", "cblake2"]),
+		.target(name:"RAW_blake2", dependencies:["RAW", "__crawdog_blake2"]),
 		.target(name:"RAW_base64", dependencies:rawBase64Dependencies(), swiftSettings:[/*.define("RAWDOG_BASE64_LOG")*/]),
 		.target(name:"RAW_hex", dependencies:rawHexDependencies(), swiftSettings: [/*.define("RAWDOG_HEX_LOG")*/]),
 		.target(name:"RAW", dependencies:rawTargetDependencies, swiftSettings: [/*.define("RAWDOG_MACRO_LOG")*/]),
@@ -101,7 +101,7 @@ let package = Package(
 		.target(
 			name:"CRAW_base64"
 		),
-		.target(name:"cblake2"),
+		.target(name:"__crawdog_blake2"),
 		.target(
 			name:"csha512",
 			publicHeadersPath:"."

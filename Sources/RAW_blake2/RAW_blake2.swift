@@ -1,4 +1,4 @@
-import cblake2
+import __crawdog_blake2
 import RAW
 import CRAW
 

@@ -1,5 +1,5 @@
 /*
-   BLAKE2 reference source code package - reference C implementations
+   __CRAWDOG_BLAKE2 reference source code package - reference C implementations
 
    Copyright 2012, Samuel Neves <sneves@dei.uc.pt>.  You may use this under the
    terms of the CC0, the OpenSSL Licence, or the Apache Public License 2.0, at
@@ -9,18 +9,18 @@
    - OpenSSL license   : https://www.openssl.org/source/license.html
    - Apache 2.0        : http://www.apache.org/licenses/LICENSE-2.0
 
-   More information about the BLAKE2 hash function can be found at
-   https://blake2.net.
+   More information about the __CRAWDOG_BLAKE2 hash function can be found at
+   https://__crawdog_blake2.net.
 */
 
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 
-#include "blake2.h"
-#include "blake2-impl.h"
+#include "__crawdog_blake2.h"
+#include "__crawdog_blake2-impl.h"
 
-static const uint64_t blake2b_IV[8] =
+static const uint64_t __crawdog_blake2b_IV[8] =
 {
   0x6a09e667f3bcc908ULL, 0xbb67ae8584caa73bULL,
   0x3c6ef372fe94f82bULL, 0xa54ff53a5f1d36f1ULL,
@@ -28,7 +28,7 @@ static const uint64_t blake2b_IV[8] =
   0x1f83d9abfb41bd6bULL, 0x5be0cd19137e2179ULL
 };
 
-static const uint8_t blake2b_sigma[12][16] =
+static const uint8_t __crawdog_blake2b_sigma[12][16] =
 {
   {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15 } ,
   { 14, 10,  4,  8,  9, 15, 13,  6,  1, 12,  0,  2, 11,  7,  5,  3 } ,
@@ -45,45 +45,45 @@ static const uint8_t blake2b_sigma[12][16] =
 };
 
 
-static void blake2b_set_lastnode( blake2b_state *S )
+static void __crawdog_blake2b_set_lastnode( __crawdog_blake2b_state *S )
 {
   S->f[1] = (uint64_t)-1;
 }
 
 /* Some helper functions, not necessarily useful */
-static int blake2b_is_lastblock( const blake2b_state *S )
+static int __crawdog_blake2b_is_lastblock( const __crawdog_blake2b_state *S )
 {
   return S->f[0] != 0;
 }
 
-static void blake2b_set_lastblock( blake2b_state *S )
+static void __crawdog_blake2b_set_lastblock( __crawdog_blake2b_state *S )
 {
-  if( S->last_node ) blake2b_set_lastnode( S );
+  if( S->last_node ) __crawdog_blake2b_set_lastnode( S );
 
   S->f[0] = (uint64_t)-1;
 }
 
-static void blake2b_increment_counter( blake2b_state *S, const uint64_t inc )
+static void __crawdog_blake2b_increment_counter( __crawdog_blake2b_state *S, const uint64_t inc )
 {
   S->t[0] += inc;
   S->t[1] += ( S->t[0] < inc );
 }
 
-static void blake2b_init0( blake2b_state *S )
+static void __crawdog_blake2b_init0( __crawdog_blake2b_state *S )
 {
   size_t i;
-  memset( S, 0, sizeof( blake2b_state ) );
+  memset( S, 0, sizeof( __crawdog_blake2b_state ) );
 
-  for( i = 0; i < 8; ++i ) S->h[i] = blake2b_IV[i];
+  for( i = 0; i < 8; ++i ) S->h[i] = __crawdog_blake2b_IV[i];
 }
 
 /* init xors IV with input parameter block */
-int blake2b_init_param( blake2b_state *S, const blake2b_param *P )
+int __crawdog_blake2b_init_param( __crawdog_blake2b_state *S, const __crawdog_blake2b_param *P )
 {
   const uint8_t *p = ( const uint8_t * )( P );
   size_t i;
 
-  blake2b_init0( S );
+  __crawdog_blake2b_init0( S );
 
   /* IV XOR ParamBlock */
   for( i = 0; i < 8; ++i )
@@ -95,11 +95,11 @@ int blake2b_init_param( blake2b_state *S, const blake2b_param *P )
 
 
 
-int blake2b_init( blake2b_state *S, size_t outlen )
+int __crawdog_blake2b_init( __crawdog_blake2b_state *S, size_t outlen )
 {
-  blake2b_param P[1];
+  __crawdog_blake2b_param P[1];
 
-  if ( ( !outlen ) || ( outlen > BLAKE2B_OUTBYTES ) ) return -1;
+  if ( ( !outlen ) || ( outlen > __CRAWDOG_BLAKE2B_OUTBYTES ) ) return -1;
 
   P->digest_length = (uint8_t)outlen;
   P->key_length    = 0;
@@ -113,17 +113,17 @@ int blake2b_init( blake2b_state *S, size_t outlen )
   memset( P->reserved, 0, sizeof( P->reserved ) );
   memset( P->salt,     0, sizeof( P->salt ) );
   memset( P->personal, 0, sizeof( P->personal ) );
-  return blake2b_init_param( S, P );
+  return __crawdog_blake2b_init_param( S, P );
 }
 
 
-int blake2b_init_key( blake2b_state *S, size_t outlen, const void *key, size_t keylen )
+int __crawdog_blake2b_init_key( __crawdog_blake2b_state *S, size_t outlen, const void *key, size_t keylen )
 {
-  blake2b_param P[1];
+  __crawdog_blake2b_param P[1];
 
-  if ( ( !outlen ) || ( outlen > BLAKE2B_OUTBYTES ) ) return -1;
+  if ( ( !outlen ) || ( outlen > __CRAWDOG_BLAKE2B_OUTBYTES ) ) return -1;
 
-  if ( !key || !keylen || keylen > BLAKE2B_KEYBYTES ) return -1;
+  if ( !key || !keylen || keylen > __CRAWDOG_BLAKE2B_KEYBYTES ) return -1;
 
   P->digest_length = (uint8_t)outlen;
   P->key_length    = (uint8_t)keylen;
@@ -138,25 +138,25 @@ int blake2b_init_key( blake2b_state *S, size_t outlen, const void *key, size_t k
   memset( P->salt,     0, sizeof( P->salt ) );
   memset( P->personal, 0, sizeof( P->personal ) );
 
-  if( blake2b_init_param( S, P ) < 0 ) return -1;
+  if( __crawdog_blake2b_init_param( S, P ) < 0 ) return -1;
 
   {
-    uint8_t block[BLAKE2B_BLOCKBYTES];
-    memset( block, 0, BLAKE2B_BLOCKBYTES );
+    uint8_t block[__CRAWDOG_BLAKE2B_BLOCKBYTES];
+    memset( block, 0, __CRAWDOG_BLAKE2B_BLOCKBYTES );
     memcpy( block, key, keylen );
-    blake2b_update( S, block, BLAKE2B_BLOCKBYTES );
-    secure_zero_memory( block, BLAKE2B_BLOCKBYTES ); /* Burn the key from stack */
+    __crawdog_blake2b_update( S, block, __CRAWDOG_BLAKE2B_BLOCKBYTES );
+    secure_zero_memory( block, __CRAWDOG_BLAKE2B_BLOCKBYTES ); /* Burn the key from stack */
   }
   return 0;
 }
 
 #define G(r,i,a,b,c,d)                      \
   do {                                      \
-    a = a + b + m[blake2b_sigma[r][2*i+0]]; \
+    a = a + b + m[__crawdog_blake2b_sigma[r][2*i+0]]; \
     d = rotr64(d ^ a, 32);                  \
     c = c + d;                              \
     b = rotr64(b ^ c, 24);                  \
-    a = a + b + m[blake2b_sigma[r][2*i+1]]; \
+    a = a + b + m[__crawdog_blake2b_sigma[r][2*i+1]]; \
     d = rotr64(d ^ a, 16);                  \
     c = c + d;                              \
     b = rotr64(b ^ c, 63);                  \
@@ -174,7 +174,7 @@ int blake2b_init_key( blake2b_state *S, size_t outlen, const void *key, size_t k
     G(r,7,v[ 3],v[ 4],v[ 9],v[14]); \
   } while(0)
 
-static void blake2b_compress( blake2b_state *S, const uint8_t block[BLAKE2B_BLOCKBYTES] )
+static void __crawdog_blake2b_compress( __crawdog_blake2b_state *S, const uint8_t block[__CRAWDOG_BLAKE2B_BLOCKBYTES] )
 {
   uint64_t m[16];
   uint64_t v[16];
@@ -188,14 +188,14 @@ static void blake2b_compress( blake2b_state *S, const uint8_t block[BLAKE2B_BLOC
     v[i] = S->h[i];
   }
 
-  v[ 8] = blake2b_IV[0];
-  v[ 9] = blake2b_IV[1];
-  v[10] = blake2b_IV[2];
-  v[11] = blake2b_IV[3];
-  v[12] = blake2b_IV[4] ^ S->t[0];
-  v[13] = blake2b_IV[5] ^ S->t[1];
-  v[14] = blake2b_IV[6] ^ S->f[0];
-  v[15] = blake2b_IV[7] ^ S->f[1];
+  v[ 8] = __crawdog_blake2b_IV[0];
+  v[ 9] = __crawdog_blake2b_IV[1];
+  v[10] = __crawdog_blake2b_IV[2];
+  v[11] = __crawdog_blake2b_IV[3];
+  v[12] = __crawdog_blake2b_IV[4] ^ S->t[0];
+  v[13] = __crawdog_blake2b_IV[5] ^ S->t[1];
+  v[14] = __crawdog_blake2b_IV[6] ^ S->f[0];
+  v[15] = __crawdog_blake2b_IV[7] ^ S->f[1];
 
   ROUND( 0 );
   ROUND( 1 );
@@ -218,25 +218,25 @@ static void blake2b_compress( blake2b_state *S, const uint8_t block[BLAKE2B_BLOC
 #undef G
 #undef ROUND
 
-int blake2b_update( blake2b_state *S, const void *pin, size_t inlen )
+int __crawdog_blake2b_update( __crawdog_blake2b_state *S, const void *pin, size_t inlen )
 {
   const unsigned char * in = (const unsigned char *)pin;
   if( inlen > 0 )
   {
     size_t left = S->buflen;
-    size_t fill = BLAKE2B_BLOCKBYTES - left;
+    size_t fill = __CRAWDOG_BLAKE2B_BLOCKBYTES - left;
     if( inlen > fill )
     {
       S->buflen = 0;
       memcpy( S->buf + left, in, fill ); /* Fill buffer */
-      blake2b_increment_counter( S, BLAKE2B_BLOCKBYTES );
-      blake2b_compress( S, S->buf ); /* Compress */
+      __crawdog_blake2b_increment_counter( S, __CRAWDOG_BLAKE2B_BLOCKBYTES );
+      __crawdog_blake2b_compress( S, S->buf ); /* Compress */
       in += fill; inlen -= fill;
-      while(inlen > BLAKE2B_BLOCKBYTES) {
-        blake2b_increment_counter(S, BLAKE2B_BLOCKBYTES);
-        blake2b_compress( S, in );
-        in += BLAKE2B_BLOCKBYTES;
-        inlen -= BLAKE2B_BLOCKBYTES;
+      while(inlen > __CRAWDOG_BLAKE2B_BLOCKBYTES) {
+        __crawdog_blake2b_increment_counter(S, __CRAWDOG_BLAKE2B_BLOCKBYTES);
+        __crawdog_blake2b_compress( S, in );
+        in += __CRAWDOG_BLAKE2B_BLOCKBYTES;
+        inlen -= __CRAWDOG_BLAKE2B_BLOCKBYTES;
       }
     }
     memcpy( S->buf + S->buflen, in, inlen );
@@ -245,21 +245,21 @@ int blake2b_update( blake2b_state *S, const void *pin, size_t inlen )
   return 0;
 }
 
-int blake2b_final( blake2b_state *S, void *out, size_t outlen )
+int __crawdog_blake2b_final( __crawdog_blake2b_state *S, void *out, size_t outlen )
 {
-  uint8_t buffer[BLAKE2B_OUTBYTES] = {0};
+  uint8_t buffer[__CRAWDOG_BLAKE2B_OUTBYTES] = {0};
   size_t i;
 
   if( out == NULL || outlen < S->outlen )
     return -1;
 
-  if( blake2b_is_lastblock( S ) )
+  if( __crawdog_blake2b_is_lastblock( S ) )
     return -1;
 
-  blake2b_increment_counter( S, S->buflen );
-  blake2b_set_lastblock( S );
-  memset( S->buf + S->buflen, 0, BLAKE2B_BLOCKBYTES - S->buflen ); /* Padding */
-  blake2b_compress( S, S->buf );
+  __crawdog_blake2b_increment_counter( S, S->buflen );
+  __crawdog_blake2b_set_lastblock( S );
+  memset( S->buf + S->buflen, 0, __CRAWDOG_BLAKE2B_BLOCKBYTES - S->buflen ); /* Padding */
+  __crawdog_blake2b_compress( S, S->buf );
 
   for( i = 0; i < 8; ++i ) /* Output full hash to temp buffer */
     store64( buffer + sizeof( S->h[i] ) * i, S->h[i] );
@@ -270,9 +270,9 @@ int blake2b_final( blake2b_state *S, void *out, size_t outlen )
 }
 
 /* inlen, at least, should be uint64_t. Others can be size_t. */
-int blake2b( void *out, size_t outlen, const void *in, size_t inlen, const void *key, size_t keylen )
+int __crawdog_blake2b( void *out, size_t outlen, const void *in, size_t inlen, const void *key, size_t keylen )
 {
-  blake2b_state S[1];
+  __crawdog_blake2b_state S[1];
 
   /* Verify parameters */
   if ( NULL == in && inlen > 0 ) return -1;
@@ -281,90 +281,90 @@ int blake2b( void *out, size_t outlen, const void *in, size_t inlen, const void 
 
   if( NULL == key && keylen > 0 ) return -1;
 
-  if( !outlen || outlen > BLAKE2B_OUTBYTES ) return -1;
+  if( !outlen || outlen > __CRAWDOG_BLAKE2B_OUTBYTES ) return -1;
 
-  if( keylen > BLAKE2B_KEYBYTES ) return -1;
+  if( keylen > __CRAWDOG_BLAKE2B_KEYBYTES ) return -1;
 
   if( keylen > 0 )
   {
-    if( blake2b_init_key( S, outlen, key, keylen ) < 0 ) return -1;
+    if( __crawdog_blake2b_init_key( S, outlen, key, keylen ) < 0 ) return -1;
   }
   else
   {
-    if( blake2b_init( S, outlen ) < 0 ) return -1;
+    if( __crawdog_blake2b_init( S, outlen ) < 0 ) return -1;
   }
 
-  blake2b_update( S, ( const uint8_t * )in, inlen );
-  blake2b_final( S, out, outlen );
+  __crawdog_blake2b_update( S, ( const uint8_t * )in, inlen );
+  __crawdog_blake2b_final( S, out, outlen );
   return 0;
 }
 
-int blake2( void *out, size_t outlen, const void *in, size_t inlen, const void *key, size_t keylen ) {
-  return blake2b(out, outlen, in, inlen, key, keylen);
+int __crawdog_blake2( void *out, size_t outlen, const void *in, size_t inlen, const void *key, size_t keylen ) {
+  return __crawdog_blake2b(out, outlen, in, inlen, key, keylen);
 }
 
 #if defined(SUPERCOP)
 int crypto_hash( unsigned char *out, unsigned char *in, unsigned long long inlen )
 {
-  return blake2b( out, BLAKE2B_OUTBYTES, in, inlen, NULL, 0 );
+  return __crawdog_blake2b( out, __CRAWDOG_BLAKE2B_OUTBYTES, in, inlen, NULL, 0 );
 }
 #endif
 
-#if defined(BLAKE2B_SELFTEST)
+#if defined(__CRAWDOG_BLAKE2B_SELFTEST)
 #include <string.h>
-#include "blake2-kat.h"
+#include "__crawdog_blake2-kat.h"
 int main( void )
 {
-  uint8_t key[BLAKE2B_KEYBYTES];
-  uint8_t buf[BLAKE2_KAT_LENGTH];
+  uint8_t key[__CRAWDOG_BLAKE2B_KEYBYTES];
+  uint8_t buf[__CRAWDOG_BLAKE2_KAT_LENGTH];
   size_t i, step;
 
-  for( i = 0; i < BLAKE2B_KEYBYTES; ++i )
+  for( i = 0; i < __CRAWDOG_BLAKE2B_KEYBYTES; ++i )
     key[i] = ( uint8_t )i;
 
-  for( i = 0; i < BLAKE2_KAT_LENGTH; ++i )
+  for( i = 0; i < __CRAWDOG_BLAKE2_KAT_LENGTH; ++i )
     buf[i] = ( uint8_t )i;
 
   /* Test simple API */
-  for( i = 0; i < BLAKE2_KAT_LENGTH; ++i )
+  for( i = 0; i < __CRAWDOG_BLAKE2_KAT_LENGTH; ++i )
   {
-    uint8_t hash[BLAKE2B_OUTBYTES];
-    blake2b( hash, BLAKE2B_OUTBYTES, buf, i, key, BLAKE2B_KEYBYTES );
+    uint8_t hash[__CRAWDOG_BLAKE2B_OUTBYTES];
+    __crawdog_blake2b( hash, __CRAWDOG_BLAKE2B_OUTBYTES, buf, i, key, __CRAWDOG_BLAKE2B_KEYBYTES );
 
-    if( 0 != memcmp( hash, blake2b_keyed_kat[i], BLAKE2B_OUTBYTES ) )
+    if( 0 != memcmp( hash, __crawdog_blake2b_keyed_kat[i], __CRAWDOG_BLAKE2B_OUTBYTES ) )
     {
       goto fail;
     }
   }
 
   /* Test streaming API */
-  for(step = 1; step < BLAKE2B_BLOCKBYTES; ++step) {
-    for (i = 0; i < BLAKE2_KAT_LENGTH; ++i) {
-      uint8_t hash[BLAKE2B_OUTBYTES];
-      blake2b_state S;
+  for(step = 1; step < __CRAWDOG_BLAKE2B_BLOCKBYTES; ++step) {
+    for (i = 0; i < __CRAWDOG_BLAKE2_KAT_LENGTH; ++i) {
+      uint8_t hash[__CRAWDOG_BLAKE2B_OUTBYTES];
+      __crawdog_blake2b_state S;
       uint8_t * p = buf;
       size_t mlen = i;
       int err = 0;
 
-      if( (err = blake2b_init_key(&S, BLAKE2B_OUTBYTES, key, BLAKE2B_KEYBYTES)) < 0 ) {
+      if( (err = __crawdog_blake2b_init_key(&S, __CRAWDOG_BLAKE2B_OUTBYTES, key, __CRAWDOG_BLAKE2B_KEYBYTES)) < 0 ) {
         goto fail;
       }
 
       while (mlen >= step) {
-        if ( (err = blake2b_update(&S, p, step)) < 0 ) {
+        if ( (err = __crawdog_blake2b_update(&S, p, step)) < 0 ) {
           goto fail;
         }
         mlen -= step;
         p += step;
       }
-      if ( (err = blake2b_update(&S, p, mlen)) < 0) {
+      if ( (err = __crawdog_blake2b_update(&S, p, mlen)) < 0) {
         goto fail;
       }
-      if ( (err = blake2b_final(&S, hash, BLAKE2B_OUTBYTES)) < 0) {
+      if ( (err = __crawdog_blake2b_final(&S, hash, __CRAWDOG_BLAKE2B_OUTBYTES)) < 0) {
         goto fail;
       }
 
-      if (0 != memcmp(hash, blake2b_keyed_kat[i], BLAKE2B_OUTBYTES)) {
+      if (0 != memcmp(hash, __crawdog_blake2b_keyed_kat[i], __CRAWDOG_BLAKE2B_OUTBYTES)) {
         goto fail;
       }
     }
