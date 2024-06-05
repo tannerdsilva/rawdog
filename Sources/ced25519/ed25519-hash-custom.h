@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "WjCryptLib_Sha512.h"
+#include "__crawdog_sha512.h"
 
 typedef struct {
     Sha512Context sha_ctx;	// SHA512 context

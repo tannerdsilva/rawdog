@@ -1,45 +1,25 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  WjCryptLib_Sha512
-//
-//  Implementation of SHA512 hash function.
-//  Original author: Tom St Denis, tomstdenis@gmail.com, http://libtom.org
-//  Modified by WaterJuice retaining Public Domain license.
-//
-//  This is free and unencumbered software released into the public domain - June 2013 waterjuice.org
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  this file was once known as 'WjCryptLib_Sha512' and was taken from 'waterjuice' as offered in the public domain.
+//	after further repackaging by tanner silva in 2024, the file is now offered in the 'rawdog' library with a dual licence, MIT or public domain. 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  IMPORTS
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#include "WjCryptLib_Sha512.h"
+#include "__crawdog_sha512.h"
 #include <memory.h>
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  MACROS
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// macros
 #define ROR64( value, bits ) (((value) >> (bits)) | ((value) << (64 - (bits))))
-
 #define MIN( x, y ) ( ((x)<(y))?(x):(y) )
-
 #define LOAD64H( x, y )                                                      \
    { x = (((uint64_t)((y)[0] & 255))<<56)|(((uint64_t)((y)[1] & 255))<<48) | \
          (((uint64_t)((y)[2] & 255))<<40)|(((uint64_t)((y)[3] & 255))<<32) | \
          (((uint64_t)((y)[4] & 255))<<24)|(((uint64_t)((y)[5] & 255))<<16) | \
          (((uint64_t)((y)[6] & 255))<<8)|(((uint64_t)((y)[7] & 255))); }
-
 #define STORE64H( x, y )                                                                     \
    { (y)[0] = (uint8_t)(((x)>>56)&255); (y)[1] = (uint8_t)(((x)>>48)&255);     \
      (y)[2] = (uint8_t)(((x)>>40)&255); (y)[3] = (uint8_t)(((x)>>32)&255);     \
      (y)[4] = (uint8_t)(((x)>>24)&255); (y)[5] = (uint8_t)(((x)>>16)&255);     \
      (y)[6] = (uint8_t)(((x)>>8)&255); (y)[7] = (uint8_t)((x)&255); }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  CONSTANTS
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// The K array
+// constants
+// - the K array
 static const uint64_t K[80] = {
     0x428a2f98d728ae22ULL, 0x7137449123ef65cdULL, 0xb5c0fbcfec4d3b2fULL, 0xe9b5dba58189dbbcULL,
     0x3956c25bf348b538ULL, 0x59f111f1b605d019ULL, 0x923f82a4af194f9bULL, 0xab1c5ed5da6d8118ULL,
@@ -65,11 +45,7 @@ static const uint64_t K[80] = {
 
 #define BLOCK_SIZE          128
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  INTERNAL FUNCTIONS
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Various logical functions
+// internal functions
 #define Ch( x, y, z )     (z ^ (x & (y ^ z)))
 #define Maj(x, y, z )     (((x | y) & z) | (x & y))
 #define S( x, n )         ROR64( x, n )
@@ -151,11 +127,7 @@ void
 //
 //  Initialises a SHA512 Context. Use this to initialise/reset a context.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
-    _crawdog_sha512_init
-    (
-        Sha512Context*      Context         // [out]
-    )
+void __crawdog_sha512_init(Sha512Context* Context)
 {
     Context->curlen = 0;
     Context->length = 0;
@@ -175,9 +147,7 @@ void
 //  Adds data to the SHA512 context. This will process the data and update the internal state of the context. Keep on
 //  calling this function until all the data has been added. Then call Sha512Finalise to calculate the hash.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
-    _crawdog_sha512_update
-    (
+void __crawdog_sha512_update(
         Sha512Context*      Context,        // [in out]
         void const*         Buffer,         // [in]
         uint32_t            BufferSize      // [in]
@@ -222,9 +192,7 @@ void
 //  Performs the final calculation of the hash and returns the digest (64 byte buffer containing 512bit hash). After
 //  calling this, Sha512Initialised must be used to reuse the context.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
-    _crawdog_sha512_finish
-    (
+void __crawdog_sha512_finish(
         Sha512Context*      Context,        // [in out]
         SHA512_HASH*        Digest          // [out]
     )
@@ -290,7 +258,7 @@ void
 {
     Sha512Context context;
 
-    _crawdog_sha512_init( &context );
-    _crawdog_sha512_update( &context, Buffer, BufferSize );
-    _crawdog_sha512_finish(&context, Digest );
+    __crawdog_sha512_init( &context );
+    __crawdog_sha512_update( &context, Buffer, BufferSize );
+    __crawdog_sha512_finish(&context, Digest );
 }

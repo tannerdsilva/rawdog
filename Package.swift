@@ -68,13 +68,13 @@ let package = Package(
 	targets: [
 		// the macros in this package are implemented here.
 		.macro(name:"RAW_macros", dependencies:[
-			.product(name: "SwiftSyntax", package: "swift-syntax"),
-			.product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-			.product(name: "SwiftOperators", package: "swift-syntax"),
-			.product(name: "SwiftParser", package: "swift-syntax"),
-			.product(name: "SwiftParserDiagnostics", package: "swift-syntax"),
-			.product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
-			.product(name: "Logging", package:"swift-log")
+			.product(name:"SwiftSyntax", package:"swift-syntax"),
+			.product(name:"SwiftSyntaxMacros", package:"swift-syntax"),
+			.product(name:"SwiftOperators", package:"swift-syntax"),
+			.product(name:"SwiftParser", package:"swift-syntax"),
+			.product(name:"SwiftParserDiagnostics", package:"swift-syntax"),
+			.product(name:"SwiftCompilerPlugin", package:"swift-syntax"),
+			.product(name:"Logging", package:"swift-log")
 		], swiftSettings:[]),
 
 		// raw targets
