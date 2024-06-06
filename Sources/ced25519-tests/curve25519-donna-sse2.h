@@ -1,1 +1,0 @@
-../ced25519/curve25519-donna-sse2.h

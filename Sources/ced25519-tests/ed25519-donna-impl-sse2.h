@@ -1,1 +1,0 @@
-../ced25519/ed25519-donna-impl-sse2.h

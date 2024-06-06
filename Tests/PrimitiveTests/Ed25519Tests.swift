@@ -1,5 +1,5 @@
 import XCTest
-@testable import ced25519_tests
+@testable import __crawdog_ed25519_tests
 
 class Ed25519Tests: XCTestCase {
 	// Add your test methods here

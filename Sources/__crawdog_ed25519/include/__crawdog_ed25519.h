@@ -11,7 +11,7 @@ typedef unsigned char __crawdog_ed25519_signature[64];
 typedef unsigned char __crawdog_ed25519_public_key[32];
 typedef unsigned char __crawdog_ed25519_secret_key[32];
 
-typedef unsigned char __crawdog_curv__crawdog_ed25519_key[32];
+typedef unsigned char __crawdog_curved25519_key[32];
 
 void __crawdog_ed25519_publickey(const __crawdog_ed25519_secret_key sk, __crawdog_ed25519_public_key pk);
 int __crawdog_ed25519_sign_open(const unsigned char *m, size_t mlen, const __crawdog_ed25519_public_key pk, const __crawdog_ed25519_signature RS);
@@ -21,7 +21,7 @@ int __crawdog_ed25519_sign_open_batch(const unsigned char **m, size_t *mlen, con
 
 void __crawdog_ed25519_randombytes_unsafe(void *out, size_t count);
 
-void __crawdog_curv__crawdog_ed25519_scalarmult_basepoint(__crawdog_curv__crawdog_ed25519_key pk, const __crawdog_curv__crawdog_ed25519_key e);
+void __crawdog_curved25519_scalarmult_basepoint(__crawdog_curved25519_key pk, const __crawdog_curved25519_key e);
 
 #if defined(__cplusplus)
 }

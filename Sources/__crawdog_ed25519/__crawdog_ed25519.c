@@ -122,8 +122,8 @@ ED25519_FN(__crawdog_ed25519_sign_open) (const unsigned char *m, size_t mlen, co
 */
 
 void
-ED25519_FN(__crawdog_curv__crawdog_ed25519_scalarmult_basepoint) (__crawdog_curv__crawdog_ed25519_key pk, const __crawdog_curv__crawdog_ed25519_key e) {
-	__crawdog_curv__crawdog_ed25519_key ec;
+ED25519_FN(__crawdog_curved25519_scalarmult_basepoint) (__crawdog_curved25519_key pk, const __crawdog_curved25519_key e) {
+	__crawdog_curved25519_key ec;
 	bignum256modm s;
 	bignum25519 ALIGN(16) yplusz, zminusy;
 	ge25519 ALIGN(16) p;

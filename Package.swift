@@ -107,7 +107,7 @@ let package = Package(
 			publicHeadersPath:"."
 		),
 		.target(
-			name:"ced25519",
+			name:"__crawdog_ed25519",
 			dependencies:[
 				"csha512"
 			],
@@ -118,7 +118,7 @@ let package = Package(
 			]
 		),
 		.target(
-			name:"ced25519-tests",
+			name:"__crawdog_ed25519-tests",
 			dependencies:[
 				"csha512"
 			],
@@ -131,6 +131,6 @@ let package = Package(
 		),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "ced25519-tests", "ccrypt_blowfish-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_ed25519-tests", "ccrypt_blowfish-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )
