@@ -102,6 +102,17 @@ let package = Package(
 		),
 		.target(name:"__crawdog_blake2"),
 		.target(
+			name: "__crawdog_chachapoly",
+			dependencies: [],
+			publicHeadersPath:"."
+		),
+		.target(
+			name: "__crawdog_chachapoly-tests",
+			dependencies: ["__crawdog_chachapoly"],
+			path:"Tests/__crawdog_chachapoly-tests",
+			publicHeadersPath:"."
+		),
+		.target(
 			name:"__crawdog_sha512",
 			publicHeadersPath:"."
 		),
@@ -130,6 +141,6 @@ let package = Package(
 		),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_ed25519-tests", "ccrypt_blowfish-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_ed25519-tests", "ccrypt_blowfish-tests", "__crawdog_chachapoly-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )

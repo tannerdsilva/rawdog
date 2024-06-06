@@ -1,20 +1,18 @@
 # rawdog
 
-Rawdog is a lean, dependency-free Swift package created to simplify and expedite the binary encoding and decoding process for programming objects.
+rawdog is a lean, dependency-free* Swift package created to simplify and expedite the binary encoding and decoding process for programming objects.
+
+the primary utility of this library comes in its ability to express statically allocated memoryspace, while automatically handling alignment, endianness, and initialization to and from other types.
+
+in c, the following syntax is common and efficient `uint8_t[1024]`. in swift, trying to achieve a similar result (unaligned memory allocations with static length) is a nightmare....tuple literals are radically more verbose and notably less flexable than the c equivalent in syntax. this is the swift-specific problem that rawdog solves and builds on, while maintaining a rational but powerful pattern around type strictness and memory safety that Swift syntax is known for.
 
 ## Documentation 
 
-I apologize for the lackluster documentation. I plan on giving this a thorough write-up and docc treatment after I'm more confident in how the API has settled.
-
-### Inspiration
-
-The fundamental components of the `RAW` module draw their inspiration from the LMDB and its `MDB_val` structure. Over time, I found immense value in this structure and the protocols built around it, initially developed in my [QuickLMDB library](https://github.com/tannerdsilva/QuickLMDB), and implemented them in numerous Swift projects. 
-
-As I increasingly incorporated this structure and its related protocols from QuickLMDB into my regular coding routines, I decided to create a separate library – rawdog and its `RAW` module – by forking QuickLMDB and its data handling protocols. This decision aimed to help projects standardize, secure, and simplify data transfer methods, fostering an environment that equally accommodates Swift and C programming languages.
+Inline docs need a lot of work. I will work on it, apologies.
 
 ## Crypto
 
-rawdog distributes source material for all cryptographic functions that are offered, including:
+rawdog distributes and builds its own source material (in c) for all cryptographic functions, including:
 
 - blake2 hashing (keyed and unkeyed in all variants)
 - SHA512 hashing
@@ -38,9 +36,21 @@ rawdog cryptography is built on various open source contributions written in c. 
 
 	- chachapoly - [claimed with MIT license](https://github.com/grigorig/chachapoly/blob/ec7d8e03c6f715995b2015e9662a39277b994a74/README.md?plain=1#L11C233-L11C284) with unit test maintained in modification. Thank you Grigori Goronzy.
 
+## Targets & Tests
+
+### Inspiration
+
+The fundamental components of the `RAW` module draw their inspiration from the LMDB and its `MDB_val` structure. Over time, I found immense value in this structure and the protocols built around it, initially developed in my [QuickLMDB library](https://github.com/tannerdsilva/QuickLMDB), and implemented them in numerous Swift projects. 
+
+As I increasingly incorporated this structure and its related protocols from QuickLMDB into my regular coding routines, I decided to create a separate library – rawdog and its `RAW` module – by forking QuickLMDB and its data handling protocols. This decision aimed to help projects standardize, secure, and simplify data transfer methods, fostering an environment that equally accommodates Swift and C programming languages.
+
 ### Versioning
 
 This project follows the tagging semantics outlined in [SemVer 2.0.0](https://semver.org/#semantic-versioning-200).
+
+### Requirements
+
+Given the critical use of macros in this suite, rawdog requires Swift language v5.9.0 or above to build and deploy successfully.
 
 ### License
 
