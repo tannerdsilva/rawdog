@@ -1,3 +1,6 @@
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
+
 import SwiftCompilerPlugin
 import SwiftSyntaxMacros
 import SwiftParser
@@ -6,16 +9,12 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import SwiftDiagnostics
 
-
 @main
 struct RAW_macros:CompilerPlugin {
 	let providingMacros:[Macro.Type] = [
 		RAW_convertible_string_type_macro.self,
-
 		RAW_staticbuff_floatingpoint_type_macro.self,
-
 		RAW_staticbuff_fixedwidthinteger_type_macro.self,
-		
 		RAW_staticbuff_macro.self,
 	]
 }

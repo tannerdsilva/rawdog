@@ -1,6 +1,7 @@
-import cblake2
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
+import __crawdog_blake2
 import RAW
-import CRAW
 
 /// the error type for blake2 hasher operations.
 public enum Error:Swift.Error {

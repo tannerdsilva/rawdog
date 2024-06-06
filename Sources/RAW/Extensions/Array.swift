@@ -1,3 +1,5 @@
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 extension Array:RAW_accessible, RAW_encodable where Element == UInt8 {
     public mutating func RAW_access_mutating<R>(_ body: (UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R {
 		return try withUnsafeMutableBufferPointer({

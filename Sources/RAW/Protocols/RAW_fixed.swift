@@ -1,3 +1,5 @@
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 /// a type that does not require any size arguments because the size is known at compile time via the RAW_fixed_type associated type.
 public protocol RAW_fixed {
 	/// the type that expresses the size of this type.

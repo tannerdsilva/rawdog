@@ -1,3 +1,5 @@
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 /// represents one of the 64 possible base64 encoding values
 @frozen public enum Value {
 	// uppercase alphas (26 values)

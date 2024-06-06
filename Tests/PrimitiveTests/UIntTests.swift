@@ -1,31 +1,8 @@
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
+
 import XCTest
 import RAW
-
-
-// test that the UInt type is correctly converting to and from a raw representation.
-// class RAWUIntTests:XCTestCase {
-// 	func testAsRAWVal() throws {
-// 		let value:UInt = 512
-// 		var countout:size_t = 0
-// 		let rawVal = [UInt8](RAW_encodable:value, count_out:&countout)
-// 		#if arch(x86_64) || arch(arm64)
-// 		let expectedBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]
-// 		#else
-// 		let expectedBytes: [UInt8] = [0x00, 0x00, 0x02, 0x00]
-// 		#endif
-// 		XCTAssertEqual(rawVal, expectedBytes)
-// 	}
-	
-// 	func testInitWithRAWData() {
-// 		#if arch(x86_64) || arch(arm64)
-// 		let bytes: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]
-// 		#else
-// 		let bytes: [UInt8] = [0x00, 0x00, 0x02, 0x00]
-// 		#endif
-// 		let value = UInt(RAW_decode:bytes)
-// 		XCTAssertEqual(value, 512)
-// 	}
-// }
 
 @RAW_staticbuff(bytes:1)
 @RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:true)

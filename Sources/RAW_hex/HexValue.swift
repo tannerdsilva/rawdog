@@ -1,3 +1,6 @@
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
+
 /// represents one of the 16 possible values in a hexadecimal number
 @frozen public enum Value {
 

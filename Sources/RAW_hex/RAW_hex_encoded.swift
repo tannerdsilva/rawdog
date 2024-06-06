@@ -1,3 +1,6 @@
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
+
 import RAW
 
 /// represents a valid "hex string" value. while instances of this type may be expressing a value of n bytes, their actual memory footprint is n / 2, since the data is stored intenally in its decoded form.

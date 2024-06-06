@@ -1,3 +1,5 @@
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 import func CRAW.memcmp;
 
 // /// the protocol that enables comparison and equality checks of programming objects from raw memory representations.

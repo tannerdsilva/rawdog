@@ -1,3 +1,13 @@
+## 12.1.0
+
+- rawdog source code now includes a powerful and complete suite of cryptographic source material. README.md outlines the cryptography included and the original sources for all functions, which are heavily modified in a multitude of ways.
+
+	- These cryptographic tools will become available with their own targets in future minor releases.
+	
+	- This release of rawdog is packaged with the first target amongst these new tools: blowfish password hashing in the `RAW_bcrypt_blowfish` target.
+	
+		- bcrypt blowfish is known best as a strong password hashing algorithm that is particularly difficult to brute force.
+
 # 12.0.0
 
 - Revised public API of Blake2 hashing initializers when output type is a RAW_staticbuff compliant type.

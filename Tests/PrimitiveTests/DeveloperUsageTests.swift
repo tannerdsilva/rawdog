@@ -1,9 +1,11 @@
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 import XCTest
 import RAW_hex
 import RAW
 @testable import RAW_blake2
 @testable import RAW_base64
-@testable import cblake2
+@testable import __crawdog_blake2
 
 @RAW_staticbuff(bytes:2)
 struct MyFixeDThing:Sendable {}
@@ -284,7 +286,7 @@ final class TestDeveloperUsage:XCTestCase {
 	}
 
 	func testExpectedLengths() {
-		XCTAssertEqual(BLAKE2B_OUTBYTES.rawValue, 64)
-		XCTAssertEqual(BLAKE2S_OUTBYTES.rawValue, 32)
+		XCTAssertEqual(__CRAWDOG_BLAKE2B_OUTBYTES.rawValue, 64)
+		XCTAssertEqual(__CRAWDOG_BLAKE2S_OUTBYTES.rawValue, 32)
 	}
 }
