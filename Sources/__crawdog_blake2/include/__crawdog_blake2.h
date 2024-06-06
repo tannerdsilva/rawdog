@@ -1,3 +1,4 @@
+// LICENSE MIT
 // (c) tanner silva 2024. all rights reserved.
 #ifndef __CRAWDOG_BLAKE2_H
 #define __CRAWDOG_BLAKE2_H

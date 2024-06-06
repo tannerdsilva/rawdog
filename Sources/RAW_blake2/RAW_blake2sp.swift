@@ -1,3 +1,4 @@
+// LICENSE MIT
 // (c) tanner silva 2024. all rights reserved.
 import __crawdog_blake2
 import RAW

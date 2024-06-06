@@ -1,3 +1,4 @@
+// LICENSE MIT
 // (c) tanner silva 2024. all rights reserved.
 /// a protocol that is applied on types that represent an explicit encoding scheme of a native type. these types can include things like 
 public protocol RAW_native {

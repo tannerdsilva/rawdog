@@ -1,3 +1,4 @@
+// LICENSE MIT
 // (c) tanner silva 2024. all rights reserved.
 #include <emmintrin.h>
 typedef __m128i xmmi;

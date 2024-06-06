@@ -1,3 +1,4 @@
+// LICENSE MIT
 // (c) tanner silva 2024. all rights reserved.
 import struct CRAW.size_t
 public typealias size_t = CRAW.size_t

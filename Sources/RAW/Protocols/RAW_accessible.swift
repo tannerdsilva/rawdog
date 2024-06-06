@@ -1,3 +1,4 @@
+// LICENSE MIT
 // (c) tanner silva 2024. all rights reserved.
 public protocol RAW_accessible:RAW_encodable {
 	/// allows for non-mutating access to the raw representation of the instance.

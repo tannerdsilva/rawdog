@@ -1,4 +1,3 @@
-/* Licensed under BSD-MIT - see LICENSE file for details */
 #include "craw_base64.h"
 
 #include <errno.h>
