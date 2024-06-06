@@ -77,7 +77,7 @@ let package = Package(
 		], swiftSettings:[]),
 
 		// raw targets
-		.target(name:"RAW_bcrypt_blowfish", dependencies:["RAW", "ccrypt_blowfish"]),
+		.target(name:"RAW_bcrypt_blowfish", dependencies:["RAW", "__crawdog_crypt_blowfish"]),
 		.target(name:"RAW_blake2", dependencies:["RAW", "__crawdog_blake2"]),
 		.target(name:"RAW_base64", dependencies:rawBase64Dependencies(), swiftSettings:[/*.define("RAWDOG_BASE64_LOG")*/]),
 		.target(name:"RAW_hex", dependencies:rawHexDependencies(), swiftSettings: [/*.define("RAWDOG_HEX_LOG")*/]),
@@ -85,11 +85,12 @@ let package = Package(
 
 		// c implementations
 		.target(
-			name:"ccrypt_blowfish",
+			name:"__crawdog_crypt_blowfish",
 			publicHeadersPath:"include"
 		),
 		.target(
-			name:"ccrypt_blowfish-tests",
+			name:"__crawdog_crypt_blowfish-tests",
+			path:"Tests/__crawdog_crypt_blowfish-tests",
 			publicHeadersPath:"include",
 			cSettings: [.define("TEST")]
 		),
@@ -98,7 +99,8 @@ let package = Package(
 			publicHeadersPath:"."
 		),
 		.target(
-			name:"CRAW_base64"
+			name:"CRAW_base64",
+			path:"Tests/CRAW_base64"
 		),
 		.target(name:"__crawdog_blake2"),
 		.target(
@@ -132,6 +134,7 @@ let package = Package(
 			dependencies:[
 				"__crawdog_sha512"
 			],
+			path:"Tests/__crawdog_ed25519-tests",
 			publicHeadersPath:"include",
 			cSettings:[
 				.define("ED25519_CUSTOMHASH"),
@@ -141,6 +144,6 @@ let package = Package(
 		),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_ed25519-tests", "ccrypt_blowfish-tests", "__crawdog_chachapoly-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_ed25519-tests", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )

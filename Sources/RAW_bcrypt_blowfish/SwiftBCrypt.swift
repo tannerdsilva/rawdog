@@ -1,6 +1,6 @@
 // LICENSE MIT
 // (c) tanner silva 2024. all rights reserved.
-import ccrypt_blowfish
+import __crawdog_crypt_blowfish
 import func RAW.generateSecureRandomBytes
 import CRAW
 
@@ -13,7 +13,7 @@ public enum Error:Swift.Error {
 }
 public func makeSalt(passes:UInt = 12) throws -> [UInt8] {
 	let randBytes = try! generateSecureRandomBytes(count:256)
-	let newSaltBuffer = UnsafeMutableRawPointer(crypt_gensalt_ra("$2b$", passes, randBytes, 256))
+	let newSaltBuffer = UnsafeMutableRawPointer(__crawdog_crypt_gensalt_ra("$2b$", passes, randBytes, 256))
 	guard newSaltBuffer != nil else {
 		switch __craw_get_system_errno() {
 			case EINVAL:
@@ -39,7 +39,7 @@ public func hash(phrase:consuming String, salt:borrowing [UInt8]) throws -> [UIn
 	var count:Int32 = 0
 	return try salt.RAW_access { saltBuffer in
 		var dataBuffer:UnsafeMutableRawPointer? = nil
-		let newHashBuffer = crypt_ra(phrase, saltBuffer.baseAddress, &dataBuffer, &count)
+		let newHashBuffer = __crawdog_crypt_ra(phrase, saltBuffer.baseAddress, &dataBuffer, &count)
 		guard newHashBuffer != nil else {
 			switch __craw_get_system_errno() {
 				case EINVAL:

@@ -15,7 +15,8 @@ Inline docs need a lot of work. I will work on it, apologies.
 rawdog distributes and builds its own source material (in c) for all cryptographic functions, including:
 
 - blake2 hashing (keyed and unkeyed in all variants)
-- SHA512 hashing
+- SHA1,256,512 hashing
+- MD5 hashing
 - ed25519 signature scheme
 - bcrypt blowfish password hashing
 - chachapoly AEAD
@@ -36,6 +37,8 @@ rawdog cryptography is built on various open source contributions written in c. 
 
 	- chachapoly - [claimed with MIT license](https://github.com/grigorig/chachapoly/blob/ec7d8e03c6f715995b2015e9662a39277b994a74/README.md?plain=1#L11C233-L11C284) with unit test maintained in modification. Thank you Grigori Goronzy.
 
+	- SHA hashing (implementations 1, 256, 512) & MD5 - [claimed from public domain](https://github.com/WaterJuice/WjCryptLib/blob/e39760a85015b88820d7a2de832155a7c8ff2c88/UNLICENSE#L1) with unit test maintained in modification. Thank you WaterJuice.
+	
 ## Targets & Tests
 
 ### Inspiration
