@@ -69,7 +69,7 @@ static
 void
     TransformFunction
     (
-        Sha512Context*          Context,
+        __crawdog_sha512_context*          Context,
         uint8_t const*          Buffer
     )
 {
@@ -126,7 +126,7 @@ void
 //
 //  Initialises a SHA512 Context. Use this to initialise/reset a context.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void __crawdog_sha512_init(Sha512Context* Context)
+void __crawdog_sha512_init(__crawdog_sha512_context* Context)
 {
     Context->curlen = 0;
     Context->length = 0;
@@ -147,7 +147,7 @@ void __crawdog_sha512_init(Sha512Context* Context)
 //  calling this function until all the data has been added. Then call Sha512Finalise to calculate the hash.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void __crawdog_sha512_update(
-        Sha512Context*      Context,        // [in out]
+        __crawdog_sha512_context*      Context,        // [in out]
         void const*         Buffer,         // [in]
         uint32_t            BufferSize      // [in]
     )
@@ -192,7 +192,7 @@ void __crawdog_sha512_update(
 //  calling this, Sha512Initialised must be used to reuse the context.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void __crawdog_sha512_finish(
-        Sha512Context*      Context,        // [in out]
+        __crawdog_sha512_context*      Context,        // [in out]
         SHA512_HASH*        Digest          // [out]
     )
 {
@@ -255,7 +255,7 @@ void
         SHA512_HASH*        Digest          // [in]
     )
 {
-    Sha512Context context;
+    __crawdog_sha512_context context;
 
     __crawdog_sha512_init( &context );
     __crawdog_sha512_update( &context, Buffer, BufferSize );

@@ -8,7 +8,7 @@
 #include "__crawdog_sha512.h"
 
 typedef struct {
-    Sha512Context sha_ctx;	// SHA512 context
+    __crawdog_sha512_context sha_ctx;
 } __crawdog_ed25519_hash_context;
 
 void __crawdog_ed25519_hash_init(__crawdog_ed25519_hash_context *ctx);

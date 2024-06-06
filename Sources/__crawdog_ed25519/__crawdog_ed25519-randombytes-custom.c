@@ -19,7 +19,7 @@ void ED25519_FN(randombytes_unsafe)(void *p, size_t len) {
 
 	// open the /dev/urandom device
 	f = open("/dev/urandom", O_RDONLY);
-	if (f == NULL) {
+	if (f <= 0) {
 		perror("Failed to open /dev/urandom");
 		exit(EXIT_FAILURE); // exit if failed to open /dev/urandom
 	}

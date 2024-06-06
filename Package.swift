@@ -85,8 +85,7 @@ let package = Package(
 
 		// c implementations
 		.target(
-			name:"__crawdog_crypt_blowfish",
-			publicHeadersPath:"include"
+			name:"__crawdog_crypt_blowfish"
 		),
 		.target(
 			name:"__crawdog_crypt_blowfish-tests",
@@ -102,7 +101,9 @@ let package = Package(
 			name:"CRAW_base64",
 			path:"Tests/CRAW_base64"
 		),
-		.target(name:"__crawdog_blake2"),
+		.target(name:"__crawdog_blake2",
+			publicHeadersPath:"include"
+		),
 		.target(
 			name: "__crawdog_chachapoly",
 			dependencies: [],
@@ -119,15 +120,38 @@ let package = Package(
 			publicHeadersPath:"."
 		),
 		.target(
+			name:"__crawdog_sha256",
+			publicHeadersPath:"."
+		),
+		.target(
+			name:"__crawdog_sha1",
+			publicHeadersPath:"."
+		),
+		.target(
+			name:"__crawdog_md5",
+			publicHeadersPath:"."
+		),
+		.target(
 			name:"__crawdog_ed25519",
 			dependencies:[
 				"__crawdog_sha512"
 			],
 			publicHeadersPath:"include",
 			cSettings:[
-				.define("ED25519_CUSTOMHASH"),		// byo SHA512 in place of openssl because fuck crypto dependencies
+				.define("ED25519_CUSTOMHASH"),		// byo SHA512 in place of openssl
 				.define("ED25519_CUSTOMRANDOM")		// byo random function in place of openssl - this case we read from /dev/urandom
 			]
+		),
+		.target(
+			name:"__crawdog_hashing-tests",
+			dependencies:[
+				"__crawdog_sha512",
+				"__crawdog_sha256",
+				"__crawdog_sha1",
+				"__crawdog_md5"
+			],
+			path:"Tests/__crawdog_hashing-tests",
+			publicHeadersPath:"."
 		),
 		.target(
 			name:"__crawdog_ed25519-tests",
@@ -144,6 +168,6 @@ let package = Package(
 		),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_ed25519-tests", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_ed25519-tests", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )
