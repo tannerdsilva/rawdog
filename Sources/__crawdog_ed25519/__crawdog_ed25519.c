@@ -1,10 +1,4 @@
-/*
-	Public domain by Andrew M. <liquidsun@gmail.com>
-
-	Ed25519 reference implementation using Ed25519-donna
-*/
-
-
+// (c) tanner silva 2024. all rights reserved.
 /* define ED25519_SUFFIX to have it appended to the end of each public function */
 #if !defined(ED25519_SUFFIX)
 #define ED25519_SUFFIX 

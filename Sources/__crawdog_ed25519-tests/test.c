@@ -1,8 +1,4 @@
-/*
-	Validate __crawdog_ed25519 implementation against the official test vectors from 
-	http://__crawdog_ed25519.cr.yp.to/software.html
-*/
-
+// (c) tanner silva 2024. all rights reserved.
 #include <stdio.h>
 #include <string.h>
 #include "__crawdog_ed25519.h"

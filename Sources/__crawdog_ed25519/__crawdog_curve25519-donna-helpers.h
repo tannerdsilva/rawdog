@@ -1,10 +1,4 @@
-/*
-	Public domain by Andrew M. <liquidsun@gmail.com>
-	See: https://github.com/floodyberry/__crawdog_curve25519-donna
-
-	Curve25519 implementation agnostic helpers
-*/
-
+// (c) tanner silva 2024. all rights reserved.
 /*
  * In:  b =   2^5 - 2^0
  * Out: b = 2^250 - 2^0

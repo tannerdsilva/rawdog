@@ -1,3 +1,4 @@
+// (c) tanner silva 2024. all rights reserved.
 #ifndef ED25519_TEST
 
 #ifndef ED25519_FN

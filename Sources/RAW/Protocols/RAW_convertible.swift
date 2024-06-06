@@ -1,3 +1,4 @@
+// (c) tanner silva 2024. all rights reserved.
 public typealias RAW_convertible = RAW_encodable & RAW_decodable;
 
 /// protocol that represents a type that can initialize from a raw representation in memory.

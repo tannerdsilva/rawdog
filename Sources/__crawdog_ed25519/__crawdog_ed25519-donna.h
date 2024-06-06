@@ -1,14 +1,4 @@
-/*
-	Public domain by Andrew M. <liquidsun@gmail.com>
-	Modified from the amd64-51-30k implementation by
-		Daniel J. Bernstein
-		Niels Duif
-		Tanja Lange
-		Peter Schwabe
-		Bo-Yin Yang
-*/
-
-
+// (c) tanner silva 2024. all rights reserved.
 #include "__crawdog_ed25519-donna-portable.h"
 
 #if defined(ED25519_SSE2)

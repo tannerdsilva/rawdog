@@ -1,3 +1,4 @@
+// (c) tanner silva 2024. all rights reserved.
 #include <stdio.h>
 #include "__crawdog_ed25519-donna.h"
 

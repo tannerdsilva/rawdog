@@ -1,3 +1,4 @@
+// (c) tanner silva 2024. all rights reserved.
 #if defined(ED25519_REFHASH)
 
 /* reference/slow SHA-512. really, do not use this */

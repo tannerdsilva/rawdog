@@ -1,3 +1,5 @@
+// (c) tanner silva 2024. all rights reserved.
+
 import XCTest
 @testable import RAW_hex
 

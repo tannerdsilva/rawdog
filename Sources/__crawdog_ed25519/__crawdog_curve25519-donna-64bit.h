@@ -1,11 +1,4 @@
-/*
-	Public domain by Adam Langley <agl@imperialviolet.org> &
-	                 Andrew M. <liquidsun@gmail.com>
-	See: https://github.com/floodyberry/__crawdog_curve25519-donna
-
-	64bit integer __crawdog_curve25519 implementation
-*/
-
+// (c) tanner silva 2024. all rights reserved.
 typedef uint64_t bignum25519[5];
 
 static const uint64_t reduce_mask_40 = ((uint64_t)1 << 40) - 1;

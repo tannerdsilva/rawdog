@@ -1,3 +1,5 @@
+// (c) tanner silva 2024. all rights reserved.
+
 import XCTest
 import CRAW_base64
 @testable import RAW_base64

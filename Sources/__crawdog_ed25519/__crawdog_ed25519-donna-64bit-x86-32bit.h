@@ -1,3 +1,4 @@
+// (c) tanner silva 2024. all rights reserved.
 #if defined(ED25519_GCC_64BIT_32BIT_CHOOSE)
 
 #define HAVE_GE25519_SCALARMULT_BASE_CHOOSE_NIELS

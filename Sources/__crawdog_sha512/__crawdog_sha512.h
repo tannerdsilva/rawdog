@@ -1,6 +1,4 @@
-//  this file was once known as 'WjCryptLib_Sha512' and was taken from 'waterjuice' as offered in the public domain.
-//	after further repackaging by tanner silva in 2024, the file is now offered in the 'rawdog' library with a dual licence, MIT or public domain. 
-
+// (c) tanner silva 2024. all rights reserved.
 #ifndef __CRAWDOG_SHA512_H
 #define __CRAWDOG_SHA512_H
 

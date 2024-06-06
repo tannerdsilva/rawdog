@@ -1,3 +1,4 @@
+// (c) tanner silva 2024. all rights reserved.
 /* os */
 #if defined(_WIN32)	|| defined(_WIN64) || defined(__TOS_WIN__) || defined(__WINDOWS__)
 	#define OS_WINDOWS

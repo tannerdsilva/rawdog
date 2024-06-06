@@ -1,10 +1,4 @@
-/*
-	Public domain by Andrew M. <liquidsun@gmail.com>
-	See: https://github.com/floodyberry/__crawdog_curve25519-donna
-
-	32 bit integer __crawdog_curve25519 implementation
-*/
-
+// (c) tanner silva 2024. all rights reserved.
 typedef uint32_t bignum25519[10];
 typedef uint32_t bignum25519align16[12];
 

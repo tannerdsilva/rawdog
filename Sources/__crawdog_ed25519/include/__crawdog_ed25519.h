@@ -1,5 +1,6 @@
-#ifndef ED25519_H
-#define ED25519_H
+// (c) tanner silva 2024. all rights reserved.
+#ifndef __CRAWDOG_ED25519_H
+#define __CRAWDOG_ED25519_H
 
 #include <stdlib.h>
 
@@ -27,4 +28,4 @@ void __crawdog_curved25519_scalarmult_basepoint(__crawdog_curved25519_key pk, co
 }
 #endif
 
-#endif // ED25519_H
+#endif // __CRAWDOG_ED25519_H

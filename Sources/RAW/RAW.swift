@@ -1,7 +1,4 @@
-// written by tanner silva in 2023 (c) all rights reserved.
-
-// rawdog is a swift library that makes it easy to encode and decode programming objects from C-like memory representations.
-
+// (c) tanner silva 2024. all rights reserved.
 import struct CRAW.size_t
 public typealias size_t = CRAW.size_t
 

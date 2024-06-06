@@ -1,10 +1,4 @@
-/*
-	Public domain by Andrew M. <liquidsun@gmail.com>
-	See: https://github.com/floodyberry/__crawdog_curve25519-donna
-
-	SSE2 __crawdog_curve25519 implementation
-*/
-
+// (c) tanner silva 2024. all rights reserved.
 #include <emmintrin.h>
 typedef __m128i xmmi;
 

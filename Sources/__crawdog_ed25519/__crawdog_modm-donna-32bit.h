@@ -1,8 +1,4 @@
-/*
-	Public domain by Andrew M. <liquidsun@gmail.com>
-*/
-
-
+// (c) tanner silva 2024. all rights reserved.
 /*
 	Arithmetic modulo the group order n = 2^252 +  27742317777372353535851937790883648493 = 7237005577332262213973186563042994240857116359379907606001950938285454250989
 
@@ -11,7 +7,6 @@
 	m = 2^252 + 27742317777372353535851937790883648493 = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed
 	mu = floor( b^(k*2) / m ) = 0xfffffffffffffffffffffffffffffffeb2106215d086329a7ed9ce5a30a2c131b
 */
-
 #define bignum256modm_bits_per_limb 30
 #define bignum256modm_limb_size 9
 

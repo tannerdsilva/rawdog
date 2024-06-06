@@ -1,3 +1,4 @@
+// (c) tanner silva 2024. all rights reserved.
 #include "__crawdog_ed25519-donna-portable-identify.h"
 
 #define mul32x32_64(a,b) (((uint64_t)(a))*(b))

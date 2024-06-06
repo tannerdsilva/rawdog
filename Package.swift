@@ -1,5 +1,4 @@
 // swift-tools-version: 5.9
-
 import PackageDescription
 import CompilerPluginSupport
 
@@ -103,24 +102,24 @@ let package = Package(
 		),
 		.target(name:"__crawdog_blake2"),
 		.target(
-			name:"csha512",
+			name:"__crawdog_sha512",
 			publicHeadersPath:"."
 		),
 		.target(
 			name:"__crawdog_ed25519",
 			dependencies:[
-				"csha512"
+				"__crawdog_sha512"
 			],
 			publicHeadersPath:"include",
 			cSettings:[
-				.define("ED25519_CUSTOMHASH"),		// byo SHA512 in place of openssl
+				.define("ED25519_CUSTOMHASH"),		// byo SHA512 in place of openssl because fuck crypto dependencies
 				.define("ED25519_CUSTOMRANDOM")		// byo random function in place of openssl - this case we read from /dev/urandom
 			]
 		),
 		.target(
 			name:"__crawdog_ed25519-tests",
 			dependencies:[
-				"csha512"
+				"__crawdog_sha512"
 			],
 			publicHeadersPath:"include",
 			cSettings:[
