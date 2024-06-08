@@ -24,11 +24,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../include/external_calls.h"
+#include "__crawdog_external_calls.h"
 #include "__crawdog_curve25519_mehdi.h"
 #include "curve25519_donna.h"
-#include "../include/curve25519_dh.h"
-#include "../include/ed25519_signature.h"
+#include "__crawdog_curve25519_dh.h"
+#include "__crawdog_ed25519_signature.h"
 
 #include <stdint.h>  // For uint32_t, uint64_t
 
@@ -157,7 +157,7 @@ int speed_test(int loops)
 
     /* Make sure both generate identical public key */
     curve25519_donna(donna_publickey, secret_key, BasePoint);
-    curve25519_dh_CalculatePublicKey(mehdi_publickey, secret_key);
+    __crawdog_curve25519_calculate_public_key(mehdi_publickey, secret_key);
 
     if (memcmp(mehdi_publickey, donna_publickey, 32) != 0)
     {
@@ -198,7 +198,7 @@ int speed_test(int loops)
     for (i = 0; i < loops; i++)
     {
         t1 = readTSC();
-        curve25519_dh_CalculatePublicKey(mehdi_publickey, secret_key);
+        __crawdog_curve25519_calculate_public_key(mehdi_publickey, secret_key);
         t2 = readTSC() - t1;
         if (t2 < tm) tm = t2;
     }
@@ -216,7 +216,7 @@ int speed_test(int loops)
     for (i = 0; i < loops; i++)
     {
         t1 = readTSC();
-        curve25519_dh_CalculatePublicKey_fast(mehdi_publickey, secret_key);
+        __crawdog_curve25519_calculate_public_key(mehdi_publickey, secret_key);
         t2 = readTSC() - t1;
         if (t2 < tm) tm = t2;
     }
@@ -468,15 +468,15 @@ int dh_test()
     /* Step 2. Alice and Bruce create public keys associated with their secret keys */
     /*         and exchange their public keys */
 
-    curve25519_dh_CalculatePublicKey(alice_public_key, alice_secret_key);
-    curve25519_dh_CalculatePublicKey(bruce_public_key, bruce_secret_key);
+    __crawdog_curve25519_calculate_public_key(alice_public_key, alice_secret_key);
+    __crawdog_curve25519_calculate_public_key(bruce_public_key, bruce_secret_key);
     ecp_PrintHexBytes("Alice_public_key", alice_public_key, 32);
     ecp_PrintHexBytes("Bruce_public_key", bruce_public_key, 32);
 
     /* Step 3. Alice and Bruce create their shared key */
 
-    curve25519_dh_CreateSharedKey(alice_shared_key, bruce_public_key, alice_secret_key);
-    curve25519_dh_CreateSharedKey(bruce_shared_key, alice_public_key, bruce_secret_key);
+    __crawdog_curve25519_calculate_shared_key(alice_shared_key, bruce_public_key, alice_secret_key);
+    __crawdog_curve25519_calculate_shared_key(bruce_shared_key, alice_public_key, bruce_secret_key);
     ecp_PrintHexBytes("Alice_shared", alice_shared_key, 32);
     ecp_PrintHexBytes("Bruce_shared", bruce_shared_key, 32);
 

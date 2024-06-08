@@ -1,31 +1,10 @@
-/* The MIT License (MIT)
- * 
- * Copyright (c) 2015 mehdi sotoodeh
- * 
- * Permission is hereby granted, free of charge, to any person obtaining 
- * a copy of this software and associated documentation files (the 
- * "Software"), to deal in the Software without restriction, including 
- * without limitation the rights to use, copy, modify, merge, publish, 
- * distribute, sublicense, and/or sell copies of the Software, and to 
- * permit persons to whom the Software is furnished to do so, subject to 
- * the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included 
- * in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-#include "../include/external_calls.h"
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
+// copyright (c) 2015 mehdi sotoodeh
+#include "__crawdog_external_calls.h"
 #include "__crawdog_curve25519_mehdi.h"
 
-typedef struct
-{
+typedef struct {
     U_WORD X[K_WORDS];   /* x = X/Z */
     U_WORD Z[K_WORDS];   /*  */
 } XZ_POINT;
@@ -33,12 +12,11 @@ typedef struct
 extern const U_WORD _w_P[K_WORDS];
 extern EDP_BLINDING_CTX edp_custom_blinding;
 
-/* x coordinate of base point */
+// x coordinate of base point
 const U8 ecp_BasePoint[32] = { 
     9,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0 };
 /* Y = X + X */
-void ecp_MontDouble(XZ_POINT *Y, const XZ_POINT *X)
-{
+void ecp_MontDouble(XZ_POINT *Y, const XZ_POINT *X) {
     U_WORD A[K_WORDS], B[K_WORDS];
     /*  x2 = (x+z)^2 * (x-z)^2 */
     /*  z2 = ((x+z)^2 - (x-z)^2)*((x+z)^2 + ((A-2)/4)((x+z)^2 - (x-z)^2)) */
@@ -179,7 +157,7 @@ void x25519_BasePointMultiply(OUT U8 *r, IN const U8 *sk)
 }
 
 /* Return public key associated with sk */
-void curve25519_dh_CalculatePublicKey_fast(
+void __crawdog_curve25519_calculate_public_key(
     unsigned char *pk,          /* [32-bytes] OUT: Public key */
     unsigned char *sk)          /* [32-bytes] IN/OUT: Your secret key */
 {
@@ -188,17 +166,8 @@ void curve25519_dh_CalculatePublicKey_fast(
     x25519_BasePointMultiply(pk, sk);
 }
 
-/* Return public key associated with sk */
-void curve25519_dh_CalculatePublicKey(
-    unsigned char *pk,          /* [32-bytes] OUT: Public key */
-    unsigned char *sk)          /* [32-bytes] IN/OUT: Your secret key */
-{
-    ecp_TrimSecretKey(sk);
-    ecp_PointMultiply(pk, ecp_BasePoint, sk, 32);
-}
-
 /* Create a shared secret */
-void curve25519_dh_CreateSharedKey(
+void __crawdog_curve25519_calculate_shared_key(
     unsigned char *shared,      /* [32-bytes] OUT: Created shared key */
     const unsigned char *pk,    /* [32-bytes] IN: Other side's public key */
     unsigned char *sk)          /* [32-bytes] IN/OUT: Your secret key */

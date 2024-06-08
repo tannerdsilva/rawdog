@@ -1,30 +1,9 @@
-/* The MIT License (MIT)
- * 
- * Copyright (c) 2015 mehdi sotoodeh
- * 
- * Permission is hereby granted, free of charge, to any person obtaining 
- * a copy of this software and associated documentation files (the 
- * "Software"), to deal in the Software without restriction, including 
- * without limitation the rights to use, copy, modify, merge, publish, 
- * distribute, sublicense, and/or sell copies of the Software, and to 
- * permit persons to whom the Software is furnished to do so, subject to 
- * the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included 
- * in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
-#include "../include/external_calls.h"
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
+// copyright (c) 2015 mehdi sotoodeh
+#include "__crawdog_external_calls.h"
 #include "__crawdog_curve25519_mehdi.h"
-#include "../include/ed25519_signature.h"
+#include "__crawdog_ed25519_signature.h"
 #include "__crawdog_sha512.h"
 
 /*
@@ -61,7 +40,7 @@ const U_WORD _w_2d[K_WORDS] = /* 2*d */
 const U_WORD _w_di[K_WORDS] = /* 1/d */
     W256(0xCDC9F843,0x25E0F276,0x4279542E,0x0B5DD698,0xCDB9CF66,0x2B162114,0x14D5CE43,0x40907ED2);
 
-#include "base_folding8.h"
+#include "__crawdog_base_folding8.h"
 
 /*
     Reference: http://eprint.iacr.org/2008/522
