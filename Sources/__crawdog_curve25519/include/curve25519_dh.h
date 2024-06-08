@@ -25,10 +25,6 @@
 #ifndef __curve25519_dh_key_exchange_h__
 #define __curve25519_dh_key_exchange_h__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Return public key associated with sk */
 /* sk will be trimmed on return */
 void curve25519_dh_CalculatePublicKey(
@@ -47,7 +43,4 @@ void curve25519_dh_CreateSharedKey(
     const unsigned char *pk,    /* [32-bytes] IN: Other side's public key */
     unsigned char *sk);         /* [32-bytes] IN/OUT: Your secret key */
 
-#ifdef __cplusplus
-}
-#endif
 #endif  /* __curve25519_dh_key_exchange_h__ */

@@ -143,6 +143,14 @@ let package = Package(
 			cSettings:[]
 		),
 		.target(
+			name:"__crawdog_curve25519-tests",
+			dependencies:[
+				"__crawdog_curve25519"
+			],
+			path:"Tests/__crawdog_curve25519-tests",
+			publicHeadersPath:"include"
+		),
+		.target(
 			name:"__crawdog_hashing-tests",
 			dependencies:[
 				"__crawdog_sha512",
@@ -151,10 +159,10 @@ let package = Package(
 				"__crawdog_md5"
 			],
 			path:"Tests/__crawdog_hashing-tests",
-			publicHeadersPath:"."
+			publicHeadersPath:""
 		),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )
