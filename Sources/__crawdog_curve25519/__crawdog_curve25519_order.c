@@ -2,6 +2,7 @@
 // copyright (c) tanner silva 2024. all rights reserved.
 // copyright (c) 2015 mehdi sotoodeh
 #include "__crawdog_curve25519_mehdi.h"
+#include <stdint.h>
 
 /*
   This library provides support for mod BPO (Base Point Order) operations
@@ -115,7 +116,7 @@ void eco_AddReduce(OUT U32 *Z, IN const U32 *X, IN const U32 *Y)
 }
 
 /* Return Y = D mod BPO where D is 512-bit message digest (i.e SHA512 digest) */
-void eco_DigestToWords( OUT U32 *Y, IN const U8 *md)
+void eco_DigestToWords( OUT U32 *Y, IN const uint8_t *md)
 {
     U32 T[16];
 

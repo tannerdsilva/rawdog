@@ -67,7 +67,7 @@ uint64_t readTSC()
 }
 #endif
 
-void ecp_PrintBytes(IN const char *name, IN const U8 *data, IN U32 size)
+void ecp_PrintBytes(IN const char *name, IN const uint8_t *data, IN U32 size)
 {
     U32 i;
     printf("\nstatic const unsigned char %s[%d] =\n  { 0x%02X", name, size, *data++);
@@ -81,7 +81,7 @@ void ecp_PrintBytes(IN const char *name, IN const U8 *data, IN U32 size)
     printf(" };\n");
 }
 
-void ecp_PrintHexBytes(IN const char *name, IN const U8 *data, IN U32 size)
+void ecp_PrintHexBytes(IN const char *name, IN const uint8_t *data, IN U32 size)
 {
     printf("%s = 0x", name);
     while (size > 0) printf("%02X", data[--size]);
@@ -133,7 +133,7 @@ void ecp_PrintHexWords(IN const char *name, IN const U32 *data, IN U32 size)
 #endif
 
 /* Needed for donna */
-extern void ecp_TrimSecretKey(U8 *X);
+extern void ecp_TrimSecretKey(uint8_t *X);
 const unsigned char BasePoint[32] = {9};
 
 unsigned char secret_blind[32] =
@@ -145,7 +145,7 @@ unsigned char secret_blind[32] =
 int speed_test(int loops)
 {
     U64 t1, t2, tovr = 0, td = (U64)(-1), tm = (U64)(-1);
-    U8 secret_key[32], donna_publickey[32], mehdi_publickey[32];
+    uint8_t secret_key[32], donna_publickey[32], mehdi_publickey[32];
     unsigned char pubkey[32], privkey[64], sig[64];
     void *ver_context = 0;
     void *blinding = 0;
@@ -467,7 +467,8 @@ int dh_test()
 
     /* Step 2. Alice and Bruce create public keys associated with their secret keys */
     /*         and exchange their public keys */
-
+	__crawdog_curve25519_forge_private_key(alice_secret_key);
+	__crawdog_curve25519_forge_private_key(bruce_secret_key);
     __crawdog_curve25519_calculate_public_key(alice_public_key, alice_secret_key);
     __crawdog_curve25519_calculate_public_key(bruce_public_key, bruce_secret_key);
     ecp_PrintHexBytes("Alice_public_key", alice_public_key, 32);

@@ -80,7 +80,7 @@ void ed25519_CalculateX(OUT U_WORD *X, IN const U_WORD *Y, U_WORD parity)
 
 void ed25519_UnpackPoint(Affine_POINT *r, const unsigned char *p)
 {
-    U8 parity = ecp_DecodeInt(r->y, p);
+    uint8_t parity = ecp_DecodeInt(r->y, p);
     ed25519_CalculateX(r->x, r->y, parity);
 }
 
@@ -228,7 +228,7 @@ static void edp_PolyPointMultiply(
     int i = 1;
     Ext_POINT S;
     const PE_POINT *q0;
-    U8 u[32], v[64];
+    uint8_t u[32], v[64];
 
     ecp_8Folds(u, a);
     ecp_4Folds(v, b);
@@ -271,7 +271,7 @@ int __crawdog_ed25519_verify_check(
     struct __crawdog_sha512_context H;
     Affine_POINT T;
     U_WORD h[K_WORDS], s[K_WORDS];
-    U8 md[SHA512_HASH_SIZE];
+    uint8_t md[SHA512_HASH_SIZE];
 
     /* h = H(enc(R) + pk + m)  mod BPO */
     __crawdog_sha512_init(&H);

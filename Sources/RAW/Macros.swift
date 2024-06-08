@@ -1,6 +1,5 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
-import RAW_macros
 
 /// defines a type as a static buffer type. 
 /// when a type is a static buffer type, it is a fixed size with a "literally expressed" representation in memory. usually, the only way to ensure this is the case in Swift is to write everything as byte tuples (UInt8, UInt8...). thankfully, this macro provides a convenient way to write structures in this way.

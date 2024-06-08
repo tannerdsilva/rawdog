@@ -3,6 +3,7 @@
 // copyright (c) 2015 mehdi sotoodeh
 #include "__crawdog_external_calls.h"
 #include "__crawdog_curve25519_mehdi.h"
+#include "__crawdog_curve25519_dh.h"
 
 typedef struct {
     U_WORD X[K_WORDS];   /* x = X/Z */
@@ -13,7 +14,7 @@ extern const U_WORD _w_P[K_WORDS];
 extern EDP_BLINDING_CTX edp_custom_blinding;
 
 // x coordinate of base point
-const U8 ecp_BasePoint[32] = { 
+const uint8_t ecp_BasePoint[32] = { 
     9,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0 };
 /* Y = X + X */
 void ecp_MontDouble(XZ_POINT *Y, const XZ_POINT *X) {
@@ -70,9 +71,9 @@ void ecp_Mont(XZ_POINT *P, XZ_POINT *Q, IN const U_WORD *Base)
 /* Return point Q = k*P */
 /* K in a little-endian byte array */
 void ecp_PointMultiply(
-    OUT U8 *PublicKey, 
-    IN const U8 *BasePoint, 
-    IN const U8 *SecretKey, 
+    OUT uint8_t *PublicKey, 
+    IN const uint8_t *BasePoint, 
+    IN const uint8_t *SecretKey, 
     IN int len)
 {
     int i, j, k;
@@ -137,7 +138,7 @@ void ecp_PointMultiply(
 /* -- DH key exchange interfaces ----------------------------------------- */
 
 /* Return R = a*P where P is curve25519 base point */
-void x25519_BasePointMultiply(OUT U8 *r, IN const U8 *sk)
+void x25519_BasePointMultiply(OUT uint8_t *r, IN const uint8_t *sk)
 {
     Ext_POINT S;
     U_WORD t[K_WORDS];
@@ -156,15 +157,21 @@ void x25519_BasePointMultiply(OUT U8 *r, IN const U8 *sk)
     ecp_WordsToBytes(r, S.t);
 }
 
-/* Return public key associated with sk */
 void __crawdog_curve25519_calculate_public_key(
-    unsigned char *pk,          /* [32-bytes] OUT: Public key */
-    unsigned char *sk)          /* [32-bytes] IN/OUT: Your secret key */
+	uint8_t *pk,          /* [32-bytes] OUT: Public key */
+	const uint8_t *sk)    /* [32-bytes] IN/OUT: secret key */
 {
-    ecp_TrimSecretKey(sk);
-    /* Use faster method */
-    x25519_BasePointMultiply(pk, sk);
+	x25519_BasePointMultiply(pk, sk);
 }
+
+/* Return public key associated with sk */
+void __crawdog_curve25519_forge_private_key(
+    uint8_t *rand)          /* [32-bytes] IN/OUT: Your secret key */
+{
+    ecp_TrimSecretKey(rand);
+}
+
+
 
 /* Create a shared secret */
 void __crawdog_curve25519_calculate_shared_key(

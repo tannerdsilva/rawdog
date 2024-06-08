@@ -5,6 +5,7 @@
 #include "__crawdog_curve25519_mehdi.h"
 #include "__crawdog_ed25519_signature.h"
 #include "__crawdog_sha512.h"
+#include <stdint.h>
 
 /*
  * Arithmetic on twisted Edwards curve y^2 - x^2 = 1 + dx^2y^2
@@ -197,7 +198,7 @@ void edp_BasePointMult(
     IN const U_WORD *R)
 {
     int i = 1;
-    U8 cut[32];
+    uint8_t cut[32];
     const PA_POINT *p0;
 
     ecp_8Folds(cut, sk);
@@ -274,7 +275,7 @@ void *__crawdog_ed25519_blinding_init(
         Ext_POINT T;
         U_WORD t[K_WORDS];
         struct __crawdog_sha512_context H;
-        U8 digest[SHA512_HASH_SIZE];
+        uint8_t digest[SHA512_HASH_SIZE];
     } d;
 
     EDP_BLINDING_CTX *ctx = (EDP_BLINDING_CTX*)context;
@@ -325,7 +326,7 @@ void __crawdog_ed25519_create_keypair(
     const void *blinding,               /* IN: [optional] null or blinding context */
     const unsigned char *sk)            /* IN: secret key (32 bytes) */
 {
-    U8 md[SHA512_HASH_SIZE];
+    uint8_t md[SHA512_HASH_SIZE];
     U_WORD t[K_WORDS];
     struct __crawdog_sha512_context H;
     Affine_POINT Q;
@@ -357,7 +358,7 @@ void __crawdog_ed25519_sign_message(
     struct __crawdog_sha512_context H;
     Affine_POINT R;
     U_WORD a[K_WORDS], t[K_WORDS], r[K_WORDS];
-    U8 md[SHA512_HASH_SIZE];
+    uint8_t md[SHA512_HASH_SIZE];
 
     /* [a:b] = H(sk) */
     __crawdog_sha512_init(&H);
