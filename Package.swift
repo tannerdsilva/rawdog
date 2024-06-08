@@ -61,7 +61,10 @@ let package = Package(
 			targets: ["RAW_blake2"]),
 		.library(
 			name: "RAW_bcrypt_blowfish",
-			targets: ["RAW_bcrypt_blowfish"])
+			targets: ["RAW_bcrypt_blowfish"]),
+		.library(
+			name:"RAW_dh25519",
+			targets: ["RAW_dh25519"])
 	],
 	dependencies: [
 		.package(url:"https://github.com/apple/swift-syntax.git", "509.0.1"..<"510.0.1"),
