@@ -18,6 +18,7 @@ rawdog distributes and builds its own source material (in c) for all cryptograph
 - SHA1,256,512 hashing
 - MD5 hashing
 - ed25519 signature scheme
+- curve25519 keys
 - bcrypt blowfish password hashing
 - chachapoly AEAD
 

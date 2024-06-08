@@ -135,15 +135,12 @@ let package = Package(
 			publicHeadersPath:"."
 		),
 		.target(
-			name:"__crawdog_ed25519",
+			name:"__crawdog_curve25519",
 			dependencies:[
 				"__crawdog_sha512"
 			],
 			publicHeadersPath:"include",
-			cSettings:[
-				.define("ED25519_CUSTOMHASH"),		// byo SHA512 in place of openssl
-				.define("ED25519_CUSTOMRANDOM")		// byo random function in place of openssl - this case we read from /dev/urandom
-			]
+			cSettings:[]
 		),
 		.target(
 			name:"__crawdog_hashing-tests",
@@ -156,21 +153,8 @@ let package = Package(
 			path:"Tests/__crawdog_hashing-tests",
 			publicHeadersPath:"."
 		),
-		.target(
-			name:"__crawdog_ed25519-tests",
-			dependencies:[
-				"__crawdog_sha512"
-			],
-			path:"Tests/__crawdog_ed25519-tests",
-			publicHeadersPath:"include",
-			cSettings:[
-				.define("ED25519_CUSTOMHASH"),
-				/* custom random (ED25519_CUSTOMRANDOM) cannot be tested and that is ok - unit tests here will use a determinstic RNG anyways */
-				.define("ED25519_TEST"),
-			]
-		),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_ed25519-tests", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )

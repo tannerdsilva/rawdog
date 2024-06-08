@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-typedef struct {
+typedef struct __crawdog_sha512_context {
 	uint64_t length;
 	uint64_t state[8];
 	uint32_t curlen;
