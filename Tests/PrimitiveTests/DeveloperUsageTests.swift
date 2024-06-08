@@ -92,7 +92,6 @@ struct MyDually:Sendable {
 
 extension MyDually:Comparable, Equatable {}
 
-
 final class TestDeveloperUsage:XCTestCase {
 	func testConcatMemoryLayout() {
 		let myUInt64 = MyUInt64Equivalent(RAW_native:66)
@@ -102,6 +101,10 @@ final class TestDeveloperUsage:XCTestCase {
 		// let thing = myTest as! any ExpressibleByArrayLiteral
 //		let thing2 = myTest as! any RAW_comparable_fixed
 		// let fooBar:FixedBuff5 = "StringfTHing"
+	}
+
+	func testEntropy() throws {
+		let randomBytes = try generateSecureRandomBytes(as:MySpecialUIntType.self)
 	}
 	func testSortingByFirstVariable() {
 

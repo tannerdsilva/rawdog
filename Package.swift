@@ -80,6 +80,7 @@ let package = Package(
 		], swiftSettings:[]),
 
 		// raw targets
+		.target(name:"RAW_dh25519", dependencies:["RAW", "__crawdog_curve25519"]),
 		.target(name:"RAW_bcrypt_blowfish", dependencies:["RAW", "__crawdog_crypt_blowfish"]),
 		.target(name:"RAW_blake2", dependencies:["RAW", "__crawdog_blake2"]),
 		.target(name:"RAW_base64", dependencies:rawBase64Dependencies(), swiftSettings:[/*.define("RAWDOG_BASE64_LOG")*/]),

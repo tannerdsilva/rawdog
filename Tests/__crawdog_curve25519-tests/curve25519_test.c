@@ -235,7 +235,7 @@ int speed_test(int loops)
     for (i = 0; i < loops; i++)
     {
         t1 = readTSC();
-        ed25519_CreateKeyPair(pubkey, privkey, 0, secret_key);
+        __crawdog_ed25519_create_keypair(pubkey, privkey, 0, secret_key);
         t2 = readTSC() - t1;
         if (t2 < tm) tm = t2;
     }
@@ -249,7 +249,7 @@ int speed_test(int loops)
     for (i = 0; i < loops; i++)
     {
         t1 = readTSC();
-        ed25519_SignMessage(sig, privkey, 0, (const unsigned char*)"abc", 3);
+        __crawdog_ed25519_sign_message(sig, privkey, 0, (const unsigned char*)"abc", 3);
         t2 = readTSC() - t1;
         if (t2 < tm) tm = t2;
     }
@@ -260,13 +260,13 @@ int speed_test(int loops)
     /* --------------------------------------------------------------------- */
     /* Speed measurement for ed25519 keygen, sign using blinding */
     /* --------------------------------------------------------------------- */
-    blinding = ed25519_Blinding_Init(blinding, secret_blind, sizeof(secret_blind));
+    blinding = __crawdog_ed25519_blinding_init(blinding, secret_blind, sizeof(secret_blind));
 
     tm = (U64)(-1);
     for (i = 0; i < loops; i++)
     {
         t1 = readTSC();
-        ed25519_CreateKeyPair(pubkey, privkey, blinding, secret_key);
+        __crawdog_ed25519_create_keypair(pubkey, privkey, blinding, secret_key);
         t2 = readTSC() - t1;
         if (t2 < tm) tm = t2;
     }
@@ -280,7 +280,7 @@ int speed_test(int loops)
     for (i = 0; i < loops; i++)
     {
         t1 = readTSC();
-        ed25519_SignMessage(sig, privkey, blinding, (const unsigned char*)"abc", 3);
+        __crawdog_ed25519_sign_message(sig, privkey, blinding, (const unsigned char*)"abc", 3);
         t2 = readTSC() - t1;
         if (t2 < tm) tm = t2;
     }
@@ -289,14 +289,14 @@ int speed_test(int loops)
     printf ("      Sign: %lld cycles = %.3f usec @3.4GHz (Blinded)\n", 
         tm, (double)tm/3400.0);
 
-    ed25519_Blinding_Finish(blinding);
+    __crawdog_ed25519_blinding_finish(blinding);
 
     /* --------------------------------------------------------------------- */
     tm = (U64)(-1);
     for (i = 0; i < loops; i++)
     {
         t1 = readTSC();
-        ed25519_VerifySignature(sig, pubkey, (const unsigned char*)"abc", 3);
+        __crawdog_ed25519_verify_signature(sig, pubkey, (const unsigned char*)"abc", 3);
         t2 = readTSC() - t1;
         if (t2 < tm) tm = t2;
     }
@@ -308,7 +308,7 @@ int speed_test(int loops)
     for (i = 0; i < loops; i++)
     {
         t1 = readTSC();
-        ver_context = ed25519_Verify_Init(ver_context, pubkey);
+        ver_context = __crawdog_ed25519_verify_init(ver_context, pubkey);
         t2 = readTSC() - t1;
         if (t2 < tm) tm = t2;
     }
@@ -321,7 +321,7 @@ int speed_test(int loops)
     for (i = 0; i < loops; i++)
     {
         t1 = readTSC();
-        ed25519_Verify_Check(ver_context, sig, (const unsigned char*)"abc", 3);
+        __crawdog_ed25519_verify_check(ver_context, sig, (const unsigned char*)"abc", 3);
         t2 = readTSC() - t1;
         if (t2 < tm) tm = t2;
     }
@@ -330,7 +330,7 @@ int speed_test(int loops)
     printf ("            %lld cycles = %.3f usec @3.4GHz (Check)\n", 
         tm, (double)tm/3400.0);
 
-    ed25519_Verify_Finish(ver_context);
+    __crawdog_ed25519_verify_finish(ver_context);
 
     return 0;
 }
@@ -342,77 +342,77 @@ int signature_test(
     const unsigned char *expected_sig)
 {
     int rc = 0;
-    unsigned char sig[ed25519_signature_size];
-    unsigned char pubKey[ed25519_public_key_size];
-    unsigned char privKey[ed25519_private_key_size];
-    void *blinding = ed25519_Blinding_Init(0, secret_blind, sizeof(secret_blind));
+    unsigned char sig[__CRAWDOG_ED25519_SIGNATURE_SIZE];
+    unsigned char pubKey[__CRAWDOG_ED25519_PUBLIC_KEY_SIZE];
+    unsigned char privKey[__CRAWDOG_ED25519_PRIVATE_KEY_SIZE];
+    void *blinding = __crawdog_ed25519_blinding_init(0, secret_blind, sizeof(secret_blind));
 
     printf("\n-- ed25519 -- sign/verify test ---------------------------------\n");
     printf("\n-- CreateKeyPair --\n");
-    ed25519_CreateKeyPair(pubKey, privKey, 0, sk);
-    ecp_PrintHexBytes("secret_key", sk, ed25519_secret_key_size);
-    ecp_PrintHexBytes("public_key", pubKey, ed25519_public_key_size);
-    ecp_PrintBytes("private_key", privKey, ed25519_private_key_size);
+    __crawdog_ed25519_create_keypair(pubKey, privKey, 0, sk);
+    ecp_PrintHexBytes("secret_key", sk, __CRAWDOG_ED25519_SECRET_KEY_SIZE);
+    ecp_PrintHexBytes("public_key", pubKey, __CRAWDOG_ED25519_PUBLIC_KEY_SIZE);
+    ecp_PrintBytes("private_key", privKey, __CRAWDOG_ED25519_PRIVATE_KEY_SIZE);
 
-    if (expected_pk && memcmp(pubKey, expected_pk, ed25519_public_key_size) != 0)
+    if (expected_pk && memcmp(pubKey, expected_pk, __CRAWDOG_ED25519_PUBLIC_KEY_SIZE) != 0)
     {
         rc++;
-        printf("ed25519_CreateKeyPair() FAILED!!\n");
-        ecp_PrintHexBytes("Expected_pk", expected_pk, ed25519_public_key_size);
+        printf("__crawdog_ed25519_create_keypair() FAILED!!\n");
+        ecp_PrintHexBytes("Expected_pk", expected_pk, __CRAWDOG_ED25519_PUBLIC_KEY_SIZE);
     }
 
     printf("-- Sign/Verify --\n");
-    ed25519_SignMessage(sig, privKey, 0, msg, size);
+    __crawdog_ed25519_sign_message(sig, privKey, 0, msg, size);
     ecp_PrintBytes("message", msg, (U32)size);
-    ecp_PrintBytes("signature", sig, ed25519_signature_size);
-    if (expected_sig && memcmp(sig, expected_sig, ed25519_signature_size) != 0)
+    ecp_PrintBytes("signature", sig, __CRAWDOG_ED25519_SIGNATURE_SIZE);
+    if (expected_sig && memcmp(sig, expected_sig, __CRAWDOG_ED25519_SIGNATURE_SIZE) != 0)
     {
         rc++;
         printf("Signature generation FAILED!!\n");
-        ecp_PrintBytes("Calculated", sig, ed25519_signature_size);
-        ecp_PrintBytes("ExpectedSig", expected_sig, ed25519_signature_size);
+        ecp_PrintBytes("Calculated", sig, __CRAWDOG_ED25519_SIGNATURE_SIZE);
+        ecp_PrintBytes("ExpectedSig", expected_sig, __CRAWDOG_ED25519_SIGNATURE_SIZE);
     }
 
-    if (!ed25519_VerifySignature(sig, pubKey, msg, size))
+    if (!__crawdog_ed25519_verify_signature(sig, pubKey, msg, size))
     {
         rc++;
         printf("Signature verification FAILED!!\n");
-        ecp_PrintBytes("sig", sig, ed25519_signature_size);
-        ecp_PrintBytes("pk", pubKey, ed25519_public_key_size);
+        ecp_PrintBytes("sig", sig, __CRAWDOG_ED25519_SIGNATURE_SIZE);
+        ecp_PrintBytes("pk", pubKey, __CRAWDOG_ED25519_PUBLIC_KEY_SIZE);
     }
 
     printf("\n-- ed25519 -- sign/verify test w/blinding ----------------------\n");
     printf("\n-- CreateKeyPair --\n");
-    ed25519_CreateKeyPair(pubKey, privKey, blinding, sk);
-    ecp_PrintHexBytes("secret_key", sk, ed25519_secret_key_size);
-    ecp_PrintHexBytes("public_key", pubKey, ed25519_public_key_size);
-    ecp_PrintBytes("private_key", privKey, ed25519_private_key_size);
+    __crawdog_ed25519_create_keypair(pubKey, privKey, blinding, sk);
+    ecp_PrintHexBytes("secret_key", sk, __CRAWDOG_ED25519_SECRET_KEY_SIZE);
+    ecp_PrintHexBytes("public_key", pubKey, __CRAWDOG_ED25519_PUBLIC_KEY_SIZE);
+    ecp_PrintBytes("private_key", privKey, __CRAWDOG_ED25519_PRIVATE_KEY_SIZE);
 
-    if (expected_pk && memcmp(pubKey, expected_pk, ed25519_public_key_size) != 0)
+    if (expected_pk && memcmp(pubKey, expected_pk, __CRAWDOG_ED25519_PUBLIC_KEY_SIZE) != 0)
     {
         rc++;
-        printf("ed25519_CreateKeyPair() FAILED!!\n");
-        ecp_PrintHexBytes("Expected_pk", expected_pk, ed25519_public_key_size);
+        printf("__crawdog_ed25519_create_keypair() FAILED!!\n");
+        ecp_PrintHexBytes("Expected_pk", expected_pk, __CRAWDOG_ED25519_PUBLIC_KEY_SIZE);
     }
 
     printf("-- Sign/Verify --\n");
-    ed25519_SignMessage(sig, privKey, blinding, msg, size);
+    __crawdog_ed25519_sign_message(sig, privKey, blinding, msg, size);
     ecp_PrintBytes("message", msg, (U32)size);
-    ecp_PrintBytes("signature", sig, ed25519_signature_size);
-    if (expected_sig && memcmp(sig, expected_sig, ed25519_signature_size) != 0)
+    ecp_PrintBytes("signature", sig, __CRAWDOG_ED25519_SIGNATURE_SIZE);
+    if (expected_sig && memcmp(sig, expected_sig, __CRAWDOG_ED25519_SIGNATURE_SIZE) != 0)
     {
         rc++;
         printf("Signature generation FAILED!!\n");
-        ecp_PrintBytes("Calculated", sig, ed25519_signature_size);
-        ecp_PrintBytes("ExpectedSig", expected_sig, ed25519_signature_size);
+        ecp_PrintBytes("Calculated", sig, __CRAWDOG_ED25519_SIGNATURE_SIZE);
+        ecp_PrintBytes("ExpectedSig", expected_sig, __CRAWDOG_ED25519_SIGNATURE_SIZE);
     }
 
-    if (!ed25519_VerifySignature(sig, pubKey, msg, size))
+    if (!__crawdog_ed25519_verify_signature(sig, pubKey, msg, size))
     {
         rc++;
         printf("Signature verification FAILED!!\n");
-        ecp_PrintBytes("sig", sig, ed25519_signature_size);
-        ecp_PrintBytes("pk", pubKey, ed25519_public_key_size);
+        ecp_PrintBytes("sig", sig, __CRAWDOG_ED25519_SIGNATURE_SIZE);
+        ecp_PrintBytes("pk", pubKey, __CRAWDOG_ED25519_PUBLIC_KEY_SIZE);
     }
 
     if (rc == 0)
@@ -420,18 +420,18 @@ int signature_test(
         printf("  ++ Signature Verified Successfully. ++\n");
     }
 
-    ed25519_Blinding_Finish(blinding);
+    __crawdog_ed25519_blinding_finish(blinding);
     return rc;
 }
 
 unsigned char sk1[32] = 
   { 0x4c,0xcd,0x08,0x9b,0x28,0xff,0x96,0xda,0x9d,0xb6,0xc3,0x46,0xec,0x11,0x4e,0x0f,
     0x5b,0x8a,0x31,0x9f,0x35,0xab,0xa6,0x24,0xda,0x8c,0xf6,0xed,0x4f,0xb8,0xa6,0xfb };
-unsigned char pk1[ed25519_public_key_size] = 
+unsigned char pk1[__CRAWDOG_ED25519_PUBLIC_KEY_SIZE] = 
   { 0x3d,0x40,0x17,0xc3,0xe8,0x43,0x89,0x5a,0x92,0xb7,0x0a,0xa7,0x4d,0x1b,0x7e,0xbc,
     0x9c,0x98,0x2c,0xcf,0x2e,0xc4,0x96,0x8c,0xc0,0xcd,0x55,0xf1,0x2a,0xf4,0x66,0x0c };
 unsigned char msg1[] = { 0x72 };
-unsigned char msg1_sig[ed25519_signature_size] = {
+unsigned char msg1_sig[__CRAWDOG_ED25519_SIGNATURE_SIZE] = {
     0x92,0xa0,0x09,0xa9,0xf0,0xd4,0xca,0xb8,0x72,0x0e,0x82,0x0b,0x5f,0x64,0x25,0x40,
     0xa2,0xb2,0x7b,0x54,0x16,0x50,0x3f,0x8f,0xb3,0x76,0x22,0x23,0xeb,0xdb,0x69,0xda,
     0x08,0x5a,0xc1,0xe4,0x3e,0x15,0x99,0x6e,0x45,0x8f,0x36,0x13,0xd0,0xf1,0x1d,0x8c,

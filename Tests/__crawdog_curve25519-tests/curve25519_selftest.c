@@ -878,7 +878,7 @@ void edp_DualPointMultiply(
     const U8 *a, const U8 *b, const Affine_POINT *q);
 
 /* Use this version if optimizing for memory usage */
-int alt_ed25519_VerifySignature(
+int alt___crawdog_ed25519_verify_signature(
     const unsigned char *signature,             /* IN: signature (R,S) */
     const unsigned char *publicKey,             /* IN: public key */
     const unsigned char *msg, size_t msg_size)  /* IN: message to sign */

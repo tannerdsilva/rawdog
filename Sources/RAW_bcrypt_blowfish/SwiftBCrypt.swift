@@ -1,8 +1,8 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
 import __crawdog_crypt_blowfish
-import func RAW.generateSecureRandomBytes
 import CRAW
+import RAW
 
 public enum Error:Swift.Error {
 	case invalidMethod
@@ -11,32 +11,36 @@ public enum Error:Swift.Error {
 	case notSupported
 	case unknown(Int)
 }
-public func generateSalt(passes:UInt = 12) throws -> [UInt8] {
-	let saltCount = 256
-	let newSaltBuffer = __crawdog_crypt_gensalt_ra("$2b$", passes, try! generateSecureRandomBytes(count:saltCount), Int32(saltCount))
-	guard newSaltBuffer != nil else {
-		let getErrno = __craw_get_system_errno()
-		switch getErrno {
-			case EINVAL:
-				throw Error.invalidMethod
-			case ERANGE:
-				throw Error.phraseTooLong
-			case ENOMEM:
-				throw Error.noMemory
-			case ENOSYS:
-				throw Error.notSupported
-			case EOPNOTSUPP:
-				throw Error.notSupported
-			default:
-				throw Error.unknown(Int(getErrno))
+
+@RAW_staticbuff(bytes:256)
+public struct Salt:Sendable {
+	public static func generate(passes:UInt = 12) throws -> Self {
+		let newSaltBuffer = __crawdog_crypt_gensalt_ra("$2b$", passes, try! generateSecureRandomBytes(as:[UInt8].self, count:MemoryLayout<Salt>.size), Int32(MemoryLayout<Salt>.size))
+		guard newSaltBuffer != nil else {
+			let getErrno = __craw_get_system_errno()
+			switch getErrno {
+				case EINVAL:
+					throw Error.invalidMethod
+				case ERANGE:
+					throw Error.phraseTooLong
+				case ENOMEM:
+					throw Error.noMemory
+				case ENOSYS:
+					throw Error.notSupported
+				case EOPNOTSUPP:
+					throw Error.notSupported
+				default:
+					throw Error.unknown(Int(getErrno))
+			}
 		}
+		defer {
+			free(newSaltBuffer!)
+		}
+		return Salt(RAW_staticbuff:newSaltBuffer!)
 	}
-	defer {
-		free(newSaltBuffer!)
-	}
-	return [UInt8](RAW_decode:newSaltBuffer!, count:saltCount)
 }
-public func hash(phrase:consuming String, salt:borrowing [UInt8]) throws -> [UInt8] {
+
+public func hash(phrase:consuming String, salt:borrowing Salt) throws -> [UInt8] {
 	var count:Int32 = 0
 	return try salt.RAW_access { saltBuffer in
 		var dataBuffer:UnsafeMutableRawPointer? = nil

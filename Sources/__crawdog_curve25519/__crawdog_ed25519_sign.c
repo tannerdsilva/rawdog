@@ -265,7 +265,7 @@ void edp_ExtPoint2PE(PE_POINT *r, const Ext_POINT *p)
 //
 // -------------------------------------------------------------------------
 */
-void *ed25519_Blinding_Init(
+void *__crawdog_ed25519_blinding_init(
     void *context,                      /* IO: null or ptr blinding context */
     const unsigned char *seed,          /* IN: [size bytes] random blinding seed */
     size_t size)                        /* IN: size of blinding seed */
@@ -308,7 +308,7 @@ void *ed25519_Blinding_Init(
     return ctx;
 }
 
-void ed25519_Blinding_Finish(
+void __crawdog_ed25519_blinding_finish(
     void *context)                      /* IN: blinding context */
 {
     if (context)
@@ -319,7 +319,7 @@ void ed25519_Blinding_Finish(
 }
 
 /* Generate public and private key pair associated with the secret key */
-void ed25519_CreateKeyPair(
+void __crawdog_ed25519_create_keypair(
     unsigned char *pubKey,              /* OUT: public key */
     unsigned char *privKey,             /* OUT: private key */
     const void *blinding,               /* IN: [optional] null or blinding context */
@@ -347,7 +347,7 @@ void ed25519_CreateKeyPair(
 /*
  * Generate message signature
  */
-void ed25519_SignMessage(
+void __crawdog_ed25519_sign_message(
     unsigned char *signature,           /* OUT: [64 bytes] signature (R,S) */
     const unsigned char *privKey,       /*  IN: [64 bytes] private key (sk,pk) */
     const void *blinding,               /*  IN: [optional] null or blinding context */

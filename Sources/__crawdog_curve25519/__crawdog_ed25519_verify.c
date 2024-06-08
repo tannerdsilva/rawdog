@@ -139,23 +139,23 @@ void edp_AddPoint(Ext_POINT *r, const Ext_POINT *p, const PE_POINT *q)
     ecp_MulReduce(r->z, d, a);              /* G*F */
 }
 
-int ed25519_VerifySignature(
+int __crawdog_ed25519_verify_signature(
     const unsigned char *signature,             /* IN: signature (R,S) */
     const unsigned char *publicKey,             /* IN: public key */
     const unsigned char *msg, size_t msg_size)  /* IN: message to sign */
 {
     EDP_SIGV_CTX ctx;
 
-    ed25519_Verify_Init(&ctx, publicKey);
+    __crawdog_ed25519_verify_init(&ctx, publicKey);
 
-    return ed25519_Verify_Check(&ctx, signature, msg, msg_size);
+    return __crawdog_ed25519_verify_check(&ctx, signature, msg, msg_size);
 }
 
 #define QTABLE_SET(d,s) \
     edp_AddPoint(&T, &Q, &ctx->q_table[s]); \
     edp_ExtPoint2PE(&ctx->q_table[d], &T)
 
-void * ed25519_Verify_Init(
+void * __crawdog_ed25519_verify_init(
     void *context,                      /* IO: null or context buffer to use */
     const unsigned char *publicKey)     /* IN: [32 bytes] public key */
 {
@@ -210,7 +210,7 @@ void * ed25519_Verify_Init(
     return ctx;
 }
 
-void ed25519_Verify_Finish(void *ctx)
+void __crawdog_ed25519_verify_finish(void *ctx)
 {
     mem_free(ctx);
 }
@@ -260,10 +260,10 @@ static void edp_PolyPointMultiply(
 
 /*
     This function can be used for batch verification.
-    Assumptions: context = ed25519_Verify_Init(pk)
+    Assumptions: context = __crawdog_ed25519_verify_init(pk)
 
 */
-int ed25519_Verify_Check(
+int __crawdog_ed25519_verify_check(
     const void  *context,                       /* IN: precomputes */
     const unsigned char *signature,             /* IN: signature (R,S) */
     const unsigned char *msg, size_t msg_size)  /* IN: message to sign */
