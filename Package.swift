@@ -64,7 +64,10 @@ let package = Package(
 			targets: ["RAW_bcrypt_blowfish"]),
 		.library(
 			name:"RAW_dh25519",
-			targets: ["RAW_dh25519"])
+			targets: ["RAW_dh25519"]),
+		.library(
+			name:"RAW_chachapoly",
+			targets: ["__crawdog_chachapoly"]),
 	],
 	dependencies: [
 		.package(url:"https://github.com/apple/swift-syntax.git", "509.0.1"..<"510.0.1"),
@@ -83,6 +86,7 @@ let package = Package(
 		], swiftSettings:[]),
 
 		// raw targets
+		.target(name:"RAW_chachapoly", dependencies:["RAW", "__crawdog_chachapoly"]),
 		.target(name:"RAW_dh25519", dependencies:["RAW", "__crawdog_curve25519"]),
 		.target(name:"RAW_bcrypt_blowfish", dependencies:["RAW", "__crawdog_crypt_blowfish"]),
 		.target(name:"RAW_blake2", dependencies:["RAW", "__crawdog_blake2"]),
