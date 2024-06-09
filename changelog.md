@@ -1,3 +1,11 @@
+# 13.0.0
+	
+	- Major releases going forward will do a better job at directly documenting breaking API changes.
+
+	- Breaking API changes in this release (compared to prior):
+
+		- Revised public API around blowfish hashing.
+
 ## 12.1.0
 
 - rawdog source code now includes a powerful and complete suite of cryptographic source material. README.md outlines the cryptography included and the original sources for all functions, which are heavily modified in a multitude of ways.
