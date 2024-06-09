@@ -4,7 +4,7 @@
 #ifndef __CRAWDOG_ED25519_SIGNATURE_H
 #define __CRAWDOG_ED25519_SIGNATURE_H
 
-#include <stdint.h>
+#include <stddef.h>
 
 /* -- ed25519-sign ------------------------------------------------------------- */
 

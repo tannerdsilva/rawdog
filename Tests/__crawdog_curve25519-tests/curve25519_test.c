@@ -23,6 +23,7 @@
  */
 
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include "__crawdog_external_calls.h"
 #include "__crawdog_curve25519_mehdi.h"
