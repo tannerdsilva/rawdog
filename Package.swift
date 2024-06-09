@@ -67,7 +67,7 @@ let package = Package(
 			targets: ["RAW_dh25519"]),
 		.library(
 			name:"RAW_chachapoly",
-			targets: ["__crawdog_chachapoly"]),
+			targets: ["RAW_chachapoly"]),
 	],
 	dependencies: [
 		.package(url:"https://github.com/apple/swift-syntax.git", "509.0.1"..<"510.0.1"),
@@ -117,7 +117,6 @@ let package = Package(
 		),
 		.target(
 			name: "__crawdog_chachapoly",
-			dependencies: [],
 			publicHeadersPath:"."
 		),
 		.target(
@@ -171,6 +170,6 @@ let package = Package(
 		),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )
