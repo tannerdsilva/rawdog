@@ -6,6 +6,9 @@ extension RAW_hasher {
 		let k_opad = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: Int(Self.RAW_hasher_blocksize))
 		let tempDigest = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: Int(Self.RAW_hasher_outputsize))
 		defer {
+			tempDigest.initialize(repeating:0)
+			k_ipad.initialize(repeating:0)
+			k_opad.initialize(repeating:0)
 			tempDigest.deallocate()
 			k_ipad.deallocate()
 			k_opad.deallocate()
@@ -19,6 +22,7 @@ extension RAW_hasher {
 				// key is longer than block size so hash it first
 				try innerContext.update(keyBuffer)
 				try innerContext.finish(into: k_ipad.baseAddress!)
+				innerContext = try! Self.init()
 				_ = RAW_memcpy(k_opad.baseAddress!, k_ipad.baseAddress!, Int(Self.RAW_hasher_blocksize))
 				_ = RAW_memset(k_ipad.baseAddress! + Self.RAW_hasher_outputsize, 0, Int(Self.RAW_hasher_blocksize - Self.RAW_hasher_outputsize))
 				_ = RAW_memset(k_opad.baseAddress! + Self.RAW_hasher_outputsize, 0, Int(Self.RAW_hasher_blocksize - Self.RAW_hasher_outputsize))

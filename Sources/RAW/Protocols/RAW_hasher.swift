@@ -24,4 +24,15 @@ extension RAW_hasher {
 			try update(buffer)
 		}
 	}
+	public mutating func finish() throws -> [UInt8] {
+		return try [UInt8](unsafeUninitializedCapacity: Self.RAW_hasher_outputsize) { buffer, count in
+			try finish(into:buffer.baseAddress!)
+			count = Self.RAW_hasher_outputsize
+		}
+	}
+	public static func hash<A>(_ data:A) throws -> [UInt8] where A:RAW_accessible {
+		var hasher = try Self()
+		try hasher.update(data)
+		return try hasher.finish()
+	}
 }

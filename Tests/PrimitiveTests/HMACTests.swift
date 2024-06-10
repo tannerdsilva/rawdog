@@ -22,14 +22,12 @@ class HMACSHA1Tests: XCTestCase {
 		XCTAssertEqual(resultingOutput, referenceOutput)
     }
 
-    /// Calls the C implementation
     func performHMACSHA1WithC(key: [UInt8], message: [UInt8]) -> [UInt8] {
         var output = [UInt8](repeating: 0, count: 20) // SHA1 output is always 20 bytes
         hmac_sha1(key, UInt32(key.count), message, UInt32(message.count), &output)
         return output
     }
 
-    /// Provide your Swift implementation of HMAC-SHA1 here.
     func hmacSHA1(key: [UInt8], message: [UInt8]) throws -> [UInt8] {
        try RAW_sha1.Hasher.hmac(key: key, message: message)
     }
