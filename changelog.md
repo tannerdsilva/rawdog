@@ -2,9 +2,15 @@
 	
 	- Major releases going forward will do a better job at directly documenting breaking API changes.
 
+	- Introduction of RAW_hasher protocol for hashing agnostic HMAC.
+
 	- Breaking API changes in this release (compared to prior):
 
-		- Revised public API around blowfish hashing.
+		- Public API for hashing targets modified (mostly to align with RAW_hasher protocol).
+	
+	- Other changes include:
+
+		- `RAW_blake2\Hasher` now supports `UnsafeMutableRawPointer` as an output type.
 
 ## 12.1.0
 

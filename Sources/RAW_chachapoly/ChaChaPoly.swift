@@ -33,11 +33,11 @@ public struct Context {
 		}
 	}
 
-	public mutating func crypt(encrypt:Bool, nonce:borrowing Nonce, associatedData:UnsafeRawBufferPointer, inputData:UnsafeMutableRawBufferPointer, output:UnsafeMutableRawPointer) {
+	public mutating func crypt(encrypt:Bool, nonce:borrowing Nonce, associatedData:UnsafeRawBufferPointer, inputData:UnsafeMutableRawBufferPointer, output:UnsafeMutableRawPointer) -> Int32 {
 		var newTag = Tag()
 		return nonce.RAW_access_staticbuff { noncePtr in
 			return newTag.RAW_access_staticbuff_mutating { tagPtr in
-				__crawdog_chachapoly_crypt(&self.ctx, noncePtr, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr, Int32(MemoryLayout<Tag>.size), encrypt == true ? 1 : 0)
+				return __crawdog_chachapoly_crypt(&self.ctx, noncePtr, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr, Int32(MemoryLayout<Tag>.size), encrypt == true ? 1 : 0)
 			}
 		}
 	}

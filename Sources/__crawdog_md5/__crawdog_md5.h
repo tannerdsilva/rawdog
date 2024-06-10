@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define __CRAWDOG_MD5_HASH_SIZE				16
+#define __CRAWDOG_MD5_BLOCK_SIZE	16
+
 typedef struct {
     uint32_t     lo;
     uint32_t     hi;
@@ -14,13 +17,12 @@ typedef struct {
     uint32_t     c;
     uint32_t     d;
     uint8_t      buffer[64];
-    uint32_t     block[16];
+    uint32_t     block[__CRAWDOG_MD5_BLOCK_SIZE];
 } __crawdog_md5_context;
 
-#define MD5_HASH_SIZE           ( 128 / 8 )
 
 typedef struct {
-    uint8_t      bytes [MD5_HASH_SIZE];
+    uint8_t      bytes [__CRAWDOG_MD5_HASH_SIZE];
 } MD5_HASH;
 
 void __crawdog_md5_init(__crawdog_md5_context* Context);

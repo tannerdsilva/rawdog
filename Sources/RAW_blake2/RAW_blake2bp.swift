@@ -14,4 +14,7 @@ public struct BP:RAW_blake2_func_impl {
 
 	/// the state type that this hashing variant uses
 	public typealias RAW_blake2_statetype = __crawdog_blake2bp_state
+
+	public static let RAW_blake2_func_impl_blocklen = __CRAWDOG_BLAKE2B_BLOCKBYTES.rawValue
+	public static let RAW_blake2_func_impl_outlen = __CRAWDOG_BLAKE2B_OUTBYTES.rawValue
 }

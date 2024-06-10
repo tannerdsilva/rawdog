@@ -275,7 +275,7 @@ void *__crawdog_ed25519_blinding_init(
         Ext_POINT T;
         U_WORD t[K_WORDS];
         struct __crawdog_sha512_context H;
-        uint8_t digest[SHA512_HASH_SIZE];
+        uint8_t digest[__CRAWDOG_SHA512_HASH_SIZE];
     } d;
 
     EDP_BLINDING_CTX *ctx = (EDP_BLINDING_CTX*)context;
@@ -326,7 +326,7 @@ void __crawdog_ed25519_create_keypair(
     const void *blinding,               /* IN: [optional] null or blinding context */
     const unsigned char *sk)            /* IN: secret key (32 bytes) */
 {
-    uint8_t md[SHA512_HASH_SIZE];
+    uint8_t md[__CRAWDOG_SHA512_HASH_SIZE];
     U_WORD t[K_WORDS];
     struct __crawdog_sha512_context H;
     Affine_POINT Q;
@@ -358,7 +358,7 @@ void __crawdog_ed25519_sign_message(
     struct __crawdog_sha512_context H;
     Affine_POINT R;
     U_WORD a[K_WORDS], t[K_WORDS], r[K_WORDS];
-    uint8_t md[SHA512_HASH_SIZE];
+    uint8_t md[__CRAWDOG_SHA512_HASH_SIZE];
 
     /* [a:b] = H(sk) */
     __crawdog_sha512_init(&H);

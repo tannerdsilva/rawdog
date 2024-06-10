@@ -271,7 +271,7 @@ int __crawdog_ed25519_verify_check(
     struct __crawdog_sha512_context H;
     Affine_POINT T;
     U_WORD h[K_WORDS], s[K_WORDS];
-    uint8_t md[SHA512_HASH_SIZE];
+    uint8_t md[__CRAWDOG_SHA512_HASH_SIZE];
 
     /* h = H(enc(R) + pk + m)  mod BPO */
     __crawdog_sha512_init(&H);

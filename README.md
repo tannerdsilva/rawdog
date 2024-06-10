@@ -36,9 +36,11 @@ rawdog cryptography is built on various open source contributions written in c. 
 
 	- crypt_blowfish - [claimed from public domain](https://github.com/openwall/crypt_blowfish/blob/3354bb81eea489e972b0a7c63231514ab34f73a0/crypt.h#L3C70-L4C11) with unit tests mainted in modification. Thank you Solar Designer.
 
-	- chachapoly - [claimed with MIT license](https://github.com/grigorig/chachapoly/blob/ec7d8e03c6f715995b2015e9662a39277b994a74/README.md?plain=1#L11C233-L11C284) with unit test maintained in modification. Thank you Grigori Goronzy.
+	- chachapoly - [claimed with MIT license](https://github.com/grigorig/chachapoly/blob/ec7d8e03c6f715995b2015e9662a39277b994a74/README.md?plain=1#L11C233-L11C284) with unit tests maintained in modification. Thank you Grigori Goronzy.
 
-	- SHA (implementations 1, 256, 512) & MD5 hashing - [claimed from public domain](https://github.com/WaterJuice/WjCryptLib/blob/e39760a85015b88820d7a2de832155a7c8ff2c88/UNLICENSE#L1) with unit test maintained in modification. Thank you WaterJuice.
+	- SHA (implementations 1, 256, 512) & MD5 hashing - [claimed from public domain](https://github.com/WaterJuice/WjCryptLib/blob/e39760a85015b88820d7a2de832155a7c8ff2c88/UNLICENSE#L1) with unit tests maintained in modification. Thank you WaterJuice.
+
+	- HMAC - I rolled this myself but it was heavily inspired by this code that was [claimed from public domain](https://github.com/kokke/tiny-HMAC-c/blob/4b98d5cb74de50d7fac52b6236527c34c173190b/LICENSE#L1). I use this code as a test reference against my my own target. Thank you kokke.
 
 ### Inspiration
 

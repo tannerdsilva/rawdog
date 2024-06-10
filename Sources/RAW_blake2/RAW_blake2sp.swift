@@ -14,4 +14,7 @@ public struct SP:RAW_blake2_func_impl {
 	public static let RAW_blake2_func_impl_exec_init_keyed_f:RAW_blake2_func_impl_exec_init_keyed_t = __crawdog_blake2sp_init_key
 	public static let RAW_blake2_func_impl_exec_update_f:RAW_blake2_func_impl_exec_update_t = __crawdog_blake2sp_update
 	public static let RAW_blake2_func_impl_exec_finalize_f:RAW_blake2_func_impl_exec_finalize_t = __crawdog_blake2sp_final
+
+	public static let RAW_blake2_func_impl_blocklen = __CRAWDOG_BLAKE2S_BLOCKBYTES.rawValue
+	public static let RAW_blake2_func_impl_outlen = __CRAWDOG_BLAKE2S_OUTBYTES.rawValue
 }

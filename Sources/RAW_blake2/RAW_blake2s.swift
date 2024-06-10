@@ -15,6 +15,9 @@ public struct S:RAW_blake2_func_impl {
 
 	/// the state type that this hashing variant uses
 	public typealias RAW_blake2_statetype = __crawdog_blake2s_state
+
+	public static let RAW_blake2_func_impl_blocklen = __CRAWDOG_BLAKE2S_BLOCKBYTES.rawValue
+	public static let RAW_blake2_func_impl_outlen = __CRAWDOG_BLAKE2S_OUTBYTES.rawValue
 }
 
 extension S:RAW_blake2_func_impl_initparam {

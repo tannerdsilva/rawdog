@@ -6,17 +6,19 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define __CRAWDOG_SHA256_HASH_SIZE           ( 256 / 8 )
+#define __CRAWDOG_SHA256_BLOCK_SIZE          64
+
 typedef struct {
     uint64_t    length;
     uint32_t    state[8];
     uint32_t    curlen;
-    uint8_t     buf[64];
+    uint8_t     buf[__CRAWDOG_SHA256_BLOCK_SIZE];
 } __crawdog_sha256_context;
 
-#define SHA256_HASH_SIZE           ( 256 / 8 )
 
 typedef struct {
-    uint8_t      bytes [SHA256_HASH_SIZE];
+    uint8_t      bytes [__CRAWDOG_SHA256_HASH_SIZE];
 } SHA256_HASH;
 
 // initialize a hash

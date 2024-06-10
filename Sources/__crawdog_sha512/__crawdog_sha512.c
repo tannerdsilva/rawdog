@@ -42,8 +42,6 @@ static const uint64_t K[80] = {
     0x4cc5d4becb3e42b6ULL, 0x597f299cfc657e2aULL, 0x5fcb6fab3ad6faecULL, 0x6c44198c4a475817ULL
 };
 
-#define BLOCK_SIZE          128
-
 // internal functions
 #define Ch( x, y, z )     (z ^ (x & (y ^ z)))
 #define Maj(x, y, z )     (((x | y) & z) | (x & y))
@@ -161,24 +159,24 @@ void __crawdog_sha512_update(
 
     while( BufferSize > 0 )
     {
-        if( Context->curlen == 0 && BufferSize >= BLOCK_SIZE )
+        if( Context->curlen == 0 && BufferSize >= __CRAWDOG_SHA512_BLOCK_SIZE )
         {
            TransformFunction( Context, (uint8_t *)Buffer );
-           Context->length += BLOCK_SIZE * 8;
-           Buffer = (uint8_t*)Buffer + BLOCK_SIZE;
-           BufferSize -= BLOCK_SIZE;
+           Context->length += __CRAWDOG_SHA512_BLOCK_SIZE * 8;
+           Buffer = (uint8_t*)Buffer + __CRAWDOG_SHA512_BLOCK_SIZE;
+           BufferSize -= __CRAWDOG_SHA512_BLOCK_SIZE;
         }
         else
         {
-           n = MIN( BufferSize, (BLOCK_SIZE - Context->curlen) );
+           n = MIN( BufferSize, (__CRAWDOG_SHA512_BLOCK_SIZE - Context->curlen) );
            memcpy( Context->buf + Context->curlen, Buffer, (size_t)n );
            Context->curlen += n;
            Buffer = (uint8_t*)Buffer + n;
            BufferSize -= n;
-           if( Context->curlen == BLOCK_SIZE )
+           if( Context->curlen == __CRAWDOG_SHA512_BLOCK_SIZE )
            {
               TransformFunction( Context, Context->buf );
-              Context->length += 8*BLOCK_SIZE;
+              Context->length += 8*__CRAWDOG_SHA512_BLOCK_SIZE;
               Context->curlen = 0;
            }
        }

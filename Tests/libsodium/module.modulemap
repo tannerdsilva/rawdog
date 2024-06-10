@@ -1,0 +1,4 @@
+module libsodium [system] {
+    link "sodium"
+    export *
+}

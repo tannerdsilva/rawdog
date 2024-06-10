@@ -10,6 +10,7 @@ import Darwin
 
 import CRAW
 
+public let RAW_memset = CRAW.memset
 public let RAW_memcmp = CRAW.memcmp
 public let RAW_memcpy = CRAW.memcpy
 public func RAW_strlen(_ str:UnsafeRawPointer) -> size_t {

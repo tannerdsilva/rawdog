@@ -48,8 +48,6 @@ static const uint32_t K[64] = {
     0x90befffaUL, 0xa4506cebUL, 0xbef9a3f7UL, 0xc67178f2UL
 };
 
-#define BLOCK_SIZE          64
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  INTERNAL FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,24 +178,24 @@ void
 
     while( BufferSize > 0 )
     {
-        if( Context->curlen == 0 && BufferSize >= BLOCK_SIZE )
+        if( Context->curlen == 0 && BufferSize >= __CRAWDOG_SHA256_BLOCK_SIZE )
         {
            TransformFunction( Context, (uint8_t*)Buffer );
-           Context->length += BLOCK_SIZE * 8;
-           Buffer = (uint8_t*)Buffer + BLOCK_SIZE;
-           BufferSize -= BLOCK_SIZE;
+           Context->length += __CRAWDOG_SHA256_BLOCK_SIZE * 8;
+           Buffer = (uint8_t*)Buffer + __CRAWDOG_SHA256_BLOCK_SIZE;
+           BufferSize -= __CRAWDOG_SHA256_BLOCK_SIZE;
         }
         else
         {
-           n = MIN( BufferSize, (BLOCK_SIZE - Context->curlen) );
+           n = MIN( BufferSize, (__CRAWDOG_SHA256_BLOCK_SIZE - Context->curlen) );
            memcpy( Context->buf + Context->curlen, Buffer, (size_t)n );
            Context->curlen += n;
            Buffer = (uint8_t*)Buffer + n;
            BufferSize -= n;
-           if( Context->curlen == BLOCK_SIZE )
+           if( Context->curlen == __CRAWDOG_SHA256_BLOCK_SIZE )
            {
               TransformFunction( Context, Context->buf );
-              Context->length += 8*BLOCK_SIZE;
+              Context->length += 8*__CRAWDOG_SHA256_BLOCK_SIZE;
               Context->curlen = 0;
            }
        }

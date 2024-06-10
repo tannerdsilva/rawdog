@@ -86,6 +86,10 @@ let package = Package(
 		], swiftSettings:[]),
 
 		// raw targets
+		.target(name:"RAW_md5", dependencies:["RAW", "__crawdog_md5"]),
+		.target(name:"RAW_sha1", dependencies:["RAW", "__crawdog_sha1"]),
+		.target(name:"RAW_sha256", dependencies:["RAW", "__crawdog_sha256"]),
+		.target(name:"RAW_sha512", dependencies:["RAW", "__crawdog_sha512"]),
 		.target(name:"RAW_chachapoly", dependencies:["RAW", "__crawdog_chachapoly"]),
 		.target(name:"RAW_dh25519", dependencies:["RAW", "__crawdog_curve25519"]),
 		.target(name:"RAW_bcrypt_blowfish", dependencies:["RAW", "__crawdog_crypt_blowfish"]),
@@ -120,9 +124,23 @@ let package = Package(
 			publicHeadersPath:"."
 		),
 		.target(
+			name:"RAW_hmac",
+			dependencies: ["RAW"]
+		),
+		.target(
+			name:"RAW_hkdf",
+			dependencies: ["RAW_hmac", "RAW"]
+		),
+		.target(
 			name: "__crawdog_chachapoly-tests",
 			dependencies: ["__crawdog_chachapoly"],
 			path:"Tests/__crawdog_chachapoly-tests",
+			publicHeadersPath:"."
+		),
+		.target(
+			name:"__crawdog_hmac-tests",
+			dependencies:[],
+			path:"Tests/__crawdog_hmac-tests",
 			publicHeadersPath:"."
 		),
 		.target(
@@ -158,6 +176,23 @@ let package = Package(
 			publicHeadersPath:"include"
 		),
 		.target(
+			name:"__crawdog_hkdf-tests",
+			dependencies:[
+				"libsodium"
+			],
+			path:"Tests/__crawdog_hkdf-tests",
+			publicHeadersPath:"."
+		),
+		.systemLibrary( // libsoduium is used as a test reference to rawdogs own implementation of hkdf
+			name:"libsodium",
+			path:"Tests/libsodium",
+			pkgConfig:"libsodium",
+			providers: [
+				.brew(["libsodium"]), 
+				.apt(["libsodium-dev"])
+			]
+		),
+		.target(
 			name:"__crawdog_hashing-tests",
 			dependencies:[
 				"__crawdog_sha512",
@@ -166,10 +201,10 @@ let package = Package(
 				"__crawdog_md5"
 			],
 			path:"Tests/__crawdog_hashing-tests",
-			publicHeadersPath:""
+			publicHeadersPath:"."
 		),
 
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "__crawdog_hmac-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_hkdf", "__crawdog_hkdf-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )

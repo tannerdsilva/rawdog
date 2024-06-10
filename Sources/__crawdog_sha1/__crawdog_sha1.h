@@ -6,16 +6,17 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define __CRAWDOG_SHA1_HASH_SIZE					( 160 / 8 )
+#define __CRAWDOG_SHA1_BLOCK_SIZE 		64
 typedef struct {
     uint32_t        State[5];
     uint32_t        Count[2];
     uint8_t         Buffer[64];
 } __crawdog_sha1_context;
 
-#define SHA1_HASH_SIZE           ( 160 / 8 )
 
 typedef struct {
-    uint8_t      bytes [SHA1_HASH_SIZE];
+    uint8_t      bytes [__CRAWDOG_SHA1_HASH_SIZE];
 } SHA1_HASH;
 
 // initialize the hasher

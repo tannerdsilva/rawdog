@@ -224,7 +224,7 @@ void
     }
 
     __crawdog_sha1_update( Context, finalcount, 8 );  // Should cause a Sha1TransformFunction()
-    for( i=0; i<SHA1_HASH_SIZE; i++ )
+    for( i=0; i<__CRAWDOG_SHA1_HASH_SIZE; i++ )
     {
         Digest->bytes[i] = (uint8_t)((Context->State[i>>2] >> ((3-(i & 3)) * 8) ) & 255);
     }
