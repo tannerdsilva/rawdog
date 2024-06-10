@@ -2,8 +2,9 @@
 #define LIBSODIUM_HKDF_REF_H
 
 #include <stdlib.h>
+#include <sodium.h>
 
-int _libsodiumREF_hkdf_extract(const unsigned char *salt, size_t salt_len, const unsigned char *ikm, size_t ikm_len, unsigned char *prk);
-int _libsodiumREF_hkdf_expand(const unsigned char *prk, const unsigned char *info, size_t info_len, unsigned char *okm, size_t okm_len);
+// int _libsodiumREF_hkdf_extract(unsigned char *prk, const unsigned char *salt, size_t salt_len, const unsigned char *ikm, size_t ikm_len);
+// int _libsodiumREF_hkdf_expand(unsigned char *out, const char );
 
 #endif // LIBSODIUM_HKDF_REF_H

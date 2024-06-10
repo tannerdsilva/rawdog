@@ -40,8 +40,6 @@ rawdog cryptography is built on various open source contributions written in c. 
 
 	- SHA (implementations 1, 256, 512) & MD5 hashing - [claimed from public domain](https://github.com/WaterJuice/WjCryptLib/blob/e39760a85015b88820d7a2de832155a7c8ff2c88/UNLICENSE#L1) with unit tests maintained in modification. Thank you WaterJuice.
 
-	- HMAC - I rolled this myself but it was heavily inspired by this code that was [claimed from public domain](https://github.com/kokke/tiny-HMAC-c/blob/4b98d5cb74de50d7fac52b6236527c34c173190b/LICENSE#L1). I use this code as a test reference against my my own target. Thank you kokke.
-
 ### Inspiration
 
 The fundamental components of the `RAW` module draw their inspiration from the LMDB and its `MDB_val` structure. Over time, I found immense value in this structure and the protocols built around it, initially developed in my [QuickLMDB library](https://github.com/tannerdsilva/QuickLMDB), and implemented them in numerous Swift projects. 
