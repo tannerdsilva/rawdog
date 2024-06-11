@@ -1,7 +1,7 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
-#ifndef BLAKE_ROUND_MKA_H
-#define BLAKE_ROUND_MKA_H
+#ifndef __CRAWDOG_BLAKE_ROUND_MKA_H
+#define __CRAWDOG_BLAKE_ROUND_MKA_H
 
 #include "crawdog_blake2.h"
 #include "crawdog_blake2-impl.h"

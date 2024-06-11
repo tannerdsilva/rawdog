@@ -8,7 +8,7 @@
 #endif
 
 /* Just to make sure the prototypes match the actual definitions */
-#include "__crawdog_crypt_gensalt.h"
+#include "crawdog_crypt_gensalt.h"
 
 unsigned char ___crawdog_crypt_itoa64[64 + 1] =
 	"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

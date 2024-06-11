@@ -1,30 +1,15 @@
-/*
- * Argon2 reference source code package - reference C implementations
- *
- * Copyright 2015
- * Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves
- *
- * You may use this work under the terms of a Creative Commons CC0 1.0
- * License/Waiver or the Apache Public License 2.0, at your option. The terms of
- * these licenses can be found at:
- *
- * - CC0 1.0 Universal : https://creativecommons.org/publicdomain/zero/1.0
- * - Apache 2.0        : https://www.apache.org/licenses/LICENSE-2.0
- *
- * You should have received a copy of both of these licenses along with this
- * software. If not, they may be obtained at the above URLs.
- */
-
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 #ifndef __CRAWDOG_ARGON2_CORE_H
 #define __CRAWDOG_ARGON2_CORE_H
 
-#include "argon2.h"
+#include "crawdog_argon2.h"
 
 #define CONST_CAST(x) (x)(uintptr_t)
 
 /**********************Argon2 internal constants*******************************/
 
-enum argon2_core_constants {
+enum __crawdog_argon2_core_constants {
     /* Memory block size in bytes */
     __CRAWDOG_ARGON2_BLOCK_SIZE = 1024,
     __CRAWDOG_ARGON2_QWORDS_IN_BLOCK = __CRAWDOG_ARGON2_BLOCK_SIZE / 8,
@@ -77,10 +62,10 @@ typedef struct Argon2_instance_t {
     uint32_t lane_length;
     uint32_t lanes;
     uint32_t threads;
-    argon2_type type;
+    __crawdog_argon2_type type;
     int print_internals; /* whether to print the memory blocks */
-    argon2_context *context_ptr; /* points back to original context */
-} argon2_instance_t;
+    __crawdog_argon2_context *context_ptr; /* points back to original context */
+} __crawdog_argon2_instance_t;
 
 /*
  * Argon2 position: where we construct the block right now. Used to distribute
@@ -91,36 +76,36 @@ typedef struct Argon2_position_t {
     uint32_t lane;
     uint8_t slice;
     uint32_t index;
-} argon2_position_t;
+} __crawdog_argon2_position_t;
 
 /*Struct that holds the inputs for thread handling FillSegment*/
 typedef struct Argon2_thread_data {
-    argon2_instance_t *instance_ptr;
-    argon2_position_t pos;
-} argon2_thread_data;
+    __crawdog_argon2_instance_t *instance_ptr;
+    __crawdog_argon2_position_t pos;
+} __crawdog_argon2_thread_data;
 
 /*************************Argon2 core functions********************************/
 
 /* Allocates memory to the given pointer, uses the appropriate allocator as
  * specified in the context. Total allocated memory is num*size.
- * @param context argon2_context which specifies the allocator
+ * @param context __crawdog_argon2_context which specifies the allocator
  * @param memory pointer to the pointer to the memory
  * @param size the size in bytes for each element to be allocated
  * @param num the number of elements to be allocated
  * @return __CRAWDOG_ARGON2_OK if @memory is a valid pointer and memory is allocated
  */
-int allocate_memory(const argon2_context *context, uint8_t **memory,
+int allocate_memory(const __crawdog_argon2_context *context, uint8_t **memory,
                     size_t num, size_t size);
 
 /*
  * Frees memory at the given pointer, uses the appropriate deallocator as
  * specified in the context. Also cleans the memory using clear_internal_memory.
- * @param context argon2_context which specifies the deallocator
+ * @param context __crawdog_argon2_context which specifies the deallocator
  * @param memory pointer to buffer to be freed
  * @param size the size in bytes for each element to be deallocated
  * @param num the number of elements to be deallocated
  */
-void free_memory(const argon2_context *context, uint8_t *memory,
+void free_memory(const __crawdog_argon2_context *context, uint8_t *memory,
                  size_t num, size_t size);
 
 /* Function that securely cleans the memory. This ignores any flags set
@@ -147,8 +132,8 @@ void clear_internal_memory(void *v, size_t n);
  * If so we can reference the current segment
  * @pre All pointers must be valid
  */
-uint32_t index_alpha(const argon2_instance_t *instance,
-                     const argon2_position_t *position, uint32_t pseudo_rand,
+uint32_t index_alpha(const __crawdog_argon2_instance_t *instance,
+                     const __crawdog_argon2_position_t *position, uint32_t pseudo_rand,
                      int same_lane);
 
 /*
@@ -156,9 +141,9 @@ uint32_t index_alpha(const argon2_instance_t *instance,
  * an error code
  * @param context Pointer to current Argon2 context
  * @return __CRAWDOG_ARGON2_OK if everything is all right, otherwise one of error codes
- * (all defined in <argon2.h>
+ * (all defined in <__crawdog_argon2.h>
  */
-int validate_inputs(const argon2_context *context);
+int validate_inputs(const __crawdog_argon2_context *context);
 
 /*
  * Hashes all the inputs into @a blockhash[PREHASH_DIGEST_LENGTH], clears
@@ -170,8 +155,8 @@ int validate_inputs(const argon2_context *context);
  * @pre    @a blockhash must have at least @a PREHASH_DIGEST_LENGTH bytes
  * allocated
  */
-void initial_hash(uint8_t *blockhash, argon2_context *context,
-                  argon2_type type);
+void initial_hash(uint8_t *blockhash, __crawdog_argon2_context *context,
+                  __crawdog_argon2_type type);
 
 /*
  * Function creates first 2 blocks per lane
@@ -179,7 +164,7 @@ void initial_hash(uint8_t *blockhash, argon2_context *context,
  * @param blockhash Pointer to the pre-hashing digest
  * @pre blockhash must point to @a PREHASH_SEED_LENGTH allocated values
  */
-void fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *instance);
+void fill_first_blocks(uint8_t *blockhash, const __crawdog_argon2_instance_t *instance);
 
 /*
  * Function allocates memory, hashes the inputs with Blake,  and creates first
@@ -191,7 +176,7 @@ void fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *instance);
  * @return Zero if successful, -1 if memory failed to allocate. @context->state
  * will be modified if successful.
  */
-int initialize(argon2_instance_t *instance, argon2_context *context);
+int initialize(__crawdog_argon2_instance_t *instance, __crawdog_argon2_context *context);
 
 /*
  * XORing the last block of each lane, hashing it, making the tag. Deallocates
@@ -204,7 +189,7 @@ int initialize(argon2_instance_t *instance, argon2_context *context);
  * @pre if context->free_cbk is not NULL, it should point to a function that
  * deallocates memory
  */
-void finalize(const argon2_context *context, argon2_instance_t *instance);
+void finalize(const __crawdog_argon2_context *context, __crawdog_argon2_instance_t *instance);
 
 /*
  * Function that fills the segment using previous segments also from other
@@ -214,8 +199,8 @@ void finalize(const argon2_context *context, argon2_instance_t *instance);
  * @param position Current position
  * @pre all block pointers must be valid
  */
-void fill_segment(const argon2_instance_t *instance,
-                  argon2_position_t position);
+void fill_segment(const __crawdog_argon2_instance_t *instance,
+                  __crawdog_argon2_position_t position);
 
 /*
  * Function that fills the entire memory t_cost times based on the first two
@@ -223,6 +208,6 @@ void fill_segment(const argon2_instance_t *instance,
  * @param instance Pointer to the current instance
  * @return __CRAWDOG_ARGON2_OK if successful, @context->state
  */
-int fill_memory_blocks(argon2_instance_t *instance);
+int fill_memory_blocks(__crawdog_argon2_instance_t *instance);
 
 #endif

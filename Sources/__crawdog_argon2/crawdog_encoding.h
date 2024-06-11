@@ -1,23 +1,8 @@
-/*
- * Argon2 reference source code package - reference C implementations
- *
- * Copyright 2015
- * Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves
- *
- * You may use this work under the terms of a Creative Commons CC0 1.0
- * License/Waiver or the Apache Public License 2.0, at your option. The terms of
- * these licenses can be found at:
- *
- * - CC0 1.0 Universal : https://creativecommons.org/publicdomain/zero/1.0
- * - Apache 2.0        : https://www.apache.org/licenses/LICENSE-2.0
- *
- * You should have received a copy of both of these licenses along with this
- * software. If not, they may be obtained at the above URLs.
- */
-
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 #ifndef ENCODING_H
 #define ENCODING_H
-#include "argon2.h"
+#include "crawdog_argon2.h"
 
 #define __CRAWDOG_ARGON2_MAX_DECODED_LANES UINT32_C(255)
 #define __CRAWDOG_ARGON2_MIN_DECODED_SALT_LEN UINT32_C(8)
@@ -31,8 +16,8 @@
 *
 * on success, __CRAWDOG_ARGON2_OK is returned.
 */
-int encode_string(char *dst, size_t dst_len, argon2_context *ctx,
-                  argon2_type type);
+int encode_string(char *dst, size_t dst_len, __crawdog_argon2_context *ctx,
+                  __crawdog_argon2_type type);
 
 /*
 * Decodes an Argon2 hash string into the provided structure 'ctx'.
@@ -46,7 +31,7 @@ int encode_string(char *dst, size_t dst_len, argon2_context *ctx,
 *
 * Returned value is __CRAWDOG_ARGON2_OK on success, other __CRAWDOG_ARGON2_ codes on error.
 */
-int decode_string(argon2_context *ctx, const char *str, argon2_type type);
+int decode_string(__crawdog_argon2_context *ctx, const char *str, __crawdog_argon2_type type);
 
 /* Returns the length of the encoded byte stream with length len */
 size_t b64len(uint32_t len);

@@ -1,20 +1,5 @@
-/*
- * Argon2 reference source code package - reference C implementations
- *
- * Copyright 2015
- * Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves
- *
- * You may use this work under the terms of a Creative Commons CC0 1.0
- * License/Waiver or the Apache Public License 2.0, at your option. The terms of
- * these licenses can be found at:
- *
- * - CC0 1.0 Universal : https://creativecommons.org/publicdomain/zero/1.0
- * - Apache 2.0        : https://www.apache.org/licenses/LICENSE-2.0
- *
- * You should have received a copy of both of these licenses along with this
- * software. If not, they may be obtained at the above URLs.
- */
-
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 /*For memory wiping*/
 #ifdef _WIN32
 #include <windows.h>
@@ -32,11 +17,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "core.h"
-#include "thread.h"
+#include "crawdog_core.h"
+#include "crawdog_thread.h"
 #include "crawdog_blake2.h"
 #include "crawdog_blake2-impl.h"
-#include "blake2addition.h"
+#include "crawdog_blake2addition.h"
 
 #ifdef GENKAT
 #include "genkat.h"
@@ -87,7 +72,7 @@ static void store_block(void *output, const block *src) {
 
 /***************Memory functions*****************/
 
-int allocate_memory(const argon2_context *context, uint8_t **memory,
+int allocate_memory(const __crawdog_argon2_context *context, uint8_t **memory,
                     size_t num, size_t size) {
     size_t memory_size = num*size;
     if (memory == NULL) {
@@ -113,7 +98,7 @@ int allocate_memory(const argon2_context *context, uint8_t **memory,
     return __CRAWDOG_ARGON2_OK;
 }
 
-void free_memory(const argon2_context *context, uint8_t *memory,
+void free_memory(const __crawdog_argon2_context *context, uint8_t *memory,
                  size_t num, size_t size) {
     size_t memory_size = num*size;
     clear_internal_memory(memory, memory_size);
@@ -153,7 +138,7 @@ void clear_internal_memory(void *v, size_t n) {
   }
 }
 
-void finalize(const argon2_context *context, argon2_instance_t *instance) {
+void finalize(const __crawdog_argon2_context *context, __crawdog_argon2_instance_t *instance) {
     if (context != NULL && instance != NULL) {
         block blockhash;
         uint32_t l;
@@ -187,8 +172,8 @@ void finalize(const argon2_context *context, argon2_instance_t *instance) {
     }
 }
 
-uint32_t index_alpha(const argon2_instance_t *instance,
-                     const argon2_position_t *position, uint32_t pseudo_rand,
+uint32_t index_alpha(const __crawdog_argon2_instance_t *instance,
+                     const __crawdog_argon2_position_t *position, uint32_t pseudo_rand,
                      int same_lane) {
     /*
      * Pass 0:
@@ -258,13 +243,13 @@ uint32_t index_alpha(const argon2_instance_t *instance,
 }
 
 /* Single-threaded version for p=1 case */
-static int fill_memory_blocks_st(argon2_instance_t *instance) {
+static int fill_memory_blocks_st(__crawdog_argon2_instance_t *instance) {
     uint32_t r, s, l;
 
     for (r = 0; r < instance->passes; ++r) {
         for (s = 0; s < __CRAWDOG_ARGON2_SYNC_POINTS; ++s) {
             for (l = 0; l < instance->lanes; ++l) {
-                argon2_position_t position = {r, l, (uint8_t)s, 0};
+                __crawdog_argon2_position_t position = {r, l, (uint8_t)s, 0};
                 fill_segment(instance, position);
             }
         }
@@ -283,27 +268,27 @@ static unsigned __stdcall fill_segment_thr(void *thread_data)
 static void *fill_segment_thr(void *thread_data)
 #endif
 {
-    argon2_thread_data *my_data = thread_data;
+    __crawdog_argon2_thread_data *my_data = thread_data;
     fill_segment(my_data->instance_ptr, my_data->pos);
-    argon2_thread_exit();
+    __crawdog_argon2_thread_exit();
     return 0;
 }
 
 /* Multi-threaded version for p > 1 case */
-static int fill_memory_blocks_mt(argon2_instance_t *instance) {
+static int fill_memory_blocks_mt(__crawdog_argon2_instance_t *instance) {
     uint32_t r, s;
-    argon2_thread_handle_t *thread = NULL;
-    argon2_thread_data *thr_data = NULL;
+    __crawdog_argon2_thread_handle_t *thread = NULL;
+    __crawdog_argon2_thread_data *thr_data = NULL;
     int rc = __CRAWDOG_ARGON2_OK;
 
     /* 1. Allocating space for threads */
-    thread = calloc(instance->lanes, sizeof(argon2_thread_handle_t));
+    thread = calloc(instance->lanes, sizeof(__crawdog_argon2_thread_handle_t));
     if (thread == NULL) {
         rc = __CRAWDOG_ARGON2_MEMORY_ALLOCATION_ERROR;
         goto fail;
     }
 
-    thr_data = calloc(instance->lanes, sizeof(argon2_thread_data));
+    thr_data = calloc(instance->lanes, sizeof(__crawdog_argon2_thread_data));
     if (thr_data == NULL) {
         rc = __CRAWDOG_ARGON2_MEMORY_ALLOCATION_ERROR;
         goto fail;
@@ -315,11 +300,11 @@ static int fill_memory_blocks_mt(argon2_instance_t *instance) {
 
             /* 2. Calling threads */
             for (l = 0; l < instance->lanes; ++l) {
-                argon2_position_t position;
+                __crawdog_argon2_position_t position;
 
                 /* 2.1 Join a thread if limit is exceeded */
                 if (l >= instance->threads) {
-                    if (argon2_thread_join(thread[l - instance->threads])) {
+                    if (__crawdog_argon2_thread_join(thread[l - instance->threads])) {
                         rc = __CRAWDOG_ARGON2_THREAD_FAIL;
                         goto fail;
                     }
@@ -333,12 +318,12 @@ static int fill_memory_blocks_mt(argon2_instance_t *instance) {
                 thr_data[l].instance_ptr =
                     instance; /* preparing the thread input */
                 memcpy(&(thr_data[l].pos), &position,
-                       sizeof(argon2_position_t));
-                if (argon2_thread_create(&thread[l], &fill_segment_thr,
+                       sizeof(__crawdog_argon2_position_t));
+                if (__crawdog_argon2_thread_create(&thread[l], &fill_segment_thr,
                                          (void *)&thr_data[l])) {
                     /* Wait for already running threads */
                     for (ll = 0; ll < l; ++ll)
-                        argon2_thread_join(thread[ll]);
+                        __crawdog_argon2_thread_join(thread[ll]);
                     rc = __CRAWDOG_ARGON2_THREAD_FAIL;
                     goto fail;
                 }
@@ -350,7 +335,7 @@ static int fill_memory_blocks_mt(argon2_instance_t *instance) {
             /* 3. Joining remaining threads */
             for (l = instance->lanes - instance->threads; l < instance->lanes;
                  ++l) {
-                if (argon2_thread_join(thread[l])) {
+                if (__crawdog_argon2_thread_join(thread[l])) {
                     rc = __CRAWDOG_ARGON2_THREAD_FAIL;
                     goto fail;
                 }
@@ -374,7 +359,7 @@ fail:
 
 #endif /* __CRAWDOG_ARGON2_NO_THREADS */
 
-int fill_memory_blocks(argon2_instance_t *instance) {
+int fill_memory_blocks(__crawdog_argon2_instance_t *instance) {
 	if (instance == NULL || instance->lanes == 0) {
 	    return __CRAWDOG_ARGON2_INCORRECT_PARAMETER;
     }
@@ -386,7 +371,7 @@ int fill_memory_blocks(argon2_instance_t *instance) {
 #endif
 }
 
-int validate_inputs(const argon2_context *context) {
+int validate_inputs(const __crawdog_argon2_context *context) {
     if (NULL == context) {
         return __CRAWDOG_ARGON2_INCORRECT_PARAMETER;
     }
@@ -513,7 +498,7 @@ int validate_inputs(const argon2_context *context) {
     return __CRAWDOG_ARGON2_OK;
 }
 
-void fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *instance) {
+void fill_first_blocks(uint8_t *blockhash, const __crawdog_argon2_instance_t *instance) {
     uint32_t l;
     /* Make the first and second block in each lane as G(H0||0||i) or
        G(H0||1||i) */
@@ -536,8 +521,8 @@ void fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *instance) {
     clear_internal_memory(blockhash_bytes, __CRAWDOG_ARGON2_BLOCK_SIZE);
 }
 
-void initial_hash(uint8_t *blockhash, argon2_context *context,
-                  argon2_type type) {
+void initial_hash(uint8_t *blockhash, __crawdog_argon2_context *context,
+                  __crawdog_argon2_type type) {
     __crawdog_blake2b_state BlakeHash;
     uint8_t value[sizeof(uint32_t)];
 
@@ -610,7 +595,7 @@ void initial_hash(uint8_t *blockhash, argon2_context *context,
     __crawdog_blake2b_final(&BlakeHash, blockhash, __CRAWDOG_ARGON2_PREHASH_DIGEST_LENGTH);
 }
 
-int initialize(argon2_instance_t *instance, argon2_context *context) {
+int initialize(__crawdog_argon2_instance_t *instance, __crawdog_argon2_context *context) {
     uint8_t blockhash[__CRAWDOG_ARGON2_PREHASH_SEED_LENGTH];
     int result = __CRAWDOG_ARGON2_OK;
 

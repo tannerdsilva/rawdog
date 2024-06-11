@@ -1,9 +1,9 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
-#include "blake2addition.h"
+#include "crawdog_blake2addition.h"
 #include "crawdog_blake2.h"
 #include "crawdog_blake2-impl.h"
-#include "core.h"
+#include "crawdog_core.h"
 #include <string.h>
 
 int __crawdog_blake2b_long(void *pout, size_t outlen, const void *in, size_t inlen) {

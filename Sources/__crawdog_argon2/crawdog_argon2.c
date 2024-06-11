@@ -1,46 +1,31 @@
-/*
- * Argon2 reference source code package - reference C implementations
- *
- * Copyright 2015
- * Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves
- *
- * You may use this work under the terms of a Creative Commons CC0 1.0
- * License/Waiver or the Apache Public License 2.0, at your option. The terms of
- * these licenses can be found at:
- *
- * - CC0 1.0 Universal : https://creativecommons.org/publicdomain/zero/1.0
- * - Apache 2.0        : https://www.apache.org/licenses/LICENSE-2.0
- *
- * You should have received a copy of both of these licenses along with this
- * software. If not, they may be obtained at the above URLs.
- */
-
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "argon2.h"
-#include "encoding.h"
-#include "core.h"
+#include "crawdog_argon2.h"
+#include "crawdog_encoding.h"
+#include "crawdog_core.h"
 
-const char *argon2_type2string(argon2_type type, int uppercase) {
+const char *__crawdog_argon2_type2string(__crawdog_argon2_type type, int uppercase) {
     switch (type) {
         case Argon2_d:
-            return uppercase ? "Argon2d" : "argon2d";
+            return uppercase ? "Argon2d" : "__crawdog_argon2d";
         case Argon2_i:
-            return uppercase ? "Argon2i" : "argon2i";
+            return uppercase ? "Argon2i" : "__crawdog_argon2i";
         case Argon2_id:
-            return uppercase ? "Argon2id" : "argon2id";
+            return uppercase ? "Argon2id" : "__crawdog_argon2id";
     }
 
     return NULL;
 }
 
-int argon2_ctx(argon2_context *context, argon2_type type) {
+int __crawdog_argon2_ctx(__crawdog_argon2_context *context, __crawdog_argon2_type type) {
     /* 1. Validate all inputs */
     int result = validate_inputs(context);
     uint32_t memory_blocks, segment_length;
-    argon2_instance_t instance;
+    __crawdog_argon2_instance_t instance;
 
     if (__CRAWDOG_ARGON2_OK != result) {
         return result;
@@ -97,14 +82,14 @@ int argon2_ctx(argon2_context *context, argon2_type type) {
     return __CRAWDOG_ARGON2_OK;
 }
 
-int argon2_hash(const uint32_t t_cost, const uint32_t m_cost,
+int __crawdog_argon2_hash(const uint32_t t_cost, const uint32_t m_cost,
                 const uint32_t parallelism, const void *pwd,
                 const size_t pwdlen, const void *salt, const size_t saltlen,
                 void *hash, const size_t hashlen, char *encoded,
-                const size_t encodedlen, argon2_type type,
+                const size_t encodedlen, __crawdog_argon2_type type,
                 const uint32_t version){
 
-    argon2_context context;
+    __crawdog_argon2_context context;
     int result;
     uint8_t *out;
 
@@ -148,7 +133,7 @@ int argon2_hash(const uint32_t t_cost, const uint32_t m_cost,
     context.flags = __CRAWDOG_ARGON2_DEFAULT_FLAGS;
     context.version = version;
 
-    result = argon2_ctx(&context, type);
+    result = __crawdog_argon2_ctx(&context, type);
 
     if (result != __CRAWDOG_ARGON2_OK) {
         clear_internal_memory(out, hashlen);
@@ -176,67 +161,67 @@ int argon2_hash(const uint32_t t_cost, const uint32_t m_cost,
     return __CRAWDOG_ARGON2_OK;
 }
 
-int argon2i_hash_encoded(const uint32_t t_cost, const uint32_t m_cost,
+int __crawdog_argon2i_hash_encoded(const uint32_t t_cost, const uint32_t m_cost,
                          const uint32_t parallelism, const void *pwd,
                          const size_t pwdlen, const void *salt,
                          const size_t saltlen, const size_t hashlen,
                          char *encoded, const size_t encodedlen) {
 
-    return argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
+    return __crawdog_argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
                        NULL, hashlen, encoded, encodedlen, Argon2_i,
                        __CRAWDOG_ARGON2_VERSION_NUMBER);
 }
 
-int argon2i_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
+int __crawdog_argon2i_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
                      const uint32_t parallelism, const void *pwd,
                      const size_t pwdlen, const void *salt,
                      const size_t saltlen, void *hash, const size_t hashlen) {
 
-    return argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
+    return __crawdog_argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
                        hash, hashlen, NULL, 0, Argon2_i, __CRAWDOG_ARGON2_VERSION_NUMBER);
 }
 
-int argon2d_hash_encoded(const uint32_t t_cost, const uint32_t m_cost,
+int __crawdog_argon2d_hash_encoded(const uint32_t t_cost, const uint32_t m_cost,
                          const uint32_t parallelism, const void *pwd,
                          const size_t pwdlen, const void *salt,
                          const size_t saltlen, const size_t hashlen,
                          char *encoded, const size_t encodedlen) {
 
-    return argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
+    return __crawdog_argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
                        NULL, hashlen, encoded, encodedlen, Argon2_d,
                        __CRAWDOG_ARGON2_VERSION_NUMBER);
 }
 
-int argon2d_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
+int __crawdog_argon2d_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
                      const uint32_t parallelism, const void *pwd,
                      const size_t pwdlen, const void *salt,
                      const size_t saltlen, void *hash, const size_t hashlen) {
 
-    return argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
+    return __crawdog_argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
                        hash, hashlen, NULL, 0, Argon2_d, __CRAWDOG_ARGON2_VERSION_NUMBER);
 }
 
-int argon2id_hash_encoded(const uint32_t t_cost, const uint32_t m_cost,
+int __crawdog_argon2id_hash_encoded(const uint32_t t_cost, const uint32_t m_cost,
                           const uint32_t parallelism, const void *pwd,
                           const size_t pwdlen, const void *salt,
                           const size_t saltlen, const size_t hashlen,
                           char *encoded, const size_t encodedlen) {
 
-    return argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
+    return __crawdog_argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
                        NULL, hashlen, encoded, encodedlen, Argon2_id,
                        __CRAWDOG_ARGON2_VERSION_NUMBER);
 }
 
-int argon2id_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
+int __crawdog_argon2id_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
                       const uint32_t parallelism, const void *pwd,
                       const size_t pwdlen, const void *salt,
                       const size_t saltlen, void *hash, const size_t hashlen) {
-    return argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
+    return __crawdog_argon2_hash(t_cost, m_cost, parallelism, pwd, pwdlen, salt, saltlen,
                        hash, hashlen, NULL, 0, Argon2_id,
                        __CRAWDOG_ARGON2_VERSION_NUMBER);
 }
 
-static int argon2_compare(const uint8_t *b1, const uint8_t *b2, size_t len) {
+static int __crawdog_argon2_compare(const uint8_t *b1, const uint8_t *b2, size_t len) {
     size_t i;
     uint8_t d = 0U;
 
@@ -246,10 +231,10 @@ static int argon2_compare(const uint8_t *b1, const uint8_t *b2, size_t len) {
     return (int)((1 & ((d - 1) >> 8)) - 1);
 }
 
-int argon2_verify(const char *encoded, const void *pwd, const size_t pwdlen,
-                  argon2_type type) {
+int __crawdog_argon2_verify(const char *encoded, const void *pwd, const size_t pwdlen,
+                  __crawdog_argon2_type type) {
 
-    argon2_context ctx;
+    __crawdog_argon2_context ctx;
     uint8_t *desired_result = NULL;
 
     int ret = __CRAWDOG_ARGON2_OK;
@@ -299,7 +284,7 @@ int argon2_verify(const char *encoded, const void *pwd, const size_t pwdlen,
         goto fail;
     }
 
-    ret = argon2_verify_ctx(&ctx, (char *)desired_result, type);
+    ret = __crawdog_argon2_verify_ctx(&ctx, (char *)desired_result, type);
     if (ret != __CRAWDOG_ARGON2_OK) {
         goto fail;
     }
@@ -312,60 +297,60 @@ fail:
     return ret;
 }
 
-int argon2i_verify(const char *encoded, const void *pwd, const size_t pwdlen) {
+int __crawdog_argon2i_verify(const char *encoded, const void *pwd, const size_t pwdlen) {
 
-    return argon2_verify(encoded, pwd, pwdlen, Argon2_i);
+    return __crawdog_argon2_verify(encoded, pwd, pwdlen, Argon2_i);
 }
 
-int argon2d_verify(const char *encoded, const void *pwd, const size_t pwdlen) {
+int __crawdog_argon2d_verify(const char *encoded, const void *pwd, const size_t pwdlen) {
 
-    return argon2_verify(encoded, pwd, pwdlen, Argon2_d);
+    return __crawdog_argon2_verify(encoded, pwd, pwdlen, Argon2_d);
 }
 
-int argon2id_verify(const char *encoded, const void *pwd, const size_t pwdlen) {
+int __crawdog_argon2id_verify(const char *encoded, const void *pwd, const size_t pwdlen) {
 
-    return argon2_verify(encoded, pwd, pwdlen, Argon2_id);
+    return __crawdog_argon2_verify(encoded, pwd, pwdlen, Argon2_id);
 }
 
-int argon2d_ctx(argon2_context *context) {
-    return argon2_ctx(context, Argon2_d);
+int __crawdog_argon2d_ctx(__crawdog_argon2_context *context) {
+    return __crawdog_argon2_ctx(context, Argon2_d);
 }
 
-int argon2i_ctx(argon2_context *context) {
-    return argon2_ctx(context, Argon2_i);
+int __crawdog_argon2i_ctx(__crawdog_argon2_context *context) {
+    return __crawdog_argon2_ctx(context, Argon2_i);
 }
 
-int argon2id_ctx(argon2_context *context) {
-    return argon2_ctx(context, Argon2_id);
+int __crawdog_argon2id_ctx(__crawdog_argon2_context *context) {
+    return __crawdog_argon2_ctx(context, Argon2_id);
 }
 
-int argon2_verify_ctx(argon2_context *context, const char *hash,
-                      argon2_type type) {
-    int ret = argon2_ctx(context, type);
+int __crawdog_argon2_verify_ctx(__crawdog_argon2_context *context, const char *hash,
+                      __crawdog_argon2_type type) {
+    int ret = __crawdog_argon2_ctx(context, type);
     if (ret != __CRAWDOG_ARGON2_OK) {
         return ret;
     }
 
-    if (argon2_compare((uint8_t *)hash, context->out, context->outlen)) {
+    if (__crawdog_argon2_compare((uint8_t *)hash, context->out, context->outlen)) {
         return __CRAWDOG_ARGON2_VERIFY_MISMATCH;
     }
 
     return __CRAWDOG_ARGON2_OK;
 }
 
-int argon2d_verify_ctx(argon2_context *context, const char *hash) {
-    return argon2_verify_ctx(context, hash, Argon2_d);
+int __crawdog_argon2d_verify_ctx(__crawdog_argon2_context *context, const char *hash) {
+    return __crawdog_argon2_verify_ctx(context, hash, Argon2_d);
 }
 
-int argon2i_verify_ctx(argon2_context *context, const char *hash) {
-    return argon2_verify_ctx(context, hash, Argon2_i);
+int __crawdog_argon2i_verify_ctx(__crawdog_argon2_context *context, const char *hash) {
+    return __crawdog_argon2_verify_ctx(context, hash, Argon2_i);
 }
 
-int argon2id_verify_ctx(argon2_context *context, const char *hash) {
-    return argon2_verify_ctx(context, hash, Argon2_id);
+int __crawdog_argon2id_verify_ctx(__crawdog_argon2_context *context, const char *hash) {
+    return __crawdog_argon2_verify_ctx(context, hash, Argon2_id);
 }
 
-const char *argon2_error_message(int error_code) {
+const char *__crawdog_argon2_error_message(int error_code) {
     switch (error_code) {
     case __CRAWDOG_ARGON2_OK:
         return "OK";
@@ -444,9 +429,9 @@ const char *argon2_error_message(int error_code) {
     }
 }
 
-size_t argon2_encodedlen(uint32_t t_cost, uint32_t m_cost, uint32_t parallelism,
-                         uint32_t saltlen, uint32_t hashlen, argon2_type type) {
-  return strlen("$$v=$m=,t=,p=$$") + strlen(argon2_type2string(type, 0)) +
+size_t __crawdog_argon2_encodedlen(uint32_t t_cost, uint32_t m_cost, uint32_t parallelism,
+                         uint32_t saltlen, uint32_t hashlen, __crawdog_argon2_type type) {
+  return strlen("$$v=$m=,t=,p=$$") + strlen(__crawdog_argon2_type2string(type, 0)) +
          numlen(t_cost) + numlen(m_cost) + numlen(parallelism) +
          b64len(saltlen) + b64len(hashlen) + numlen(__CRAWDOG_ARGON2_VERSION_NUMBER) + 1;
 }

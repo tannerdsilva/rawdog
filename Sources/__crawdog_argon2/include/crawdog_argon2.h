@@ -1,30 +1,11 @@
-/*
- * Argon2 reference source code package - reference C implementations
- *
- * Copyright 2015
- * Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves
- *
- * You may use this work under the terms of a Creative Commons CC0 1.0
- * License/Waiver or the Apache Public License 2.0, at your option. The terms of
- * these licenses can be found at:
- *
- * - CC0 1.0 Universal : https://creativecommons.org/publicdomain/zero/1.0
- * - Apache 2.0        : https://www.apache.org/licenses/LICENSE-2.0
- *
- * You should have received a copy of both of these licenses along with this
- * software. If not, they may be obtained at the above URLs.
- */
-
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 #ifndef __CRAWDOG_ARGON2_H
 #define __CRAWDOG_ARGON2_H
 
 #include <stdint.h>
 #include <stddef.h>
 #include <limits.h>
-
-#if defined(__cplusplus)
-extern "C" {
-#endif
 
 /* Symbols visibility control */
 #ifdef A2_VISCTL
@@ -155,7 +136,7 @@ typedef enum Argon2_ErrorCodes {
     __CRAWDOG_ARGON2_DECODING_LENGTH_FAIL = -34,
 
     __CRAWDOG_ARGON2_VERIFY_MISMATCH = -35
-} argon2_error_codes;
+} __crawdog_argon2_error_codes;
 
 /* Memory allocator types --- for external allocation */
 typedef int (*allocate_fptr)(uint8_t **memory, size_t bytes_to_allocate);
@@ -215,36 +196,36 @@ typedef struct Argon2_Context {
     deallocate_fptr free_cbk;   /* pointer to memory deallocator */
 
     uint32_t flags; /* array of bool options */
-} argon2_context;
+} __crawdog_argon2_context;
 
 /* Argon2 primitive type */
 typedef enum Argon2_type {
   Argon2_d = 0,
   Argon2_i = 1,
   Argon2_id = 2
-} argon2_type;
+} __crawdog_argon2_type;
 
 /* Version of the algorithm */
 typedef enum Argon2_version {
     __CRAWDOG_ARGON2_VERSION_10 = 0x10,
     __CRAWDOG_ARGON2_VERSION_13 = 0x13,
     __CRAWDOG_ARGON2_VERSION_NUMBER = __CRAWDOG_ARGON2_VERSION_13
-} argon2_version;
+} __crawdog_argon2_version;
 
 /*
- * Function that gives the string representation of an argon2_type.
- * @param type The argon2_type that we want the string for
+ * Function that gives the string representation of an __crawdog_argon2_type.
+ * @param type The __crawdog_argon2_type that we want the string for
  * @param uppercase Whether the string should have the first letter uppercase
  * @return NULL if invalid type, otherwise the string representation.
  */
-__CRAWDOG_ARGON2_PUBLIC const char *argon2_type2string(argon2_type type, int uppercase);
+__CRAWDOG_ARGON2_PUBLIC const char *__crawdog_argon2_type2string(__crawdog_argon2_type type, int uppercase);
 
 /*
  * Function that performs memory-hard hashing with certain degree of parallelism
  * @param  context  Pointer to the Argon2 internal structure
  * @return Error code if smth is wrong, __CRAWDOG_ARGON2_OK otherwise
  */
-__CRAWDOG_ARGON2_PUBLIC int argon2_ctx(argon2_context *context, argon2_type type);
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2_ctx(__crawdog_argon2_context *context, __crawdog_argon2_type type);
 
 /**
  * Hashes a password with Argon2i, producing an encoded hash
@@ -261,7 +242,7 @@ __CRAWDOG_ARGON2_PUBLIC int argon2_ctx(argon2_context *context, argon2_type type
  * @pre   Different parallelism levels will give different results
  * @pre   Returns __CRAWDOG_ARGON2_OK if successful
  */
-__CRAWDOG_ARGON2_PUBLIC int argon2i_hash_encoded(const uint32_t t_cost,
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2i_hash_encoded(const uint32_t t_cost,
                                        const uint32_t m_cost,
                                        const uint32_t parallelism,
                                        const void *pwd, const size_t pwdlen,
@@ -283,13 +264,13 @@ __CRAWDOG_ARGON2_PUBLIC int argon2i_hash_encoded(const uint32_t t_cost,
  * @pre   Different parallelism levels will give different results
  * @pre   Returns __CRAWDOG_ARGON2_OK if successful
  */
-__CRAWDOG_ARGON2_PUBLIC int argon2i_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2i_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
                                    const uint32_t parallelism, const void *pwd,
                                    const size_t pwdlen, const void *salt,
                                    const size_t saltlen, void *hash,
                                    const size_t hashlen);
 
-__CRAWDOG_ARGON2_PUBLIC int argon2d_hash_encoded(const uint32_t t_cost,
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2d_hash_encoded(const uint32_t t_cost,
                                        const uint32_t m_cost,
                                        const uint32_t parallelism,
                                        const void *pwd, const size_t pwdlen,
@@ -297,13 +278,13 @@ __CRAWDOG_ARGON2_PUBLIC int argon2d_hash_encoded(const uint32_t t_cost,
                                        const size_t hashlen, char *encoded,
                                        const size_t encodedlen);
 
-__CRAWDOG_ARGON2_PUBLIC int argon2d_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2d_hash_raw(const uint32_t t_cost, const uint32_t m_cost,
                                    const uint32_t parallelism, const void *pwd,
                                    const size_t pwdlen, const void *salt,
                                    const size_t saltlen, void *hash,
                                    const size_t hashlen);
 
-__CRAWDOG_ARGON2_PUBLIC int argon2id_hash_encoded(const uint32_t t_cost,
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2id_hash_encoded(const uint32_t t_cost,
                                         const uint32_t m_cost,
                                         const uint32_t parallelism,
                                         const void *pwd, const size_t pwdlen,
@@ -311,7 +292,7 @@ __CRAWDOG_ARGON2_PUBLIC int argon2id_hash_encoded(const uint32_t t_cost,
                                         const size_t hashlen, char *encoded,
                                         const size_t encodedlen);
 
-__CRAWDOG_ARGON2_PUBLIC int argon2id_hash_raw(const uint32_t t_cost,
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2id_hash_raw(const uint32_t t_cost,
                                     const uint32_t m_cost,
                                     const uint32_t parallelism, const void *pwd,
                                     const size_t pwdlen, const void *salt,
@@ -319,12 +300,12 @@ __CRAWDOG_ARGON2_PUBLIC int argon2id_hash_raw(const uint32_t t_cost,
                                     const size_t hashlen);
 
 /* generic function underlying the above ones */
-__CRAWDOG_ARGON2_PUBLIC int argon2_hash(const uint32_t t_cost, const uint32_t m_cost,
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2_hash(const uint32_t t_cost, const uint32_t m_cost,
                               const uint32_t parallelism, const void *pwd,
                               const size_t pwdlen, const void *salt,
                               const size_t saltlen, void *hash,
                               const size_t hashlen, char *encoded,
-                              const size_t encodedlen, argon2_type type,
+                              const size_t encodedlen, __crawdog_argon2_type type,
                               const uint32_t version);
 
 /**
@@ -334,18 +315,18 @@ __CRAWDOG_ARGON2_PUBLIC int argon2_hash(const uint32_t t_cost, const uint32_t m_
  * @param pwd Pointer to password
  * @pre   Returns __CRAWDOG_ARGON2_OK if successful
  */
-__CRAWDOG_ARGON2_PUBLIC int argon2i_verify(const char *encoded, const void *pwd,
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2i_verify(const char *encoded, const void *pwd,
                                  const size_t pwdlen);
 
-__CRAWDOG_ARGON2_PUBLIC int argon2d_verify(const char *encoded, const void *pwd,
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2d_verify(const char *encoded, const void *pwd,
                                  const size_t pwdlen);
 
-__CRAWDOG_ARGON2_PUBLIC int argon2id_verify(const char *encoded, const void *pwd,
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2id_verify(const char *encoded, const void *pwd,
                                   const size_t pwdlen);
 
 /* generic function underlying the above ones */
-__CRAWDOG_ARGON2_PUBLIC int argon2_verify(const char *encoded, const void *pwd,
-                                const size_t pwdlen, argon2_type type);
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2_verify(const char *encoded, const void *pwd,
+                                const size_t pwdlen, __crawdog_argon2_type type);
 
 /**
  * Argon2d: Version of Argon2 that picks memory blocks depending
@@ -355,7 +336,7 @@ __CRAWDOG_ARGON2_PUBLIC int argon2_verify(const char *encoded, const void *pwd,
  * @param  context  Pointer to current Argon2 context
  * @return  Zero if successful, a non zero error code otherwise
  */
-__CRAWDOG_ARGON2_PUBLIC int argon2d_ctx(argon2_context *context);
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2d_ctx(__crawdog_argon2_context *context);
 
 /**
  * Argon2i: Version of Argon2 that picks memory blocks
@@ -365,7 +346,7 @@ __CRAWDOG_ARGON2_PUBLIC int argon2d_ctx(argon2_context *context);
  * @param  context  Pointer to current Argon2 context
  * @return  Zero if successful, a non zero error code otherwise
  */
-__CRAWDOG_ARGON2_PUBLIC int argon2i_ctx(argon2_context *context);
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2i_ctx(__crawdog_argon2_context *context);
 
 /**
  * Argon2id: Version of Argon2 where the first half-pass over memory is
@@ -376,7 +357,7 @@ __CRAWDOG_ARGON2_PUBLIC int argon2i_ctx(argon2_context *context);
  * @param  context  Pointer to current Argon2 context
  * @return  Zero if successful, a non zero error code otherwise
  */
-__CRAWDOG_ARGON2_PUBLIC int argon2id_ctx(argon2_context *context);
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2id_ctx(__crawdog_argon2_context *context);
 
 /**
  * Verify if a given password is correct for Argon2d hashing
@@ -385,7 +366,7 @@ __CRAWDOG_ARGON2_PUBLIC int argon2id_ctx(argon2_context *context);
  * specified by the context outlen member
  * @return  Zero if successful, a non zero error code otherwise
  */
-__CRAWDOG_ARGON2_PUBLIC int argon2d_verify_ctx(argon2_context *context, const char *hash);
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2d_verify_ctx(__crawdog_argon2_context *context, const char *hash);
 
 /**
  * Verify if a given password is correct for Argon2i hashing
@@ -394,7 +375,7 @@ __CRAWDOG_ARGON2_PUBLIC int argon2d_verify_ctx(argon2_context *context, const ch
  * specified by the context outlen member
  * @return  Zero if successful, a non zero error code otherwise
  */
-__CRAWDOG_ARGON2_PUBLIC int argon2i_verify_ctx(argon2_context *context, const char *hash);
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2i_verify_ctx(__crawdog_argon2_context *context, const char *hash);
 
 /**
  * Verify if a given password is correct for Argon2id hashing
@@ -403,18 +384,18 @@ __CRAWDOG_ARGON2_PUBLIC int argon2i_verify_ctx(argon2_context *context, const ch
  * specified by the context outlen member
  * @return  Zero if successful, a non zero error code otherwise
  */
-__CRAWDOG_ARGON2_PUBLIC int argon2id_verify_ctx(argon2_context *context,
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2id_verify_ctx(__crawdog_argon2_context *context,
                                       const char *hash);
 
 /* generic function underlying the above ones */
-__CRAWDOG_ARGON2_PUBLIC int argon2_verify_ctx(argon2_context *context, const char *hash,
-                                    argon2_type type);
+__CRAWDOG_ARGON2_PUBLIC int __crawdog_argon2_verify_ctx(__crawdog_argon2_context *context, const char *hash,
+                                    __crawdog_argon2_type type);
 
 /**
  * Get the associated error message for given error code
  * @return  The error message associated with the given error code
  */
-__CRAWDOG_ARGON2_PUBLIC const char *argon2_error_message(int error_code);
+__CRAWDOG_ARGON2_PUBLIC const char *__crawdog_argon2_error_message(int error_code);
 
 /**
  * Returns the encoded hash length for the given input parameters
@@ -423,15 +404,11 @@ __CRAWDOG_ARGON2_PUBLIC const char *argon2_error_message(int error_code);
  * @param parallelism  Number of threads; used to compute lanes
  * @param saltlen  Salt size in bytes
  * @param hashlen  Hash size in bytes
- * @param type The argon2_type that we want the encoded length for
+ * @param type The __crawdog_argon2_type that we want the encoded length for
  * @return  The encoded hash length in bytes
  */
-__CRAWDOG_ARGON2_PUBLIC size_t argon2_encodedlen(uint32_t t_cost, uint32_t m_cost,
+__CRAWDOG_ARGON2_PUBLIC size_t __crawdog_argon2_encodedlen(uint32_t t_cost, uint32_t m_cost,
                                        uint32_t parallelism, uint32_t saltlen,
-                                       uint32_t hashlen, argon2_type type);
-
-#if defined(__cplusplus)
-}
-#endif
+                                       uint32_t hashlen, __crawdog_argon2_type type);
 
 #endif

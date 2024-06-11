@@ -1,31 +1,15 @@
-/*
- * Argon2 reference source code package - reference C implementations
- *
- * Copyright 2015
- * Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves
- *
- * You may use this work under the terms of a Creative Commons CC0 1.0
- * License/Waiver or the Apache Public License 2.0, at your option. The terms of
- * these licenses can be found at:
- *
- * - CC0 1.0 Universal : https://creativecommons.org/publicdomain/zero/1.0
- * - Apache 2.0        : https://www.apache.org/licenses/LICENSE-2.0
- *
- * You should have received a copy of both of these licenses along with this
- * software. If not, they may be obtained at the above URLs.
- */
-
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 
-#include "argon2.h"
-#include "core.h"
+#include "crawdog_argon2.h"
+#include "crawdog_core.h"
 
-#include "blake2/blamka-round-ref.h"
+#include "blake2/crawdog_blamka-round-ref.h"
 #include "crawdog_blake2-impl.h"
 #include "crawdog_blake2.h"
-
 
 /*
  * Function fills a new memory block and optionally XORs the old block over the new one.
@@ -87,8 +71,8 @@ static void next_addresses(block *address_block, block *input_block,
     fill_block(zero_block, address_block, address_block, 0);
 }
 
-void fill_segment(const argon2_instance_t *instance,
-                  argon2_position_t position) {
+void fill_segment(const __crawdog_argon2_instance_t *instance,
+                  __crawdog_argon2_position_t position) {
     block *ref_block = NULL, *curr_block = NULL;
     block address_block, input_block, zero_block;
     uint64_t pseudo_rand, ref_index, ref_lane;

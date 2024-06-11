@@ -26,10 +26,10 @@
 #if defined(__GLIBC__) && defined(_LIBC)
 #define __SKIP_GNU
 #endif
-#include "__crawdog_ow-crypt.h"
+#include "crawdog_ow-crypt.h"
 
-#include "__crawdog_crypt_blowfish.h"
-#include "__crawdog_crypt_gensalt.h"
+#include "crawdog_crypt_blowfish.h"
+#include "crawdog_crypt_gensalt.h"
 
 #if defined(__GLIBC__) && defined(_LIBC)
 /* crypt.h from glibc-crypt-2.1 will define struct __crawdog_crypt_data for us */

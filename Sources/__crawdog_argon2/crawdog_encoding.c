@@ -1,26 +1,11 @@
-/*
- * Argon2 reference source code package - reference C implementations
- *
- * Copyright 2015
- * Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves
- *
- * You may use this work under the terms of a Creative Commons CC0 1.0
- * License/Waiver or the Apache Public License 2.0, at your option. The terms of
- * these licenses can be found at:
- *
- * - CC0 1.0 Universal : https://creativecommons.org/publicdomain/zero/1.0
- * - Apache 2.0        : https://www.apache.org/licenses/LICENSE-2.0
- *
- * You should have received a copy of both of these licenses along with this
- * software. If not, they may be obtained at the above URLs.
- */
-
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include "encoding.h"
-#include "core.h"
+#include "crawdog_encoding.h"
+#include "crawdog_core.h"
 
 /*
  * Example code for a decoder and encoder of "hash strings", with Argon2
@@ -241,7 +226,7 @@ static const char *decode_decimal(const char *str, unsigned long *v) {
  *
  * The code below applies the following format:
  *
- *  $argon2<T>[$v=<num>]$m=<num>,t=<num>,p=<num>$<bin>$<bin>
+ *  $__crawdog_argon2<T>[$v=<num>]$m=<num>,t=<num>,p=<num>$<bin>$<bin>
  *
  * where <T> is either 'd', 'id', or 'i', <num> is a decimal integer (positive,
  * fits in an 'unsigned long'), and <bin> is Base64-encoded data (no '=' padding
@@ -249,13 +234,13 @@ static const char *decode_decimal(const char *str, unsigned long *v) {
  *
  * The last two binary chunks (encoded in Base64) are, in that order,
  * the salt and the output. Both are required. The binary salt length and the
- * output length must be in the allowed ranges defined in argon2.h.
+ * output length must be in the allowed ranges defined in __crawdog_argon2.h.
  *
  * The ctx struct must contain buffers large enough to hold the salt and pwd
  * when it is fed into decode_string.
  */
 
-int decode_string(argon2_context *ctx, const char *str, argon2_type type) {
+int decode_string(__crawdog_argon2_context *ctx, const char *str, __crawdog_argon2_type type) {
 
 /* check for prefix */
 #define CC(prefix)                                                             \
@@ -317,8 +302,8 @@ int decode_string(argon2_context *ctx, const char *str, argon2_type type) {
     int validation_result;
     const char* type_string;
 
-    /* We should start with the argon2_type we are using */
-    type_string = argon2_type2string(type, 0);
+    /* We should start with the __crawdog_argon2_type we are using */
+    type_string = __crawdog_argon2_type2string(type, 0);
     if (!type_string) {
         return __CRAWDOG_ARGON2_INCORRECT_TYPE;
     }
@@ -370,8 +355,8 @@ int decode_string(argon2_context *ctx, const char *str, argon2_type type) {
 #undef BIN
 }
 
-int encode_string(char *dst, size_t dst_len, argon2_context *ctx,
-                  argon2_type type) {
+int encode_string(char *dst, size_t dst_len, __crawdog_argon2_context *ctx,
+                  __crawdog_argon2_type type) {
 #define SS(str)                                                                \
     do {                                                                       \
         size_t pp_len = strlen(str);                                           \
@@ -400,7 +385,7 @@ int encode_string(char *dst, size_t dst_len, argon2_context *ctx,
         dst_len -= sb_len;                                                     \
     } while ((void)0, 0)
 
-    const char* type_string = argon2_type2string(type, 0);
+    const char* type_string = __crawdog_argon2_type2string(type, 0);
     int validation_result = validate_inputs(ctx);
 
     if (!type_string) {
