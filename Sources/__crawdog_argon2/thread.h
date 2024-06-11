@@ -15,10 +15,10 @@
  * software. If not, they may be obtained at the above URLs.
  */
 
-#ifndef ARGON2_THREAD_H
-#define ARGON2_THREAD_H
+#ifndef __CRAWDOG_ARGON2_THREAD_H
+#define __CRAWDOG_ARGON2_THREAD_H
 
-#if !defined(ARGON2_NO_THREADS)
+#if !defined(__CRAWDOG_ARGON2_NO_THREADS)
 
 /*
         Here we implement an abstraction layer for the simpĺe requirements
@@ -63,5 +63,5 @@ int argon2_thread_join(argon2_thread_handle_t handle);
 */
 void argon2_thread_exit(void);
 
-#endif /* ARGON2_NO_THREADS */
+#endif /* __CRAWDOG_ARGON2_NO_THREADS */
 #endif

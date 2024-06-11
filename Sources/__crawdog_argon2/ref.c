@@ -104,7 +104,7 @@ void fill_segment(const argon2_instance_t *instance,
     data_independent_addressing =
         (instance->type == Argon2_i) ||
         (instance->type == Argon2_id && (position.pass == 0) &&
-         (position.slice < ARGON2_SYNC_POINTS / 2));
+         (position.slice < __CRAWDOG_ARGON2_SYNC_POINTS / 2));
 
     if (data_independent_addressing) {
         init_block_value(&zero_block, 0);
@@ -151,10 +151,10 @@ void fill_segment(const argon2_instance_t *instance,
         /* 1.2 Computing the index of the reference block */
         /* 1.2.1 Taking pseudo-random value from the previous block */
         if (data_independent_addressing) {
-            if (i % ARGON2_ADDRESSES_IN_BLOCK == 0) {
+            if (i % __CRAWDOG_ARGON2_ADDRESSES_IN_BLOCK == 0) {
                 next_addresses(&address_block, &input_block, &zero_block);
             }
-            pseudo_rand = address_block.v[i % ARGON2_ADDRESSES_IN_BLOCK];
+            pseudo_rand = address_block.v[i % __CRAWDOG_ARGON2_ADDRESSES_IN_BLOCK];
         } else {
             pseudo_rand = instance->memory[prev_offset].v[0];
         }
@@ -178,7 +178,7 @@ void fill_segment(const argon2_instance_t *instance,
         ref_block =
             instance->memory + instance->lane_length * ref_lane + ref_index;
         curr_block = instance->memory + curr_offset;
-        if (ARGON2_VERSION_10 == instance->version) {
+        if (__CRAWDOG_ARGON2_VERSION_10 == instance->version) {
             /* version 1.2.1 and earlier: overwrite, not XOR */
             fill_block(instance->memory + prev_offset, ref_block, curr_block, 0);
         } else {

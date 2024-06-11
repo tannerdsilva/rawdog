@@ -15,7 +15,7 @@
  * software. If not, they may be obtained at the above URLs.
  */
 
-#if !defined(ARGON2_NO_THREADS)
+#if !defined(__CRAWDOG_ARGON2_NO_THREADS)
 
 #include "thread.h"
 #if defined(_WIN32)
@@ -54,4 +54,4 @@ void argon2_thread_exit(void) {
 #endif
 }
 
-#endif /* ARGON2_NO_THREADS */
+#endif /* __CRAWDOG_ARGON2_NO_THREADS */

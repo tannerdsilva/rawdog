@@ -61,26 +61,26 @@
 void init_block_value(block *b, uint8_t in) { memset(b->v, in, sizeof(b->v)); }
 
 void copy_block(block *dst, const block *src) {
-    memcpy(dst->v, src->v, sizeof(uint64_t) * ARGON2_QWORDS_IN_BLOCK);
+    memcpy(dst->v, src->v, sizeof(uint64_t) * __CRAWDOG_ARGON2_QWORDS_IN_BLOCK);
 }
 
 void xor_block(block *dst, const block *src) {
     int i;
-    for (i = 0; i < ARGON2_QWORDS_IN_BLOCK; ++i) {
+    for (i = 0; i < __CRAWDOG_ARGON2_QWORDS_IN_BLOCK; ++i) {
         dst->v[i] ^= src->v[i];
     }
 }
 
 static void load_block(block *dst, const void *input) {
     unsigned i;
-    for (i = 0; i < ARGON2_QWORDS_IN_BLOCK; ++i) {
+    for (i = 0; i < __CRAWDOG_ARGON2_QWORDS_IN_BLOCK; ++i) {
         dst->v[i] = load64((const uint8_t *)input + i * sizeof(dst->v[i]));
     }
 }
 
 static void store_block(void *output, const block *src) {
     unsigned i;
-    for (i = 0; i < ARGON2_QWORDS_IN_BLOCK; ++i) {
+    for (i = 0; i < __CRAWDOG_ARGON2_QWORDS_IN_BLOCK; ++i) {
         store64((uint8_t *)output + i * sizeof(src->v[i]), src->v[i]);
     }
 }
@@ -91,12 +91,12 @@ int allocate_memory(const argon2_context *context, uint8_t **memory,
                     size_t num, size_t size) {
     size_t memory_size = num*size;
     if (memory == NULL) {
-        return ARGON2_MEMORY_ALLOCATION_ERROR;
+        return __CRAWDOG_ARGON2_MEMORY_ALLOCATION_ERROR;
     }
 
     /* 1. Check for multiplication overflow */
     if (size != 0 && memory_size / size != num) {
-        return ARGON2_MEMORY_ALLOCATION_ERROR;
+        return __CRAWDOG_ARGON2_MEMORY_ALLOCATION_ERROR;
     }
 
     /* 2. Try to allocate with appropriate allocator */
@@ -107,10 +107,10 @@ int allocate_memory(const argon2_context *context, uint8_t **memory,
     }
 
     if (*memory == NULL) {
-        return ARGON2_MEMORY_ALLOCATION_ERROR;
+        return __CRAWDOG_ARGON2_MEMORY_ALLOCATION_ERROR;
     }
 
-    return ARGON2_OK;
+    return __CRAWDOG_ARGON2_OK;
 }
 
 void free_memory(const argon2_context *context, uint8_t *memory,
@@ -169,13 +169,13 @@ void finalize(const argon2_context *context, argon2_instance_t *instance) {
 
         /* Hash the result */
         {
-            uint8_t blockhash_bytes[ARGON2_BLOCK_SIZE];
+            uint8_t blockhash_bytes[__CRAWDOG_ARGON2_BLOCK_SIZE];
             store_block(blockhash_bytes, &blockhash);
             __crawdog_blake2b_long(context->out, context->outlen, blockhash_bytes,
-                         ARGON2_BLOCK_SIZE);
+                         __CRAWDOG_ARGON2_BLOCK_SIZE);
             /* clear blockhash and blockhash_bytes */
-            clear_internal_memory(blockhash.v, ARGON2_BLOCK_SIZE);
-            clear_internal_memory(blockhash_bytes, ARGON2_BLOCK_SIZE);
+            clear_internal_memory(blockhash.v, __CRAWDOG_ARGON2_BLOCK_SIZE);
+            clear_internal_memory(blockhash_bytes, __CRAWDOG_ARGON2_BLOCK_SIZE);
         }
 
 #ifdef GENKAT
@@ -246,7 +246,7 @@ uint32_t index_alpha(const argon2_instance_t *instance,
     start_position = 0;
 
     if (0 != position->pass) {
-        start_position = (position->slice == ARGON2_SYNC_POINTS - 1)
+        start_position = (position->slice == __CRAWDOG_ARGON2_SYNC_POINTS - 1)
                              ? 0
                              : (position->slice + 1) * instance->segment_length;
     }
@@ -262,7 +262,7 @@ static int fill_memory_blocks_st(argon2_instance_t *instance) {
     uint32_t r, s, l;
 
     for (r = 0; r < instance->passes; ++r) {
-        for (s = 0; s < ARGON2_SYNC_POINTS; ++s) {
+        for (s = 0; s < __CRAWDOG_ARGON2_SYNC_POINTS; ++s) {
             for (l = 0; l < instance->lanes; ++l) {
                 argon2_position_t position = {r, l, (uint8_t)s, 0};
                 fill_segment(instance, position);
@@ -272,10 +272,10 @@ static int fill_memory_blocks_st(argon2_instance_t *instance) {
         internal_kat(instance, r); /* Print all memory blocks */
 #endif
     }
-    return ARGON2_OK;
+    return __CRAWDOG_ARGON2_OK;
 }
 
-#if !defined(ARGON2_NO_THREADS)
+#if !defined(__CRAWDOG_ARGON2_NO_THREADS)
 
 #ifdef _WIN32
 static unsigned __stdcall fill_segment_thr(void *thread_data)
@@ -294,23 +294,23 @@ static int fill_memory_blocks_mt(argon2_instance_t *instance) {
     uint32_t r, s;
     argon2_thread_handle_t *thread = NULL;
     argon2_thread_data *thr_data = NULL;
-    int rc = ARGON2_OK;
+    int rc = __CRAWDOG_ARGON2_OK;
 
     /* 1. Allocating space for threads */
     thread = calloc(instance->lanes, sizeof(argon2_thread_handle_t));
     if (thread == NULL) {
-        rc = ARGON2_MEMORY_ALLOCATION_ERROR;
+        rc = __CRAWDOG_ARGON2_MEMORY_ALLOCATION_ERROR;
         goto fail;
     }
 
     thr_data = calloc(instance->lanes, sizeof(argon2_thread_data));
     if (thr_data == NULL) {
-        rc = ARGON2_MEMORY_ALLOCATION_ERROR;
+        rc = __CRAWDOG_ARGON2_MEMORY_ALLOCATION_ERROR;
         goto fail;
     }
 
     for (r = 0; r < instance->passes; ++r) {
-        for (s = 0; s < ARGON2_SYNC_POINTS; ++s) {
+        for (s = 0; s < __CRAWDOG_ARGON2_SYNC_POINTS; ++s) {
             uint32_t l, ll;
 
             /* 2. Calling threads */
@@ -320,7 +320,7 @@ static int fill_memory_blocks_mt(argon2_instance_t *instance) {
                 /* 2.1 Join a thread if limit is exceeded */
                 if (l >= instance->threads) {
                     if (argon2_thread_join(thread[l - instance->threads])) {
-                        rc = ARGON2_THREAD_FAIL;
+                        rc = __CRAWDOG_ARGON2_THREAD_FAIL;
                         goto fail;
                     }
                 }
@@ -339,7 +339,7 @@ static int fill_memory_blocks_mt(argon2_instance_t *instance) {
                     /* Wait for already running threads */
                     for (ll = 0; ll < l; ++ll)
                         argon2_thread_join(thread[ll]);
-                    rc = ARGON2_THREAD_FAIL;
+                    rc = __CRAWDOG_ARGON2_THREAD_FAIL;
                     goto fail;
                 }
 
@@ -351,7 +351,7 @@ static int fill_memory_blocks_mt(argon2_instance_t *instance) {
             for (l = instance->lanes - instance->threads; l < instance->lanes;
                  ++l) {
                 if (argon2_thread_join(thread[l])) {
-                    rc = ARGON2_THREAD_FAIL;
+                    rc = __CRAWDOG_ARGON2_THREAD_FAIL;
                     goto fail;
                 }
             }
@@ -372,13 +372,13 @@ fail:
     return rc;
 }
 
-#endif /* ARGON2_NO_THREADS */
+#endif /* __CRAWDOG_ARGON2_NO_THREADS */
 
 int fill_memory_blocks(argon2_instance_t *instance) {
 	if (instance == NULL || instance->lanes == 0) {
-	    return ARGON2_INCORRECT_PARAMETER;
+	    return __CRAWDOG_ARGON2_INCORRECT_PARAMETER;
     }
-#if defined(ARGON2_NO_THREADS)
+#if defined(__CRAWDOG_ARGON2_NO_THREADS)
     return fill_memory_blocks_st(instance);
 #else
     return instance->threads == 1 ?
@@ -388,152 +388,152 @@ int fill_memory_blocks(argon2_instance_t *instance) {
 
 int validate_inputs(const argon2_context *context) {
     if (NULL == context) {
-        return ARGON2_INCORRECT_PARAMETER;
+        return __CRAWDOG_ARGON2_INCORRECT_PARAMETER;
     }
 
     if (NULL == context->out) {
-        return ARGON2_OUTPUT_PTR_NULL;
+        return __CRAWDOG_ARGON2_OUTPUT_PTR_NULL;
     }
 
     /* Validate output length */
-    if (ARGON2_MIN_OUTLEN > context->outlen) {
-        return ARGON2_OUTPUT_TOO_SHORT;
+    if (__CRAWDOG_ARGON2_MIN_OUTLEN > context->outlen) {
+        return __CRAWDOG_ARGON2_OUTPUT_TOO_SHORT;
     }
 
-    if (ARGON2_MAX_OUTLEN < context->outlen) {
-        return ARGON2_OUTPUT_TOO_LONG;
+    if (__CRAWDOG_ARGON2_MAX_OUTLEN < context->outlen) {
+        return __CRAWDOG_ARGON2_OUTPUT_TOO_LONG;
     }
 
     /* Validate password (required param) */
     if (NULL == context->pwd) {
         if (0 != context->pwdlen) {
-            return ARGON2_PWD_PTR_MISMATCH;
+            return __CRAWDOG_ARGON2_PWD_PTR_MISMATCH;
         }
     }
 
-    if (ARGON2_MIN_PWD_LENGTH > context->pwdlen) {
-      return ARGON2_PWD_TOO_SHORT;
+    if (__CRAWDOG_ARGON2_MIN_PWD_LENGTH > context->pwdlen) {
+      return __CRAWDOG_ARGON2_PWD_TOO_SHORT;
     }
 
-    if (ARGON2_MAX_PWD_LENGTH < context->pwdlen) {
-        return ARGON2_PWD_TOO_LONG;
+    if (__CRAWDOG_ARGON2_MAX_PWD_LENGTH < context->pwdlen) {
+        return __CRAWDOG_ARGON2_PWD_TOO_LONG;
     }
 
     /* Validate salt (required param) */
     if (NULL == context->salt) {
         if (0 != context->saltlen) {
-            return ARGON2_SALT_PTR_MISMATCH;
+            return __CRAWDOG_ARGON2_SALT_PTR_MISMATCH;
         }
     }
 
-    if (ARGON2_MIN_SALT_LENGTH > context->saltlen) {
-        return ARGON2_SALT_TOO_SHORT;
+    if (__CRAWDOG_ARGON2_MIN_SALT_LENGTH > context->saltlen) {
+        return __CRAWDOG_ARGON2_SALT_TOO_SHORT;
     }
 
-    if (ARGON2_MAX_SALT_LENGTH < context->saltlen) {
-        return ARGON2_SALT_TOO_LONG;
+    if (__CRAWDOG_ARGON2_MAX_SALT_LENGTH < context->saltlen) {
+        return __CRAWDOG_ARGON2_SALT_TOO_LONG;
     }
 
     /* Validate secret (optional param) */
     if (NULL == context->secret) {
         if (0 != context->secretlen) {
-            return ARGON2_SECRET_PTR_MISMATCH;
+            return __CRAWDOG_ARGON2_SECRET_PTR_MISMATCH;
         }
     } else {
-        if (ARGON2_MIN_SECRET > context->secretlen) {
-            return ARGON2_SECRET_TOO_SHORT;
+        if (__CRAWDOG_ARGON2_MIN_SECRET > context->secretlen) {
+            return __CRAWDOG_ARGON2_SECRET_TOO_SHORT;
         }
-        if (ARGON2_MAX_SECRET < context->secretlen) {
-            return ARGON2_SECRET_TOO_LONG;
+        if (__CRAWDOG_ARGON2_MAX_SECRET < context->secretlen) {
+            return __CRAWDOG_ARGON2_SECRET_TOO_LONG;
         }
     }
 
     /* Validate associated data (optional param) */
     if (NULL == context->ad) {
         if (0 != context->adlen) {
-            return ARGON2_AD_PTR_MISMATCH;
+            return __CRAWDOG_ARGON2_AD_PTR_MISMATCH;
         }
     } else {
-        if (ARGON2_MIN_AD_LENGTH > context->adlen) {
-            return ARGON2_AD_TOO_SHORT;
+        if (__CRAWDOG_ARGON2_MIN_AD_LENGTH > context->adlen) {
+            return __CRAWDOG_ARGON2_AD_TOO_SHORT;
         }
-        if (ARGON2_MAX_AD_LENGTH < context->adlen) {
-            return ARGON2_AD_TOO_LONG;
+        if (__CRAWDOG_ARGON2_MAX_AD_LENGTH < context->adlen) {
+            return __CRAWDOG_ARGON2_AD_TOO_LONG;
         }
     }
 
     /* Validate memory cost */
-    if (ARGON2_MIN_MEMORY > context->m_cost) {
-        return ARGON2_MEMORY_TOO_LITTLE;
+    if (__CRAWDOG_ARGON2_MIN_MEMORY > context->m_cost) {
+        return __CRAWDOG_ARGON2_MEMORY_TOO_LITTLE;
     }
 
-    if (ARGON2_MAX_MEMORY < context->m_cost) {
-        return ARGON2_MEMORY_TOO_MUCH;
+    if (__CRAWDOG_ARGON2_MAX_MEMORY < context->m_cost) {
+        return __CRAWDOG_ARGON2_MEMORY_TOO_MUCH;
     }
 
     if (context->m_cost < 8 * context->lanes) {
-        return ARGON2_MEMORY_TOO_LITTLE;
+        return __CRAWDOG_ARGON2_MEMORY_TOO_LITTLE;
     }
 
     /* Validate time cost */
-    if (ARGON2_MIN_TIME > context->t_cost) {
-        return ARGON2_TIME_TOO_SMALL;
+    if (__CRAWDOG_ARGON2_MIN_TIME > context->t_cost) {
+        return __CRAWDOG_ARGON2_TIME_TOO_SMALL;
     }
 
-    if (ARGON2_MAX_TIME < context->t_cost) {
-        return ARGON2_TIME_TOO_LARGE;
+    if (__CRAWDOG_ARGON2_MAX_TIME < context->t_cost) {
+        return __CRAWDOG_ARGON2_TIME_TOO_LARGE;
     }
 
     /* Validate lanes */
-    if (ARGON2_MIN_LANES > context->lanes) {
-        return ARGON2_LANES_TOO_FEW;
+    if (__CRAWDOG_ARGON2_MIN_LANES > context->lanes) {
+        return __CRAWDOG_ARGON2_LANES_TOO_FEW;
     }
 
-    if (ARGON2_MAX_LANES < context->lanes) {
-        return ARGON2_LANES_TOO_MANY;
+    if (__CRAWDOG_ARGON2_MAX_LANES < context->lanes) {
+        return __CRAWDOG_ARGON2_LANES_TOO_MANY;
     }
 
     /* Validate threads */
-    if (ARGON2_MIN_THREADS > context->threads) {
-        return ARGON2_THREADS_TOO_FEW;
+    if (__CRAWDOG_ARGON2_MIN_THREADS > context->threads) {
+        return __CRAWDOG_ARGON2_THREADS_TOO_FEW;
     }
 
-    if (ARGON2_MAX_THREADS < context->threads) {
-        return ARGON2_THREADS_TOO_MANY;
+    if (__CRAWDOG_ARGON2_MAX_THREADS < context->threads) {
+        return __CRAWDOG_ARGON2_THREADS_TOO_MANY;
     }
 
     if (NULL != context->allocate_cbk && NULL == context->free_cbk) {
-        return ARGON2_FREE_MEMORY_CBK_NULL;
+        return __CRAWDOG_ARGON2_FREE_MEMORY_CBK_NULL;
     }
 
     if (NULL == context->allocate_cbk && NULL != context->free_cbk) {
-        return ARGON2_ALLOCATE_MEMORY_CBK_NULL;
+        return __CRAWDOG_ARGON2_ALLOCATE_MEMORY_CBK_NULL;
     }
 
-    return ARGON2_OK;
+    return __CRAWDOG_ARGON2_OK;
 }
 
 void fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *instance) {
     uint32_t l;
     /* Make the first and second block in each lane as G(H0||0||i) or
        G(H0||1||i) */
-    uint8_t blockhash_bytes[ARGON2_BLOCK_SIZE];
+    uint8_t blockhash_bytes[__CRAWDOG_ARGON2_BLOCK_SIZE];
     for (l = 0; l < instance->lanes; ++l) {
 
-        store32(blockhash + ARGON2_PREHASH_DIGEST_LENGTH, 0);
-        store32(blockhash + ARGON2_PREHASH_DIGEST_LENGTH + 4, l);
-        __crawdog_blake2b_long(blockhash_bytes, ARGON2_BLOCK_SIZE, blockhash,
-                     ARGON2_PREHASH_SEED_LENGTH);
+        store32(blockhash + __CRAWDOG_ARGON2_PREHASH_DIGEST_LENGTH, 0);
+        store32(blockhash + __CRAWDOG_ARGON2_PREHASH_DIGEST_LENGTH + 4, l);
+        __crawdog_blake2b_long(blockhash_bytes, __CRAWDOG_ARGON2_BLOCK_SIZE, blockhash,
+                     __CRAWDOG_ARGON2_PREHASH_SEED_LENGTH);
         load_block(&instance->memory[l * instance->lane_length + 0],
                    blockhash_bytes);
 
-        store32(blockhash + ARGON2_PREHASH_DIGEST_LENGTH, 1);
-        __crawdog_blake2b_long(blockhash_bytes, ARGON2_BLOCK_SIZE, blockhash,
-                     ARGON2_PREHASH_SEED_LENGTH);
+        store32(blockhash + __CRAWDOG_ARGON2_PREHASH_DIGEST_LENGTH, 1);
+        __crawdog_blake2b_long(blockhash_bytes, __CRAWDOG_ARGON2_BLOCK_SIZE, blockhash,
+                     __CRAWDOG_ARGON2_PREHASH_SEED_LENGTH);
         load_block(&instance->memory[l * instance->lane_length + 1],
                    blockhash_bytes);
     }
-    clear_internal_memory(blockhash_bytes, ARGON2_BLOCK_SIZE);
+    clear_internal_memory(blockhash_bytes, __CRAWDOG_ARGON2_BLOCK_SIZE);
 }
 
 void initial_hash(uint8_t *blockhash, argon2_context *context,
@@ -545,7 +545,7 @@ void initial_hash(uint8_t *blockhash, argon2_context *context,
         return;
     }
 
-    __crawdog_blake2b_init(&BlakeHash, ARGON2_PREHASH_DIGEST_LENGTH);
+    __crawdog_blake2b_init(&BlakeHash, __CRAWDOG_ARGON2_PREHASH_DIGEST_LENGTH);
 
     store32(&value, context->lanes);
     __crawdog_blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
@@ -572,7 +572,7 @@ void initial_hash(uint8_t *blockhash, argon2_context *context,
         __crawdog_blake2b_update(&BlakeHash, (const uint8_t *)context->pwd,
                        context->pwdlen);
 
-        if (context->flags & ARGON2_FLAG_CLEAR_PASSWORD) {
+        if (context->flags & __CRAWDOG_ARGON2_FLAG_CLEAR_PASSWORD) {
             secure_wipe_memory(context->pwd, context->pwdlen);
             context->pwdlen = 0;
         }
@@ -593,7 +593,7 @@ void initial_hash(uint8_t *blockhash, argon2_context *context,
         __crawdog_blake2b_update(&BlakeHash, (const uint8_t *)context->secret,
                        context->secretlen);
 
-        if (context->flags & ARGON2_FLAG_CLEAR_SECRET) {
+        if (context->flags & __CRAWDOG_ARGON2_FLAG_CLEAR_SECRET) {
             secure_wipe_memory(context->secret, context->secretlen);
             context->secretlen = 0;
         }
@@ -607,33 +607,33 @@ void initial_hash(uint8_t *blockhash, argon2_context *context,
                        context->adlen);
     }
 
-    __crawdog_blake2b_final(&BlakeHash, blockhash, ARGON2_PREHASH_DIGEST_LENGTH);
+    __crawdog_blake2b_final(&BlakeHash, blockhash, __CRAWDOG_ARGON2_PREHASH_DIGEST_LENGTH);
 }
 
 int initialize(argon2_instance_t *instance, argon2_context *context) {
-    uint8_t blockhash[ARGON2_PREHASH_SEED_LENGTH];
-    int result = ARGON2_OK;
+    uint8_t blockhash[__CRAWDOG_ARGON2_PREHASH_SEED_LENGTH];
+    int result = __CRAWDOG_ARGON2_OK;
 
     if (instance == NULL || context == NULL)
-        return ARGON2_INCORRECT_PARAMETER;
+        return __CRAWDOG_ARGON2_INCORRECT_PARAMETER;
     instance->context_ptr = context;
 
     /* 1. Memory allocation */
     result = allocate_memory(context, (uint8_t **)&(instance->memory),
                              instance->memory_blocks, sizeof(block));
-    if (result != ARGON2_OK) {
+    if (result != __CRAWDOG_ARGON2_OK) {
         return result;
     }
 
     /* 2. Initial hashing */
     /* H_0 + 8 extra bytes to produce the first blocks */
-    /* uint8_t blockhash[ARGON2_PREHASH_SEED_LENGTH]; */
+    /* uint8_t blockhash[__CRAWDOG_ARGON2_PREHASH_SEED_LENGTH]; */
     /* Hashing all inputs */
     initial_hash(blockhash, context, instance->type);
     /* Zeroing 8 extra bytes */
-    clear_internal_memory(blockhash + ARGON2_PREHASH_DIGEST_LENGTH,
-                          ARGON2_PREHASH_SEED_LENGTH -
-                              ARGON2_PREHASH_DIGEST_LENGTH);
+    clear_internal_memory(blockhash + __CRAWDOG_ARGON2_PREHASH_DIGEST_LENGTH,
+                          __CRAWDOG_ARGON2_PREHASH_SEED_LENGTH -
+                              __CRAWDOG_ARGON2_PREHASH_DIGEST_LENGTH);
 
 #ifdef GENKAT
     initial_kat(blockhash, context, instance->type);
@@ -643,7 +643,7 @@ int initialize(argon2_instance_t *instance, argon2_context *context) {
      */
     fill_first_blocks(blockhash, instance);
     /* Clearing the hash */
-    clear_internal_memory(blockhash, ARGON2_PREHASH_SEED_LENGTH);
+    clear_internal_memory(blockhash, __CRAWDOG_ARGON2_PREHASH_SEED_LENGTH);
 
-    return ARGON2_OK;
+    return __CRAWDOG_ARGON2_OK;
 }

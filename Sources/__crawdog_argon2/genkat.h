@@ -15,8 +15,8 @@
  * software. If not, they may be obtained at the above URLs.
  */
 
-#ifndef ARGON2_KAT_H
-#define ARGON2_KAT_H
+#ifndef __CRAWDOG_ARGON2_KAT_H
+#define __CRAWDOG_ARGON2_KAT_H
 
 #include "core.h"
 
