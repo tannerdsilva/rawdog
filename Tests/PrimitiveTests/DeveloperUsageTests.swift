@@ -6,6 +6,7 @@ import RAW
 @testable import RAW_blake2
 @testable import RAW_base64
 @testable import __crawdog_blake2
+import __crawdog_argon2
 
 @RAW_staticbuff(bytes:2)
 struct MyFixeDThing:Sendable {}
@@ -101,6 +102,22 @@ final class TestDeveloperUsage:XCTestCase {
 		// let thing = myTest as! any ExpressibleByArrayLiteral
 //		let thing2 = myTest as! any RAW_comparable_fixed
 		// let fooBar:FixedBuff5 = "StringfTHing"
+	}
+
+	static func hashTest(version:UInt32, t:UInt32, m:UInt32, p:UInt32, salt:[UInt8], pwd:[UInt8], hexRef:[UInt8], mcRef:[UInt8], type:argon2_type) {
+		var out = UnsafeMutablePointer<UInt8>.allocate(capacity:hexRef.count)
+		defer {
+			out.deallocate()
+		}
+		let encoded = UnsafeMutablePointer<UInt8>.allocate(capacity:mcRef.count)
+		var i = 0
+		guard __crawdog_argon2_hash(t, 1 << m, p, pwd, salt, salt.count, out, 32, encoded, 108, type, version) == __CRAWDOG_ARGON2_OK.rawValue else {
+			XCTFail("argon2_hash failed")
+			return
+		}
+	}
+	func testArgonHashing() throws {
+		var has = __crawdog_argon2_hash
 	}
 
 	func testEntropy() throws {

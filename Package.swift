@@ -86,6 +86,8 @@ let package = Package(
 		], swiftSettings:[]),
 
 		// raw targets
+		.target(name:"RAW_hmac", dependencies: ["RAW"]),
+		.target(name:"RAW_kdf", dependencies: ["RAW_hmac", "RAW"]),
 		.target(name:"RAW_md5", dependencies:["RAW", "__crawdog_md5"]),
 		.target(name:"RAW_sha1", dependencies:["RAW", "__crawdog_sha1"]),
 		.target(name:"RAW_sha256", dependencies:["RAW", "__crawdog_sha256"]),
@@ -94,11 +96,16 @@ let package = Package(
 		.target(name:"RAW_dh25519", dependencies:["RAW", "__crawdog_curve25519"]),
 		.target(name:"RAW_bcrypt_blowfish", dependencies:["RAW", "__crawdog_crypt_blowfish"]),
 		.target(name:"RAW_blake2", dependencies:["RAW", "__crawdog_blake2"]),
-		.target(name:"RAW_base64", dependencies:rawBase64Dependencies(), swiftSettings:[/*.define("RAWDOG_BASE64_LOG")*/]),
-		.target(name:"RAW_hex", dependencies:rawHexDependencies(), swiftSettings: [/*.define("RAWDOG_HEX_LOG")*/]),
-		.target(name:"RAW", dependencies:rawTargetDependencies, swiftSettings: [/*.define("RAWDOG_MACRO_LOG")*/]),
+		.target(name:"RAW_base64", dependencies:rawBase64Dependencies()),
+		.target(name:"RAW_hex", dependencies:rawHexDependencies()),
+		.target(name:"RAW", dependencies:rawTargetDependencies),
 
 		// c implementations
+		.target(
+			name:"__crawdog_argon2",
+			dependencies:["__crawdog_blake2"],
+			publicHeadersPath:"include"
+		),
 		.target(
 			name:"__crawdog_crypt_blowfish"
 		),
@@ -122,14 +129,6 @@ let package = Package(
 		.target(
 			name: "__crawdog_chachapoly",
 			publicHeadersPath:"."
-		),
-		.target(
-			name:"RAW_hmac",
-			dependencies: ["RAW"]
-		),
-		.target(
-			name:"RAW_hkdf",
-			dependencies: ["RAW_hmac", "RAW"]
 		),
 		.target(
 			name: "__crawdog_chachapoly-tests",
@@ -175,15 +174,15 @@ let package = Package(
 			path:"Tests/__crawdog_curve25519-tests",
 			publicHeadersPath:"include"
 		),
-		.target(
-			name:"__crawdog_hkdf-tests",
+		.target( // this helps me shim the system-provided libsodium library into the swift XCTest target. for whatever reason when I try to include the system libarary target directly, I dont see any symbols that I can call.
+			name:"__crawdog_kdf-tests",
 			dependencies:[
 				"libsodium"
 			],
-			path:"Tests/__crawdog_hkdf-tests",
+			path:"Tests/__crawdog_kdf-tests",
 			publicHeadersPath:"."
 		),
-		.systemLibrary( // libsoduium is used as a test reference to rawdogs own implementation of hkdf
+		.systemLibrary( // libsoduium is used as a test reference to rawdogs own implementation of hashing-agnostic kdf implementation. libsodium tests sha256 and sha512 implementations.
 			name:"libsodium",
 			path:"Tests/libsodium",
 			pkgConfig:"libsodium",
@@ -203,8 +202,7 @@ let package = Package(
 			path:"Tests/__crawdog_hashing-tests",
 			publicHeadersPath:"."
 		),
-
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "__crawdog_hmac-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_hkdf", "__crawdog_hkdf-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"PrimitiveTests", dependencies:["__crawdog_argon2", "RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "__crawdog_hmac-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_kdf", "__crawdog_kdf-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )

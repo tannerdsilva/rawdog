@@ -2,8 +2,7 @@ import RAW_hmac
 import RAW
 
 extension RAW_hasher {
-    public static func hkdfExtract(salt: [UInt8]?, ikm: [UInt8]) throws -> [UInt8] {
-        // Use the correctly formatted salt to perform HMAC
+    public static func hkdfExtract(salt:[UInt8]?, ikm:[UInt8]) throws -> [UInt8] {
         return try Self.hmac(key:salt ?? [UInt8](repeating: 0, count: Self.RAW_hasher_outputsize), message: ikm)
     }
 
@@ -25,11 +24,5 @@ extension RAW_hasher {
         }
 
         return Array(output.prefix(len))
-    }
-
-    public static func hkdf(key: [UInt8], salt: [UInt8]?, info: [UInt8]?, outputLength: Int) throws -> [UInt8] {
-        let prk = try Self.hkdfExtract(salt: salt, ikm: key)
-        let okm = try Self.hkdfExpand(prk: prk, info: info, len: outputLength)
-        return okm
     }
 }
