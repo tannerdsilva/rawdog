@@ -111,22 +111,22 @@ final class TestDeveloperUsage:XCTestCase {
 			out.deallocate()
 		}
 		var i = 0
-		guard __crawdog_argon2_hash(threadCount, 1 << memoryCount, parallelismCount, pwd.baseAddress, pwd.count, salt.baseAddress, salt.count, out, 32, encoded, 108, type, version) == __CRAWDOG_ARGON2_OK.rawValue else {
+		guard argon2_hash(threadCount, 1 << memoryCount, parallelismCount, pwd.baseAddress, pwd.count, salt.baseAddress, salt.count, out, 32, encoded, 108, type, version) == ARGON2_OK.rawValue else {
 			XCTFail("argon2_hash failed")
 			return
 		}
 	}
 
-	func testArgonHashing() throws {
-		var password = Array("password".utf8)
-		var somesalt = Array("somesalt".utf8)
-		var hexRef = Array("f6c4db4a54e2a370627aff3db6176b94a2a209a62c8e36152711802f7b30c694".utf8)
-		var mcRef = Array("$argon2i$m=65536,t=2,p=1$c29tZXNhbHQ$9sTbSlTio3Biev89thdrlKKiCaYsjjYVJxGAL3swxpQ".utf8)
+	func testArgonHashing(password:String, salt:String, hexReference:String, mcReference:String) throws {
+		var password = Array(password.utf8)
+		var somesalt = Array(salt.utf8)
+		var hexRef = Array(hexReference.utf8)
+		var mcRef = Array(mcReference.utf8)
 		password.RAW_access_mutating { passwordBuffer in
 			somesalt.RAW_access_mutating { saltBuffer in
 				hexRef.RAW_access_mutating { hexRefBuffer in
 					mcRef.RAW_access_mutating { mcRefBuffer in
-						TestDeveloperUsage.hashTest(version:__CRAWDOG_ARGON2_VERSION_13.rawValue, threadCount:2, memoryCount:16, parallelismCount:1, pwd:passwordBuffer, salt:saltBuffer, hexRef:hexRefBuffer, mcRef:mcRefBuffer, type:Argon2_i)
+						TestDeveloperUsage.hashTest(version:ARGON2_VERSION_13.rawValue, threadCount:2, memoryCount:16, parallelismCount:1, pwd:passwordBuffer, salt:saltBuffer, hexRef:hexRefBuffer, mcRef:mcRefBuffer, type:Argon2_i)
 					}
 				}
 			}

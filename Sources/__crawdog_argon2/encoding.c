@@ -19,8 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include "__crawdog_encoding.h"
-#include "__crawdog_core.h"
+#include "encoding.h"
+#include "core.h"
 
 /*
  * Example code for a decoder and encoder of "hash strings", with Argon2
@@ -255,14 +255,14 @@ static const char *decode_decimal(const char *str, unsigned long *v) {
  * when it is fed into decode_string.
  */
 
-int decode_string(__crawdog_argon2_context *ctx, const char *str, argon2_type type) {
+int decode_string(argon2_context *ctx, const char *str, argon2_type type) {
 
 /* check for prefix */
 #define CC(prefix)                                                             \
     do {                                                                       \
         size_t cc_len = strlen(prefix);                                        \
         if (strncmp(str, prefix, cc_len) != 0) {                               \
-            return __CRAWDOG_ARGON2_DECODING_FAIL;                                       \
+            return ARGON2_DECODING_FAIL;                                       \
         }                                                                      \
         str += cc_len;                                                         \
     } while ((void)0, 0)
@@ -283,7 +283,7 @@ int decode_string(__crawdog_argon2_context *ctx, const char *str, argon2_type ty
         unsigned long dec_x;                                                   \
         str = decode_decimal(str, &dec_x);                                     \
         if (str == NULL) {                                                     \
-            return __CRAWDOG_ARGON2_DECODING_FAIL;                                       \
+            return ARGON2_DECODING_FAIL;                                       \
         }                                                                      \
         (x) = dec_x;                                                           \
     } while ((void)0, 0)
@@ -295,7 +295,7 @@ int decode_string(__crawdog_argon2_context *ctx, const char *str, argon2_type ty
         unsigned long dec_x;                                                   \
         str = decode_decimal(str, &dec_x);                                     \
         if (str == NULL || dec_x > UINT32_MAX) {                               \
-            return __CRAWDOG_ARGON2_DECODING_FAIL;                                       \
+            return ARGON2_DECODING_FAIL;                                       \
         }                                                                      \
         (x) = (uint32_t)dec_x;                                                 \
     } while ((void)0, 0)
@@ -307,7 +307,7 @@ int decode_string(__crawdog_argon2_context *ctx, const char *str, argon2_type ty
         size_t bin_len = (max_len);                                            \
         str = from_base64(buf, &bin_len, str);                                 \
         if (str == NULL || bin_len > UINT32_MAX) {                             \
-            return __CRAWDOG_ARGON2_DECODING_FAIL;                                       \
+            return ARGON2_DECODING_FAIL;                                       \
         }                                                                      \
         (len) = (uint32_t)bin_len;                                             \
     } while ((void)0, 0)
@@ -318,16 +318,16 @@ int decode_string(__crawdog_argon2_context *ctx, const char *str, argon2_type ty
     const char* type_string;
 
     /* We should start with the argon2_type we are using */
-    type_string = __crawdog_argon2_type2string(type, 0);
+    type_string = argon2_type2string(type, 0);
     if (!type_string) {
-        return __CRAWDOG_ARGON2_INCORRECT_TYPE;
+        return ARGON2_INCORRECT_TYPE;
     }
 
     CC("$");
     CC(type_string);
 
     /* Reading the version number if the default is suppressed */
-    ctx->version = __CRAWDOG_ARGON2_VERSION_10;
+    ctx->version = ARGON2_VERSION_10;
     CC_opt("$v=", DECIMAL_U32(ctx->version));
 
     CC("$m=");
@@ -350,19 +350,19 @@ int decode_string(__crawdog_argon2_context *ctx, const char *str, argon2_type ty
     ctx->adlen = 0;
     ctx->allocate_cbk = NULL;
     ctx->free_cbk = NULL;
-    ctx->flags = __CRAWDOG_ARGON2_DEFAULT_FLAGS;
+    ctx->flags = ARGON2_DEFAULT_FLAGS;
 
     /* On return, must have valid context */
     validation_result = validate_inputs(ctx);
-    if (validation_result != __CRAWDOG_ARGON2_OK) {
+    if (validation_result != ARGON2_OK) {
         return validation_result;
     }
 
     /* Can't have any additional characters */
     if (*str == 0) {
-        return __CRAWDOG_ARGON2_OK;
+        return ARGON2_OK;
     } else {
-        return __CRAWDOG_ARGON2_DECODING_FAIL;
+        return ARGON2_DECODING_FAIL;
     }
 #undef CC
 #undef CC_opt
@@ -370,13 +370,13 @@ int decode_string(__crawdog_argon2_context *ctx, const char *str, argon2_type ty
 #undef BIN
 }
 
-int encode_string(char *dst, size_t dst_len, __crawdog_argon2_context *ctx,
+int encode_string(char *dst, size_t dst_len, argon2_context *ctx,
                   argon2_type type) {
 #define SS(str)                                                                \
     do {                                                                       \
         size_t pp_len = strlen(str);                                           \
         if (pp_len >= dst_len) {                                               \
-            return __CRAWDOG_ARGON2_ENCODING_FAIL;                                       \
+            return ARGON2_ENCODING_FAIL;                                       \
         }                                                                      \
         memcpy(dst, str, pp_len + 1);                                          \
         dst += pp_len;                                                         \
@@ -394,20 +394,20 @@ int encode_string(char *dst, size_t dst_len, __crawdog_argon2_context *ctx,
     do {                                                                       \
         size_t sb_len = to_base64(dst, dst_len, buf, len);                     \
         if (sb_len == (size_t)-1) {                                            \
-            return __CRAWDOG_ARGON2_ENCODING_FAIL;                                       \
+            return ARGON2_ENCODING_FAIL;                                       \
         }                                                                      \
         dst += sb_len;                                                         \
         dst_len -= sb_len;                                                     \
     } while ((void)0, 0)
 
-    const char* type_string = __crawdog_argon2_type2string(type, 0);
+    const char* type_string = argon2_type2string(type, 0);
     int validation_result = validate_inputs(ctx);
 
     if (!type_string) {
-      return __CRAWDOG_ARGON2_ENCODING_FAIL;
+      return ARGON2_ENCODING_FAIL;
     }
 
-    if (validation_result != __CRAWDOG_ARGON2_OK) {
+    if (validation_result != ARGON2_OK) {
       return validation_result;
     }
 
@@ -430,7 +430,7 @@ int encode_string(char *dst, size_t dst_len, __crawdog_argon2_context *ctx,
 
     SS("$");
     SB(ctx->out, ctx->outlen);
-    return __CRAWDOG_ARGON2_OK;
+    return ARGON2_OK;
 
 #undef SS
 #undef SX

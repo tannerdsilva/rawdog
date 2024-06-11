@@ -103,8 +103,7 @@ let package = Package(
 		// c implementations
 		.target(
 			name:"__crawdog_argon2",
-			dependencies:["__crawdog_blake2"],
-			publicHeadersPath:"include"
+			dependencies:["__crawdog_blake2"]
 		),
 		.target(
 			name:"__crawdog_crypt_blowfish"

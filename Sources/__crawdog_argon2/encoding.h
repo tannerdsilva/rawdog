@@ -17,21 +17,21 @@
 
 #ifndef ENCODING_H
 #define ENCODING_H
-#include "__crawdog_argon2_main.h"
+#include "argon2.h"
 
-#define __CRAWDOG_ARGON2_MAX_DECODED_LANES UINT32_C(255)
-#define __CRAWDOG_ARGON2_MIN_DECODED_SALT_LEN UINT32_C(8)
-#define __CRAWDOG_ARGON2_MIN_DECODED_OUT_LEN UINT32_C(12)
+#define ARGON2_MAX_DECODED_LANES UINT32_C(255)
+#define ARGON2_MIN_DECODED_SALT_LEN UINT32_C(8)
+#define ARGON2_MIN_DECODED_OUT_LEN UINT32_C(12)
 
 /*
 * encode an Argon2 hash string into the provided buffer. 'dst_len'
 * contains the size, in characters, of the 'dst' buffer; if 'dst_len'
 * is less than the number of required characters (including the
-* terminating 0), then this function returns __CRAWDOG_ARGON2_ENCODING_ERROR.
+* terminating 0), then this function returns ARGON2_ENCODING_ERROR.
 *
-* on success, __CRAWDOG_ARGON2_OK is returned.
+* on success, ARGON2_OK is returned.
 */
-int encode_string(char *dst, size_t dst_len, __crawdog_argon2_context *ctx,
+int encode_string(char *dst, size_t dst_len, argon2_context *ctx,
                   argon2_type type);
 
 /*
@@ -44,9 +44,9 @@ int encode_string(char *dst, size_t dst_len, __crawdog_argon2_context *ctx,
 * Invalid input string causes an error. On success, the ctx is valid and all
 * fields have been initialized.
 *
-* Returned value is __CRAWDOG_ARGON2_OK on success, other __CRAWDOG_ARGON2_ codes on error.
+* Returned value is ARGON2_OK on success, other ARGON2_ codes on error.
 */
-int decode_string(__crawdog_argon2_context *ctx, const char *str, argon2_type type);
+int decode_string(argon2_context *ctx, const char *str, argon2_type type);
 
 /* Returns the length of the encoded byte stream with length len */
 size_t b64len(uint32_t len);

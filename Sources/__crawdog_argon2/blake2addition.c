@@ -1,7 +1,7 @@
-#include "__crawdog_blake2addition.h"
-#include "__crawdog_blake2.h"
+#include "blake2addition.h"
+#include "__crawdog_blake2-main.h"
 #include "__crawdog_blake2-impl.h"
-#include "__crawdog_core.h"
+#include "core.h"
 #include <string.h>
 
 int __crawdog_blake2b_long(void *pout, size_t outlen, const void *in, size_t inlen) {
