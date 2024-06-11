@@ -1,6 +1,6 @@
 // MIT LICENSE
 // (c) 2024 tanner silva. all rights reserved.
-#include "__crawdog_poly1305.h"
+#include "crawdog_poly1305.h"
 
 #if (USE_UNALIGNED == 1)
 #define U8TO32(p) \

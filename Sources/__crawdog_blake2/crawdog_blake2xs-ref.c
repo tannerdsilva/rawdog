@@ -4,8 +4,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "__crawdog_blake2-main.h"
-#include "__crawdog_blake2-impl.h"
+#include "crawdog_blake2.h"
+#include "crawdog_blake2-impl.h"
 
 int __crawdog_blake2xs_init( __crawdog_blake2xs_state *S, const size_t outlen ) {
   return __crawdog_blake2xs_init_key(S, outlen, NULL, 0);

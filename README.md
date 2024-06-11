@@ -21,6 +21,7 @@ rawdog distributes and builds its own source material (in c) for all cryptograph
 - curve25519 keys
 - bcrypt blowfish password hashing
 - chachapoly AEAD
+- argon2 hashing & key derivation
 
 these sources come with a complete suite of tests that tested to pass on x86 and ARM, macOS and Linux. the code is also expected to handle endianness natively, although admittedly I do not have the means of verifying the 
 
@@ -39,6 +40,8 @@ rawdog cryptography is built on various open source contributions written in c. 
 	- chachapoly - [claimed with MIT license](https://github.com/grigorig/chachapoly/blob/ec7d8e03c6f715995b2015e9662a39277b994a74/README.md?plain=1#L11C233-L11C284) with unit tests maintained in modification. Thank you Grigori Goronzy.
 
 	- SHA (implementations 1, 256, 512) & MD5 hashing - [claimed from public domain](https://github.com/WaterJuice/WjCryptLib/blob/e39760a85015b88820d7a2de832155a7c8ff2c88/UNLICENSE#L1) with unit tests maintained in modification. Thank you WaterJuice.
+
+	- Argon2 (secure and highly configurable hasher & KDF) - [claimed with CC0 license](https://github.com/P-H-C/phc-winner-argon2/blob/f57e61e19229e23c4445b85494dbf7c07de721cb/LICENSE#L19). I wrote the XCTests for this one myself but I took the test vectors directly from the `test.c` file. Thank you Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves.
 
 ### Inspiration
 

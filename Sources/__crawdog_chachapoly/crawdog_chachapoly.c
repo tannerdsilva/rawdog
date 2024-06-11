@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <assert.h>
 
-#include "__crawdog_chachapoly.h"
+#include "crawdog_chachapoly.h"
 
 #define U8V(x) ((unsigned char)(x))
 

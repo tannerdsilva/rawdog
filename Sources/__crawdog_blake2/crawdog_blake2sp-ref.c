@@ -8,8 +8,8 @@
 #include <omp.h>
 #endif
 
-#include "__crawdog_blake2-main.h"
-#include "__crawdog_blake2-impl.h"
+#include "crawdog_blake2.h"
+#include "crawdog_blake2-impl.h"
 
 #define PARALLELISM_DEGREE 8
 

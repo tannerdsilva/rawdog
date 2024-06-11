@@ -23,8 +23,8 @@
 #include "core.h"
 
 #include "blake2/blamka-round-ref.h"
-#include "__crawdog_blake2-impl.h"
-#include "__crawdog_blake2-main.h"
+#include "crawdog_blake2-impl.h"
+#include "crawdog_blake2.h"
 
 
 /*

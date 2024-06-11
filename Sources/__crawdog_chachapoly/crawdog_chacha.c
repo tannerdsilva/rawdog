@@ -1,6 +1,6 @@
 // MIT LICENSE
 // (c) 2024 tanner silva. all rights reserved.
-#include "__crawdog_chacha.h"
+#include "crawdog_chacha.h"
 
 #define U8C(v) (v##U)
 #define U32C(v) (v##U)

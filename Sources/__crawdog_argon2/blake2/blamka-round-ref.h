@@ -18,8 +18,8 @@
 #ifndef BLAKE_ROUND_MKA_H
 #define BLAKE_ROUND_MKA_H
 
-#include "__crawdog_blake2-main.h"
-#include "__crawdog_blake2-impl.h"
+#include "crawdog_blake2.h"
+#include "crawdog_blake2-impl.h"
 
 /* designed by the Lyra PHC team */
 static __CRAWDOG_BLAKE2_INLINE uint64_t fBlaMka(uint64_t x, uint64_t y) {

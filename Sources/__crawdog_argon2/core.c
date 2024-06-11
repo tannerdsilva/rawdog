@@ -34,8 +34,8 @@
 
 #include "core.h"
 #include "thread.h"
-#include "__crawdog_blake2-main.h"
-#include "__crawdog_blake2-impl.h"
+#include "crawdog_blake2.h"
+#include "crawdog_blake2-impl.h"
 #include "blake2addition.h"
 
 #ifdef GENKAT

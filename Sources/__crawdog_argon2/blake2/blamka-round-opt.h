@@ -18,7 +18,7 @@
 #ifndef BLAKE_ROUND_MKA_OPT_H
 #define BLAKE_ROUND_MKA_OPT_H
 
-#include "__crawdog_blake2-impl.h"
+#include "crawdog_blake2-impl.h"
 
 #include <emmintrin.h>
 #if defined(__SSSE3__)

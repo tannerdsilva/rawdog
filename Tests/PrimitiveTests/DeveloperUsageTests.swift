@@ -104,35 +104,6 @@ final class TestDeveloperUsage:XCTestCase {
 		// let fooBar:FixedBuff5 = "StringfTHing"
 	}
 
-	static func hashTest(version:UInt32, threadCount:UInt32, memoryCount:UInt32, parallelismCount:UInt32, pwd:UnsafeMutableBufferPointer<UInt8>, salt:UnsafeMutableBufferPointer<UInt8>, hexRef:UnsafeMutableBufferPointer<UInt8>, mcRef:UnsafeMutableBufferPointer<UInt8>, type:argon2_type) {
-		var out = UnsafeMutablePointer<UInt8>.allocate(capacity:32)
-		var encoded = UnsafeMutablePointer<Int8>.allocate(capacity:108)
-		defer {
-			out.deallocate()
-		}
-		var i = 0
-		guard argon2_hash(threadCount, 1 << memoryCount, parallelismCount, pwd.baseAddress, pwd.count, salt.baseAddress, salt.count, out, 32, encoded, 108, type, version) == ARGON2_OK.rawValue else {
-			XCTFail("argon2_hash failed")
-			return
-		}
-	}
-
-	func testArgonHashing(password:String, salt:String, hexReference:String, mcReference:String) throws {
-		var password = Array(password.utf8)
-		var somesalt = Array(salt.utf8)
-		var hexRef = Array(hexReference.utf8)
-		var mcRef = Array(mcReference.utf8)
-		password.RAW_access_mutating { passwordBuffer in
-			somesalt.RAW_access_mutating { saltBuffer in
-				hexRef.RAW_access_mutating { hexRefBuffer in
-					mcRef.RAW_access_mutating { mcRefBuffer in
-						TestDeveloperUsage.hashTest(version:ARGON2_VERSION_13.rawValue, threadCount:2, memoryCount:16, parallelismCount:1, pwd:passwordBuffer, salt:saltBuffer, hexRef:hexRefBuffer, mcRef:mcRefBuffer, type:Argon2_i)
-					}
-				}
-			}
-		}
-	}
-
 	func testEntropyNoThrow() throws {
 		let randomBytes = try generateSecureRandomBytes(as:MySpecialUIntType.self)
 	}

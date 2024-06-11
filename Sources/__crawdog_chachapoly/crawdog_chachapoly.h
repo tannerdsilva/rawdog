@@ -5,8 +5,8 @@
 #ifndef __CRAWDOG_CHACHAPOLY_H
 #define __CRAWDOG_CHACHAPOLY_H
 
-#include "__crawdog_chacha.h"
-#include "__crawdog_poly1305.h"
+#include "crawdog_chacha.h"
+#include "crawdog_poly1305.h"
 
 #define __CRAWDOG_CHACHAPOLY_OK           0
 #define __CRAWDOG_CHACHAPOLY_INVALID_MAC  -1

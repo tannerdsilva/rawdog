@@ -3,7 +3,7 @@
 // Copyright (c) 2015 Grigori Goronzy <goronzy@kinoho.net>
 
 #include <stdio.h>
-#include "__crawdog_chachapoly.h"
+#include "crawdog_chachapoly.h"
 #include "testf.h"
 
 /* AEAD test vector from RFC 7539 */
