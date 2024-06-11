@@ -104,23 +104,36 @@ final class TestDeveloperUsage:XCTestCase {
 		// let fooBar:FixedBuff5 = "StringfTHing"
 	}
 
-	static func hashTest(version:UInt32, t:UInt32, m:UInt32, p:UInt32, salt:[UInt8], pwd:[UInt8], hexRef:[UInt8], mcRef:[UInt8], type:argon2_type) {
-		var out = UnsafeMutablePointer<UInt8>.allocate(capacity:hexRef.count)
+	static func hashTest(version:UInt32, threadCount:UInt32, memoryCount:UInt32, parallelismCount:UInt32, pwd:UnsafeMutableBufferPointer<UInt8>, salt:UnsafeMutableBufferPointer<UInt8>, hexRef:UnsafeMutableBufferPointer<UInt8>, mcRef:UnsafeMutableBufferPointer<UInt8>, type:argon2_type) {
+		var out = UnsafeMutablePointer<UInt8>.allocate(capacity:32)
+		var encoded = UnsafeMutablePointer<Int8>.allocate(capacity:108)
 		defer {
 			out.deallocate()
 		}
-		let encoded = UnsafeMutablePointer<UInt8>.allocate(capacity:mcRef.count)
 		var i = 0
-		guard __crawdog_argon2_hash(t, 1 << m, p, pwd, salt, salt.count, out, 32, encoded, 108, type, version) == __CRAWDOG_ARGON2_OK.rawValue else {
+		guard __crawdog_argon2_hash(threadCount, 1 << memoryCount, parallelismCount, pwd.baseAddress, pwd.count, salt.baseAddress, salt.count, out, 32, encoded, 108, type, version) == __CRAWDOG_ARGON2_OK.rawValue else {
 			XCTFail("argon2_hash failed")
 			return
 		}
 	}
+
 	func testArgonHashing() throws {
-		var has = __crawdog_argon2_hash
+		var password = Array("password".utf8)
+		var somesalt = Array("somesalt".utf8)
+		var hexRef = Array("f6c4db4a54e2a370627aff3db6176b94a2a209a62c8e36152711802f7b30c694".utf8)
+		var mcRef = Array("$argon2i$m=65536,t=2,p=1$c29tZXNhbHQ$9sTbSlTio3Biev89thdrlKKiCaYsjjYVJxGAL3swxpQ".utf8)
+		password.RAW_access_mutating { passwordBuffer in
+			somesalt.RAW_access_mutating { saltBuffer in
+				hexRef.RAW_access_mutating { hexRefBuffer in
+					mcRef.RAW_access_mutating { mcRefBuffer in
+						TestDeveloperUsage.hashTest(version:__CRAWDOG_ARGON2_VERSION_13.rawValue, threadCount:2, memoryCount:16, parallelismCount:1, pwd:passwordBuffer, salt:saltBuffer, hexRef:hexRefBuffer, mcRef:mcRefBuffer, type:Argon2_i)
+					}
+				}
+			}
+		}
 	}
 
-	func testEntropy() throws {
+	func testEntropyNoThrow() throws {
 		let randomBytes = try generateSecureRandomBytes(as:MySpecialUIntType.self)
 	}
 	func testSortingByFirstVariable() {
