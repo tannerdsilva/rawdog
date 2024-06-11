@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "__crawdog_blake2.h"
+#include "__crawdog_blake2-main.h"
 #include "__crawdog_blake2-impl.h"
 
 static const uint32_t __crawdog_blake2s_IV[8] =
