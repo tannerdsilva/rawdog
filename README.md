@@ -21,7 +21,7 @@ rawdog distributes and builds its own source material (in c) for all cryptograph
 - curve25519 keys
 - bcrypt blowfish password hashing
 - chachapoly AEAD
-- argon2 hashing & key derivation
+- argon2 KDF
 
 these sources come with a complete suite of tests that tested to pass on x86 and ARM, macOS and Linux. the code is also expected to handle endianness natively, although admittedly I do not have the means of verifying the 
 
@@ -41,13 +41,7 @@ rawdog cryptography is built on various open source contributions written in c. 
 
 	- SHA (implementations 1, 256, 512) & MD5 hashing - [claimed from public domain](https://github.com/WaterJuice/WjCryptLib/blob/e39760a85015b88820d7a2de832155a7c8ff2c88/UNLICENSE#L1) with unit tests maintained in modification. Thank you WaterJuice.
 
-	- Argon2 (secure and highly configurable hasher & KDF) - [claimed from public domain](https://github.com/P-H-C/phc-winner-argon2/blob/f57e61e19229e23c4445b85494dbf7c07de721cb/LICENSE#L19) with unit tests maintained in modification. Thank you Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves.
-
-### Inspiration
-
-The fundamental components of the `RAW` module draw their inspiration from the LMDB and its `MDB_val` structure. Over time, I found immense value in this structure and the protocols built around it, initially developed in my [QuickLMDB library](https://github.com/tannerdsilva/QuickLMDB), and implemented them in numerous Swift projects. 
-
-As I increasingly incorporated this structure and its related protocols from QuickLMDB into my regular coding routines, I decided to create a separate library – rawdog and its `RAW` module – by forking QuickLMDB and its data handling protocols. This decision aimed to help projects standardize, secure, and simplify data transfer methods, fostering an environment that equally accommodates Swift and C programming languages.
+	- Argon2 KDF - [claimed from public domain](https://github.com/P-H-C/phc-winner-argon2/blob/f57e61e19229e23c4445b85494dbf7c07de721cb/LICENSE#L19) with unit tests maintained in modification. Thank you Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves.
 
 ### Versioning
 
