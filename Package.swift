@@ -136,6 +136,12 @@ let package = Package(
 			publicHeadersPath:"."
 		),
 		.target(
+			name:"__crawdog_argon2-tests",
+			dependencies:["__crawdog_argon2"],
+			path:"Tests/__crawdog_argon2-tests",
+			publicHeadersPath:"."
+		),
+		.target(
 			name:"__crawdog_hmac-tests",
 			dependencies:[],
 			path:"Tests/__crawdog_hmac-tests",
@@ -173,23 +179,6 @@ let package = Package(
 			path:"Tests/__crawdog_curve25519-tests",
 			publicHeadersPath:"include"
 		),
-		.target( // this helps me shim the system-provided libsodium library into the swift XCTest target. for whatever reason when I try to include the system libarary target directly, I dont see any symbols that I can call.
-			name:"__crawdog_kdf-tests",
-			dependencies:[
-				"libsodium"
-			],
-			path:"Tests/__crawdog_kdf-tests",
-			publicHeadersPath:"."
-		),
-		.systemLibrary( // libsoduium is used as a test reference to rawdogs own implementation of hashing-agnostic kdf implementation. libsodium tests sha256 and sha512 implementations.
-			name:"libsodium",
-			path:"Tests/libsodium",
-			pkgConfig:"libsodium",
-			providers: [
-				.brew(["libsodium"]), 
-				.apt(["libsodium-dev"])
-			]
-		),
 		.target(
 			name:"__crawdog_hashing-tests",
 			dependencies:[
@@ -202,6 +191,6 @@ let package = Package(
 			publicHeadersPath:"."
 		),
 		// tests for raw and c targets
-		.testTarget(name:"PrimitiveTests", dependencies:["__crawdog_argon2", "RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "__crawdog_hmac-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_kdf", "__crawdog_kdf-tests"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"FullTestHarness", dependencies:["__crawdog_argon2-tests", "__crawdog_argon2", "RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "__crawdog_hmac-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_kdf"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )

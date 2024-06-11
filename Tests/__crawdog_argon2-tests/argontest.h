@@ -1,0 +1,6 @@
+#ifndef __CRAWDOG_ARGON2BUILTIN_TEST_H
+#define __CRAWDOG_ARGON2BUILTIN_TEST_H
+
+int __crawdog_argon2testf();
+
+#endif // __CRAWDOG_ARGON2BUILTIN_TEST_H

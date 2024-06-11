@@ -41,7 +41,7 @@ rawdog cryptography is built on various open source contributions written in c. 
 
 	- SHA (implementations 1, 256, 512) & MD5 hashing - [claimed from public domain](https://github.com/WaterJuice/WjCryptLib/blob/e39760a85015b88820d7a2de832155a7c8ff2c88/UNLICENSE#L1) with unit tests maintained in modification. Thank you WaterJuice.
 
-	- Argon2 (secure and highly configurable hasher & KDF) - [claimed with CC0 license](https://github.com/P-H-C/phc-winner-argon2/blob/f57e61e19229e23c4445b85494dbf7c07de721cb/LICENSE#L19). I wrote the XCTests for this one myself but I took the test vectors directly from the `test.c` file. Thank you Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves.
+	- Argon2 (secure and highly configurable hasher & KDF) - [claimed from public domain](https://github.com/P-H-C/phc-winner-argon2/blob/f57e61e19229e23c4445b85494dbf7c07de721cb/LICENSE#L19) with unit tests maintained in modification. Thank you Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves.
 
 ### Inspiration
 

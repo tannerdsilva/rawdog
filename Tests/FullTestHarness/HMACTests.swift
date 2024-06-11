@@ -2,7 +2,6 @@ import XCTest
 import __crawdog_hmac_tests
 @testable import RAW_sha1
 @testable import RAW_hmac
-import libsodium
 import RAW_hex
 import RAW
 
