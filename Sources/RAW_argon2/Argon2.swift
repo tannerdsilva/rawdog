@@ -87,7 +87,3 @@ public struct ID {
 		return O(RAW_staticbuff:tempBuffer)
 	}
 }
-
-enum Argon2Type {
-    case Argon2i, Argon2d, Argon2id
-}
