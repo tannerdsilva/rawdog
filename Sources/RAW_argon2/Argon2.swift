@@ -64,6 +64,13 @@ public enum Error:Int32, Swift.Error {
 
 public struct ID {
 	/// produces an Argon2id hash with the specified parameters to the static-length output type
+	/// - parameters:
+	/// 	- password: the password to hash
+	/// 	- salt: the salt to use for the hashing operation
+	/// 	- timeCost: the number of iterations to perform
+	/// 	- memoryCost: the amount of memory to use in kibibytes
+	/// 	- parallelism: the number of threads to use
+	/// - returns: the resulting output bytes directly applied to the output type
 	public static func hash<P, S, O>(password:consuming P, salt:borrowing S, timeCost:UInt32, memoryCost:UInt32, parallelism:UInt32, as outputType:O.Type) throws -> O where O:RAW_staticbuff, P:RAW_accessible, S:RAW_accessible {
 		let tempBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity:MemoryLayout<O>.size)
 		defer {
