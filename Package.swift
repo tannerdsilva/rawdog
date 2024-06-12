@@ -86,6 +86,7 @@ let package = Package(
 		], swiftSettings:[]),
 
 		// raw targets
+		.target(name:"RAW_argon2", dependencies:["RAW", "__crawdog_argon2"]),
 		.target(name:"RAW_hmac", dependencies: ["RAW"]),
 		.target(name:"RAW_kdf", dependencies: ["RAW_hmac", "RAW"]),
 		.target(name:"RAW_md5", dependencies:["RAW", "__crawdog_md5"]),
@@ -103,7 +104,10 @@ let package = Package(
 		// c implementations
 		.target(
 			name:"__crawdog_argon2",
-			dependencies:["__crawdog_blake2"]
+			dependencies:[
+				"__crawdog_blake2",
+				"RAW"
+			]
 		),
 		.target(
 			name:"__crawdog_crypt_blowfish"
