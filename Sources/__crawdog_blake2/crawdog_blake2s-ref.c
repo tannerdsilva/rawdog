@@ -287,7 +287,7 @@ int crypto_hash( unsigned char *out, unsigned char *in, unsigned long long inlen
 
 #if defined(__CRAWDOG_BLAKE2S_SELFTEST)
 #include <string.h>
-#include "__crawdog_blake2-kat.h"
+#include "crawdog_blake2-kat.h"
 int main( void )
 {
   uint8_t key[__CRAWDOG_BLAKE2S_KEYBYTES];

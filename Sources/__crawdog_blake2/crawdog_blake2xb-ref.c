@@ -151,7 +151,7 @@ int __crawdog_blake2xb(void *out, size_t outlen, const void *in, size_t inlen, c
 
 #if defined(__CRAWDOG_BLAKE2XB_SELFTEST)
 #include <string.h>
-#include "__crawdog_blake2-kat.h"
+#include "crawdog_blake2-kat.h"
 int main( void )
 {
   uint8_t key[__CRAWDOG_BLAKE2B_KEYBYTES];

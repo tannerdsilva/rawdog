@@ -1,10 +1,10 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
 // copyright (c) 2015 mehdi sotoodeh
-#include "__crawdog_external_calls.h"
-#include "__crawdog_curve25519_mehdi.h"
-#include "__crawdog_ed25519_signature.h"
-#include "__crawdog_sha512.h"
+#include "crawdog_external_calls.h"
+#include "crawdog_curve25519_mehdi.h"
+#include "crawdog_ed25519_signature.h"
+#include "crawdog_sha512.h"
 #include <stdint.h>
 
 /*
@@ -41,7 +41,7 @@ const U_WORD _w_2d[K_WORDS] = /* 2*d */
 const U_WORD _w_di[K_WORDS] = /* 1/d */
     W256(0xCDC9F843,0x25E0F276,0x4279542E,0x0B5DD698,0xCDB9CF66,0x2B162114,0x14D5CE43,0x40907ED2);
 
-#include "__crawdog_base_folding8.h"
+#include "crawdog_base_folding8.h"
 
 /*
     Reference: http://eprint.iacr.org/2008/522

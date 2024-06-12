@@ -5,7 +5,7 @@
 #define __CRAWDOG_CURVE25519_MEHDI_H
 
 #include <stdint.h>
-#include "__crawdog_basetypes.h"
+#include "crawdog_basetypes.h"
 
 #ifdef USE_ASM_LIB
 #define U_WORD          U64

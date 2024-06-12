@@ -279,7 +279,7 @@ int __crawdog_blake2sp( void *out, size_t outlen, const void *in, size_t inlen, 
 
 #if defined(__CRAWDOG_BLAKE2SP_SELFTEST)
 #include <string.h>
-#include "__crawdog_blake2-kat.h"
+#include "crawdog_blake2-kat.h"
 int main( void )
 {
   uint8_t key[__CRAWDOG_BLAKE2S_KEYBYTES];

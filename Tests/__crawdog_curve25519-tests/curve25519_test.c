@@ -25,11 +25,11 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include "__crawdog_external_calls.h"
-#include "__crawdog_curve25519_mehdi.h"
+#include "crawdog_external_calls.h"
+#include "crawdog_curve25519_mehdi.h"
 #include "curve25519_donna.h"
-#include "__crawdog_curve25519_dh.h"
-#include "__crawdog_ed25519_signature.h"
+#include "crawdog_curve25519_dh.h"
+#include "crawdog_ed25519_signature.h"
 
 #include <stdint.h>  // For uint32_t, uint64_t
 

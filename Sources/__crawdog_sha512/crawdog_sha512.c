@@ -1,6 +1,6 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
-#include "__crawdog_sha512.h"
+#include "crawdog_sha512.h"
 #include <memory.h>
 
 // macros

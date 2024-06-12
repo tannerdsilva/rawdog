@@ -1,10 +1,10 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
 // copyright (c) 2015 mehdi sotoodeh
-#include "__crawdog_external_calls.h"
-#include "__crawdog_curve25519_mehdi.h"
-#include "__crawdog_ed25519_signature.h"
-#include "__crawdog_sha512.h"
+#include "crawdog_external_calls.h"
+#include "crawdog_curve25519_mehdi.h"
+#include "crawdog_ed25519_signature.h"
+#include "crawdog_sha512.h"
 
 /*
  * Arithmetic on twisted Edwards curve y^2 - x^2 = 1 + dx^2y^2

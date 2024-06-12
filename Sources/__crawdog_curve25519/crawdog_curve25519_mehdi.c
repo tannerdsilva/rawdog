@@ -1,8 +1,8 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
 // copyright (c) 2015 mehdi sotoodeh
-#include "__crawdog_external_calls.h"
-#include "__crawdog_curve25519_mehdi.h"
+#include "crawdog_external_calls.h"
+#include "crawdog_curve25519_mehdi.h"
 
 /*
     The curve used is y2 = x^3 + 486662x^2 + x, a Montgomery curve, over 

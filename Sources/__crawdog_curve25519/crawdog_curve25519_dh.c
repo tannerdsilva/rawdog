@@ -1,9 +1,9 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
 // copyright (c) 2015 mehdi sotoodeh
-#include "__crawdog_external_calls.h"
-#include "__crawdog_curve25519_mehdi.h"
-#include "__crawdog_curve25519_dh.h"
+#include "crawdog_external_calls.h"
+#include "crawdog_curve25519_mehdi.h"
+#include "crawdog_curve25519_dh.h"
 
 typedef struct {
     U_WORD X[K_WORDS];   /* x = X/Z */

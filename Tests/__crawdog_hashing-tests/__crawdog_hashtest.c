@@ -5,10 +5,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include "__crawdog_md5.h"
-#include "__crawdog_sha1.h"
-#include "__crawdog_sha512.h"
-#include "__crawdog_sha256.h"
+#include "crawdog_md5.h"
+#include "crawdog_sha1.h"
+#include "crawdog_sha512.h"
+#include "crawdog_sha256.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  TYPES

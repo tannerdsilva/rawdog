@@ -1,7 +1,7 @@
 #ifndef __ecc25519_donna_h__
 #define __ecc25519_donna_h__
 
-#include "__crawdog_basetypes.h"
+#include "crawdog_basetypes.h"
 
 typedef unsigned char u8;
 typedef S64 felem;

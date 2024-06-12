@@ -1,6 +1,6 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
-#include "__crawdog_sha1.h"
+#include "crawdog_sha1.h"
 #include <memory.h>
 
 // Decide whether to use the Little-Endian shortcut. If the shortcut is not used then the code will work correctly
