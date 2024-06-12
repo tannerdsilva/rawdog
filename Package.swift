@@ -68,6 +68,9 @@ let package = Package(
 		.library(
 			name:"RAW_chachapoly",
 			targets: ["RAW_chachapoly"]),
+		.library(
+			name:"RAW_argon2",
+			targets: ["RAW_argon2"]),
 	],
 	dependencies: [
 		.package(url:"https://github.com/apple/swift-syntax.git", "509.0.1"..<"510.0.1"),
