@@ -48,7 +48,7 @@ static const char sigma[16] = "expand 32-byte k";
 static const char tau[16] = "expand 16-byte k";
 
 void
-__crawdog_chacha_keysetup(struct chacha_ctx *x,const unsigned char *k,uint32_t kbits)
+__crawdog_chacha_keysetup(struct chacha_ctx *x,const unsigned char *k,uint32_t bytes)
 {
   const char *constants;
 
@@ -56,10 +56,10 @@ __crawdog_chacha_keysetup(struct chacha_ctx *x,const unsigned char *k,uint32_t k
   x->input[5] = U8TO32_LITTLE(k + 4);
   x->input[6] = U8TO32_LITTLE(k + 8);
   x->input[7] = U8TO32_LITTLE(k + 12);
-  if (kbits == 256) { /* recommended */
+  if (bytes == 32) { /* 32 byte condition */
     k += 16;
     constants = sigma;
-  } else { /* kbits == 128 */
+  } else { /* 16 byte condition */
     constants = tau;
   }
   x->input[8] = U8TO32_LITTLE(k + 0);

@@ -132,7 +132,7 @@ static void poly1305_get_tag(unsigned char *poly_key, const void *ad,
 
 int __crawdog_chachapoly_init(struct __crawdog_chachapoly_ctx *ctx, const void *key, int key_len)
 {
-    assert (key_len == 128 || key_len == 256);
+    assert(key_len == 16 || key_len == 32);
 
     memset(ctx, 0, sizeof(*ctx));
     __crawdog_chacha_keysetup(&ctx->cha_ctx, key, key_len);

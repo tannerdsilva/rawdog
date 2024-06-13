@@ -17,11 +17,11 @@ struct __crawdog_chachapoly_ctx {
 
 /**
  * Initialize ChaCha20-Poly1305 AEAD.
- * For RFC 7539 conformant AEAD, 256 bit keys must be used.
+ * For RFC 7539 conformant AEAD, 32 byte must be used.
  *
  * \param ctx context data
  * \param key 16 or 32 bytes of key material
- * \param key_len key length, 256 or 512 bits
+ * \param key_len in bytes (NOT bits)
  * \return success if 0
  */
 int __crawdog_chachapoly_init(struct __crawdog_chachapoly_ctx *ctx, const void *key, int key_len);
