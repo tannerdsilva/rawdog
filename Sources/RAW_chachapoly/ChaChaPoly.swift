@@ -14,6 +14,16 @@ public struct Tag:Sendable {
 
 public struct InvalidMACError:Swift.Error {}
 
+
+// 16 byte key
+@RAW_staticbuff(bytes:16)
+public struct Key16:Sendable {}
+
+// 32 byte key
+@RAW_staticbuff(bytes:32)
+public struct Key32:Sendable {}
+
+
 public struct Context {
 	private var ctx:__crawdog_chachapoly_ctx
 
@@ -25,23 +35,21 @@ public struct Context {
 		__crawdog_chachapoly_init(&newContext, key.baseAddress, Int32(key.count))
 		self.ctx = newContext
 	}
-
-	// 16 bytes initializer
-	public init(key:borrowing (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)) {
-		self.ctx = withUnsafePointer(to:key) { keyPtr in
-			var newContext = __crawdog_chachapoly_ctx()
-			__crawdog_chachapoly_init(&newContext, keyPtr, Int32(MemoryLayout<(UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)>.size))
-			return newContext
+	
+	public init(key:borrowing Key32) {
+		var newContext = __crawdog_chachapoly_ctx()
+		key.RAW_access_staticbuff {
+			_ = __crawdog_chachapoly_init(&newContext, $0, Int32(MemoryLayout<Key32>.size))
 		}
+		self.ctx = newContext
 	}
-
-	// 32 bytes initializer
-	public init(key:borrowing (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)) {
-		self.ctx = withUnsafePointer(to:key) { keyPtr in
-			var newContext = __crawdog_chachapoly_ctx()
-			__crawdog_chachapoly_init(&newContext, keyPtr, Int32(MemoryLayout<(UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)>.size))
-			return newContext
+	
+	public init(key:borrowing Key16) {
+		var newContext = __crawdog_chachapoly_ctx()
+		key.RAW_access_staticbuff {
+			_ = __crawdog_chachapoly_init(&newContext, $0, Int32(MemoryLayout<Key16>.size))
 		}
+		self.ctx = newContext
 	}
 
 	/// execute authenticated encryption with associated data.

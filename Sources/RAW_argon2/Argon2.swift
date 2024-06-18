@@ -62,6 +62,7 @@ public enum Error:Int32, Swift.Error {
 	case verifyMismatch = -35
 }
 
+/// argon2_id implementation
 public struct ID {
 	/// produces an Argon2id hash with the specified parameters to the static-length output type
 	/// - parameters:
