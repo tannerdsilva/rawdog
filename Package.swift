@@ -114,6 +114,16 @@ let package = Package(
 			]
 		),
 		.target(
+			name:"__crawdog_chacha",
+			dependencies:[],
+			publicHeadersPath:"."
+		),
+		.target(
+			name:"__crawdog_poly1305",
+			dependencies:[],
+			publicHeadersPath:"."
+		),
+		.target(
 			name:"__crawdog_hchacha20-tests",
 			dependencies:["__crawdog_hchacha20"],
 			path:"Tests/__crawdog_hchacha20-tests",
@@ -151,7 +161,7 @@ let package = Package(
 		),
 		.target(
 			name: "__crawdog_chachapoly",
-			dependencies:["__crawdog_endianness"],
+			dependencies:["__crawdog_endianness", "__crawdog_chacha", "__crawdog_poly1305"],
 			publicHeadersPath:"."
 		),
 		.target(
