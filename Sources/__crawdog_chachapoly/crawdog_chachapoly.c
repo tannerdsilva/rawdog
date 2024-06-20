@@ -1,30 +1,16 @@
-// MIT LICENSE
-// (c) 2024 tanner silva. all rights reserved.
-// Copyright (c) 2015 Grigori Goronzy <goronzy@kinoho.net>
-
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
+// copyright (c) 2015 Grigori Goronzy <goronzy@kinoho.net>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
 
 #include "crawdog_chachapoly.h"
+#include "crawdog_endianness.h"
 
 #define U8V(x) ((unsigned char)(x))
 
-#if (USE_UNALIGNED == 1)
-#define U8TO32_LITTLE(p) \
-    (*((uint32_t *)(p)))
-#define U32TO8_LITTLE(p, v) \
-    do { \
-      *((uint32_t *)(p)) = v; \
-    } while (0)
-#define U8TO64_LITTLE(p) \
-    (*((uint64_t *)(p)))
-#define U64TO8_LITTLE(p, v) \
-    do { \
-      *((uint64_t *)(p)) = v; \
-    } while (0)
-#else
 #define U8TO32_LITTLE(p) \
   (((uint32_t)((p)[0])      ) | \
    ((uint32_t)((p)[1]) <<  8) | \
@@ -57,7 +43,7 @@
     (p)[6] = U8V((v) >> 48 ); \
     (p)[7] = U8V((v) >> 56 ); \
   } while (0)
-#endif
+
 /**
  * Constant-time memory compare. This should help to protect against
  * side-channel attacks.
@@ -168,45 +154,6 @@ int __crawdog_chachapoly_crypt(struct __crawdog_chachapoly_ctx *ctx, const void 
     /* add tag if encrypting */
     if (encrypt && tag_len) {
         poly1305_get_tag(poly_key, ad, ad_len, output, input_len, calc_tag);
-        memcpy(tag, calc_tag, tag_len);
-    }
-
-    return __CRAWDOG_CHACHAPOLY_OK;
-}
-
-int __crawdog_chachapoly_crypt_short(struct __crawdog_chachapoly_ctx *ctx, const void *nonce,
-        const void *ad, int ad_len, void *input, int input_len,
-        void *output, void *tag, int tag_len, int encrypt)
-{
-    unsigned char keystream[__CRAWDOG_CHACHA_BLOCKLEN];
-    unsigned char calc_tag[__CRAWDOG_POLY1305_TAGLEN];
-    int i;
-
-    assert(input_len <= 32);
-
-    /* initialize keystream and generate poly1305 key */
-    memset(keystream, 0, sizeof(keystream));
-    __crawdog_chacha_ivsetup(&ctx->cha_ctx, nonce, NULL);
-    __crawdog_chacha_encrypt_bytes(&ctx->cha_ctx, keystream, keystream,
-            sizeof(keystream));
-
-    /* check tag if decrypting */
-    if (encrypt == 0 && tag_len) {
-        poly1305_get_tag(keystream, ad, ad_len, input, input_len, calc_tag);
-        if (memcmp_eq(calc_tag, tag, tag_len) != 0) {
-            return __CRAWDOG_CHACHAPOLY_INVALID_MAC;
-        }
-    }
-
-    /* crypt data */
-    for (i = 0; i < input_len; i++) {
-        ((unsigned char *)output)[i] =
-            ((unsigned char *)input)[i] ^ keystream[32 + i];
-    }
-
-    /* add tag if encrypting */
-    if (encrypt && tag_len) {
-        poly1305_get_tag(keystream, ad, ad_len, output, input_len, calc_tag);
         memcpy(tag, calc_tag, tag_len);
     }
 

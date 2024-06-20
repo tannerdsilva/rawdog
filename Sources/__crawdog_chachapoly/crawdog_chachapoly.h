@@ -1,5 +1,5 @@
-// MIT LICENSE
-// (c) 2024 tanner silva. all rights reserved.
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 // Copyright (c) 2015 Grigori Goronzy <goronzy@kinoho.net>
 
 #ifndef __CRAWDOG_CHACHAPOLY_H
@@ -45,17 +45,6 @@ int __crawdog_chachapoly_init(struct __crawdog_chachapoly_ctx *ctx, const void *
  *         failed when decrypting
  */
 int __crawdog_chachapoly_crypt(struct __crawdog_chachapoly_ctx *ctx, const void *nonce,
-        const void *ad, int ad_len, void *input, int input_len,
-        void *output, void *tag, int tag_len, int encrypt);
-
-/**
- * Encrypt or decrypt with Chacha20-Poly1305 for short messages.
- * The AEAD construction is different from chachapoly_crypt, but more
- * efficient for small messages. Up to 32 bytes can be encrypted. The size
- * of associated data is not restricted. The interface is similar to
- * chachapoly_crypt.
- */
-int __crawdog_chachapoly_crypt_short(struct __crawdog_chachapoly_ctx *ctx, const void *nonce,
         const void *ad, int ad_len, void *input, int input_len,
         void *output, void *tag, int tag_len, int encrypt);
 

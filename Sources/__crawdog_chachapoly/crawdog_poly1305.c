@@ -1,15 +1,7 @@
-// MIT LICENSE
-// (c) 2024 tanner silva. all rights reserved.
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 #include "crawdog_poly1305.h"
 
-#if (USE_UNALIGNED == 1)
-#define U8TO32(p) \
-    (*((uint32_t *)(p)))
-#define U32TO8(p, v) \
-    do { \
-      *((uint32_t *)(p)) = v; \
-    } while (0)
-#else
 /* interpret four 8 bit unsigned integers as a 32 bit unsigned integer in little endian */
 static uint32_t
 U8TO32(const unsigned char *p)
@@ -30,7 +22,6 @@ U32TO8(unsigned char *p, uint32_t v)
     p[2] = (v >> 16) & 0xff;
     p[3] = (v >> 24) & 0xff;
 }
-#endif
 
 void
 __crawdog_poly1305_init(struct __crawdog_poly1305_context *st, const unsigned char key[32])

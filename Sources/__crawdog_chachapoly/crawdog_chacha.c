@@ -1,5 +1,5 @@
-// MIT LICENSE
-// (c) 2024 tanner silva. all rights reserved.
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 #include "crawdog_chacha.h"
 
 #define U8C(v) (v##U)
@@ -11,14 +11,6 @@
 #define ROTL32(v, n) \
   (U32V((v) << (n)) | ((v) >> (32 - (n))))
 
-#if (USE_UNALIGNED == 1)
-#define U8TO32_LITTLE(p) \
-    (*((uint32_t *)(p)))
-#define U32TO8_LITTLE(p, v) \
-    do { \
-      *((uint32_t *)(p)) = v; \
-    } while (0)
-#else
 #define U8TO32_LITTLE(p) \
   (((uint32_t)((p)[0])      ) | \
    ((uint32_t)((p)[1]) <<  8) | \
@@ -31,7 +23,6 @@
     (p)[2] = U8V((v) >> 16); \
     (p)[3] = U8V((v) >> 24); \
   } while (0)
-#endif
 
 #define ROTATE(v,c) (ROTL32(v,c))
 #define XOR(v,w) ((v) ^ (w))

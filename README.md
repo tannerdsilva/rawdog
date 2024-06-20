@@ -27,7 +27,7 @@ these sources come with a complete suite of tests that tested to pass on x86 and
 
 ### Cryptographic Attributions
 
-rawdog cryptography is built on various open source contributions written in c. these references were taken as offered from their original authors in either MIT or public domain licenses, and redistributed in this rawdog package with its MIT license.
+rawdog cryptography is built on various open source contributions written in c. these references were taken as offered from their original authors in either MIT, ISC, or public domain licenses. All sources obtained have been heavily modified redistributed in this rawdog package with its MIT license.
 
 - cryptographic sources modified and redistributed in June 2024
 
@@ -42,6 +42,8 @@ rawdog cryptography is built on various open source contributions written in c. 
 	- SHA (implementations 1, 256, 512) & MD5 hashing - [claimed from public domain](https://github.com/WaterJuice/WjCryptLib/blob/e39760a85015b88820d7a2de832155a7c8ff2c88/UNLICENSE#L1) with unit tests maintained in modification. Thank you WaterJuice.
 
 	- Argon2 KDF - [claimed from public domain](https://github.com/P-H-C/phc-winner-argon2/blob/f57e61e19229e23c4445b85494dbf7c07de721cb/LICENSE#L19) with unit tests maintained in modification. Thank you Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves.
+
+	- hchacha20 - [claimed with ISC license](https://github.com/jedisct1/libsodium/blob/4a15ab7cd0a4b78a7356e5f488d5345b8d314549/LICENSE#L2) with unit tests maintained in modification. Thank you Frank Denis.
 
 ### Versioning
 

@@ -1,5 +1,5 @@
-// MIT LICENSE
-// (c) 2024 tanner silva. all rights reserved.
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 #ifndef __CRAWDOG_CHACHA_H
 #define __CRAWDOG_CHACHA_H
 
@@ -8,16 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define __CRAWDOG_CHACHA_MINKEYLEN	16
-#define __CRAWDOG_CHACHA_NONCELEN		8
-#define __CRAWDOG_CHACHA_CTRLEN		8
-#define __CRAWDOG_CHACHA_STATELEN		(__CRAWDOG_CHACHA_NONCELEN+__CRAWDOG_CHACHA_CTRLEN)
-#define __CRAWDOG_CHACHA_BLOCKLEN		64
+#define __CRAWDOG_CHACHA_MINKEYLEN			16
+#define __CRAWDOG_CHACHA_NONCELEN			8
+#define __CRAWDOG_CHACHA_CTRLEN				8
+#define __CRAWDOG_CHACHA_STATELEN			(__CRAWDOG_CHACHA_NONCELEN+__CRAWDOG_CHACHA_CTRLEN)
+#define __CRAWDOG_CHACHA_BLOCKLEN			64
 
 /* use memcpy() to copy blocks of memory (typically faster) */
 #define USE_MEMCPY          1
-/* use unaligned little-endian load/store (can be faster) */
-#define USE_UNALIGNED       0
 
 struct chacha_ctx {
 	uint32_t input[16];

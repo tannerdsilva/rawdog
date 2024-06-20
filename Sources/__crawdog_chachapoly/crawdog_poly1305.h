@@ -1,5 +1,5 @@
-// MIT LICENSE
-// (c) 2024 tanner silva. all rights reserved.
+// LICENSE MIT
+// copyright (c) tanner silva 2024. all rights reserved.
 #ifndef __CRAWDOG_POLY1305_H
 #define __CRAWDOG_POLY1305_H
 
@@ -13,8 +13,6 @@
 
 /* use memcpy() to copy blocks of memory (typically faster) */
 #define USE_MEMCPY          1
-/* use unaligned little-endian load/store (can be faster) */
-#define USE_UNALIGNED       0
 
 struct __crawdog_poly1305_context {
     uint32_t r[5];
