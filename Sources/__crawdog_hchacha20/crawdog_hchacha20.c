@@ -55,7 +55,7 @@ store32_le(uint8_t dst[4], uint32_t w)
 }
 
 int
-crypto_core_hchacha20(unsigned char *out, const unsigned char *in,
+__crawdog_hchacha20(unsigned char *out, const unsigned char *in,
                       const unsigned char *k, const unsigned char *c)
 {
     int      i;
@@ -110,25 +110,25 @@ crypto_core_hchacha20(unsigned char *out, const unsigned char *in,
 }
 
 size_t
-crypto_core_hchacha20_outputbytes(void)
+__crawdog_hchacha20_outputbytes(void)
 {
     return __CRAWDOG_HCHACHA20_OUTPUTBYTES;
 }
 
 size_t
-crypto_core_hchacha20_inputbytes(void)
+__crawdog_hchacha20_inputbytes(void)
 {
     return __CRAWDOG_HCHACHA20_INPUTBYTES;
 }
 
 size_t
-crypto_core_hchacha20_keybytes(void)
+__crawdog_hchacha20_keybytes(void)
 {
     return __CRAWDOG_HCHACHA20_KEYBYTES;
 }
 
 size_t
-crypto_core_hchacha20_constbytes(void)
+__crawdog_hchacha20_constbytes(void)
 {
     return __CRAWDOG_HCHACHA20_CONSTBYTES;
 }

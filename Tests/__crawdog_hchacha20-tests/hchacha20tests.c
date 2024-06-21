@@ -111,7 +111,7 @@ tv_hchacha20(void)
                        tv->in, strlen(tv->in), NULL, NULL, NULL);
         sodium_hex2bin(out, __CRAWDOG_HCHACHA20_OUTPUTBYTES,
                        tv->out, strlen(tv->out), NULL, NULL, NULL);
-        crypto_core_hchacha20(out2, in, key, NULL);
+        __crawdog_hchacha20(out2, in, key, NULL);
         if(memcmp(out, out2, __CRAWDOG_HCHACHA20_OUTPUTBYTES) != 0) {
 			return -1;
 		}
@@ -124,7 +124,7 @@ tv_hchacha20(void)
                    "934d941d78eb9bfc2f0376f7ccd4a11ecf0c6a44104618a9749ef47fe97037a2",
                    __CRAWDOG_HCHACHA20_OUTPUTBYTES * 2 + 1, NULL, NULL, NULL);
 
-    crypto_core_hchacha20(out2, in, key, constant);
+    __crawdog_hchacha20(out2, in, key, constant);
     if (memcmp(out, out2, __CRAWDOG_HCHACHA20_OUTPUTBYTES) != 0) {
 		return -1;
 	}
@@ -135,16 +135,16 @@ tv_hchacha20(void)
     free(key);
     free(constant);
 
-    if(crypto_core_hchacha20_outputbytes() != __CRAWDOG_HCHACHA20_OUTPUTBYTES) {
+    if(__crawdog_hchacha20_outputbytes() != __CRAWDOG_HCHACHA20_OUTPUTBYTES) {
 		return -1;
 	}
-    if (crypto_core_hchacha20_inputbytes() != __CRAWDOG_HCHACHA20_INPUTBYTES) {
+    if (__crawdog_hchacha20_inputbytes() != __CRAWDOG_HCHACHA20_INPUTBYTES) {
 		return -1;
 	}
-    if (crypto_core_hchacha20_keybytes() != __CRAWDOG_HCHACHA20_KEYBYTES) {
+    if (__crawdog_hchacha20_keybytes() != __CRAWDOG_HCHACHA20_KEYBYTES) {
 		return -1;
 	}
-    if (crypto_core_hchacha20_constbytes() != __CRAWDOG_HCHACHA20_CONSTBYTES) {
+    if (__crawdog_hchacha20_constbytes() != __CRAWDOG_HCHACHA20_CONSTBYTES) {
 		return -1;
 	}
 

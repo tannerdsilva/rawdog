@@ -89,6 +89,7 @@ let package = Package(
 		], swiftSettings:[]),
 
 		// raw targets
+		.target(name:"RAW_xchachapoly", dependencies:["RAW", "__crawdog_hchacha20", "__crawdog_chachapoly", "RAW_chachapoly"]),
 		.target(name:"RAW_mnemonic", dependencies:["RAW", "RAW_blake2"]),
 		.target(name:"RAW_argon2", dependencies:["RAW", "__crawdog_argon2"]),
 		.target(name:"RAW_hmac", dependencies: ["RAW"]),
@@ -132,6 +133,11 @@ let package = Package(
 		.target(
 			name:"__crawdog_hchacha20",
 			dependencies:["__crawdog_endianness"],
+			publicHeadersPath:"."
+		),
+		.target(
+			name:"__crawdog_xchachapoly",
+			dependencies:["RAW", "__crawdog_chachapoly", "__crawdog_hchacha20"],
 			publicHeadersPath:"."
 		),
 		.target(
@@ -226,6 +232,6 @@ let package = Package(
 			publicHeadersPath:"."
 		),
 		// tests for raw and c targets
-		.testTarget(name:"FullTestHarness", dependencies:["RAW_mnemonic", "__crawdog_hchacha20-tests", "__crawdog_argon2-tests", "__crawdog_argon2", "RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "__crawdog_hmac-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_kdf"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"FullTestHarness", dependencies:["RAW_xchachapoly", "__crawdog_hchacha20-tests", "__crawdog_argon2-tests", "__crawdog_argon2", "RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "__crawdog_hmac-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_kdf"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )

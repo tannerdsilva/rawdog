@@ -12,7 +12,7 @@
 #define __CRAWDOG_CHACHAPOLY_INVALID_MAC  -1
 
 struct __crawdog_chachapoly_ctx {
-    struct chacha_ctx cha_ctx;
+	struct chacha_ctx cha_ctx;
 };
 
 /**

@@ -1,38 +1,19 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
-import __crawdog_chachapoly
+import __crawdog_xchachapoly
 import RAW
+import RAW_chachapoly
+import __crawdog_chachapoly
 
-@RAW_staticbuff(bytes:12)
+@RAW_staticbuff(bytes:24)
 public struct Nonce:Sendable {}
 
-// poly1305 tag is 16 bytes
-@RAW_staticbuff(bytes:16)
-public struct Tag:Sendable {
-	public init() {
-		self = Self(RAW_staticbuff:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-	}
-}
-
-public struct InvalidMACError:Swift.Error {
-	public init() {}
-}
-
-// 16 byte key
-@RAW_staticbuff(bytes:16)
-public struct Key16:Sendable {}
-
-// 32 byte key
-@RAW_staticbuff(bytes:32)
-public struct Key32:Sendable {}
-
 public struct Context {
-	private var ctx:__crawdog_chachapoly_ctx
+	private var ctx:__crawdog_xchachapoly_ctx
 
+	// 32 byte key initialization
 	public init?(key:UnsafeRawBufferPointer) {
 		switch key.count {
-			case MemoryLayout<Key16>.size:
-				self.init(key:key.baseAddress!.load(as: Key16.self))
 			case MemoryLayout<Key32>.size:
 				self.init(key:key.baseAddress!.load(as: Key32.self))
 			default:
@@ -40,18 +21,11 @@ public struct Context {
 		}
 	}
 	
+	// 32 byte key initialization
 	public init(key:borrowing Key32) {
-		var newContext = __crawdog_chachapoly_ctx()
+		var newContext = __crawdog_xchachapoly_ctx()
 		key.RAW_access_staticbuff {
-			_ = __crawdog_chachapoly_init(&newContext, $0, Int32(MemoryLayout<Key32>.size))
-		}
-		self.ctx = newContext
-	}
-	
-	public init(key:borrowing Key16) {
-		var newContext = __crawdog_chachapoly_ctx()
-		key.RAW_access_staticbuff {
-			_ = __crawdog_chachapoly_init(&newContext, $0, Int32(MemoryLayout<Key16>.size))
+			__crawdog_xchachapoly_init(&newContext, $0)
 		}
 		self.ctx = newContext
 	}
@@ -67,13 +41,13 @@ public struct Context {
 		var newTag = Tag()
 		let result = nonce.RAW_access_staticbuff { noncePtr in
 			return newTag.RAW_access_staticbuff_mutating { tagPtr in
-					return __crawdog_chachapoly_crypt(&self.ctx, noncePtr, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr, Int32(MemoryLayout<Tag>.size), 1)
+					return __crawdog_xchachapoly_crypt(&self.ctx, noncePtr, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr, Int32(MemoryLayout<Tag>.size), 1)
 				}
 			}
 		switch result {
 			case 0:
 				return newTag
-			case __CRAWDOG_CHACHAPOLY_INVALID_MAC:
+			case __CRAWDOG_XCHACHAPOLY_INVALID_MAC:
 				throw InvalidMACError()
 			default:
 				fatalError("unknown error thrown from rawdog chachapoly impl")
@@ -86,18 +60,18 @@ public struct Context {
 	///		- nonce: the nonce to use for this decryption
 	///		- associatedData: the associated data to use for this decryption. may be zero length.
 	public mutating func decrypt(tag:consuming Tag, nonce:consuming Nonce, associatedData:UnsafeRawBufferPointer, inputData:UnsafeMutableRawBufferPointer, output:UnsafeMutableRawPointer) throws {
-			let result = nonce.RAW_access_staticbuff { noncePtr in
-				tag.RAW_access_staticbuff_mutating { tagPtr in 
-					return __crawdog_chachapoly_crypt(&self.ctx, noncePtr, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr, Int32(MemoryLayout<Tag>.size), 0)
-				}
+		let result = nonce.RAW_access_staticbuff { noncePtr in
+			tag.RAW_access_staticbuff_mutating { tagPtr in 
+				return __crawdog_xchachapoly_crypt(&self.ctx, noncePtr, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr, Int32(MemoryLayout<Tag>.size), 0)
 			}
-			switch result {
-				case 0:
-					return
-				case __CRAWDOG_CHACHAPOLY_INVALID_MAC:
-					throw InvalidMACError()
-				default:
-					fatalError("unknown error thrown from rawdog chachapoly impl")
-			}
+		}
+		switch result {
+			case 0:
+				return
+			case __CRAWDOG_XCHACHAPOLY_INVALID_MAC:
+				throw InvalidMACError()
+			default:
+				fatalError("unknown error thrown from rawdog chachapoly impl")
+		}
 	}
 }
