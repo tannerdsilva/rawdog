@@ -232,6 +232,6 @@ let package = Package(
 			publicHeadersPath:"."
 		),
 		// tests for raw and c targets
-		.testTarget(name:"FullTestHarness", dependencies:["RAW_xchachapoly", "__crawdog_hchacha20-tests", "__crawdog_argon2-tests", "__crawdog_argon2", "RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "__crawdog_hmac-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_kdf"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"FullTestHarness", dependencies:["__crawdog_xchachapoly", "RAW_xchachapoly", "__crawdog_hchacha20-tests", "__crawdog_argon2-tests", "__crawdog_argon2", "RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "__crawdog_hmac-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_kdf"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )

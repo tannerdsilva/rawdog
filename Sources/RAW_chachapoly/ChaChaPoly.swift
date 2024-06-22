@@ -4,11 +4,11 @@ import __crawdog_chachapoly
 import RAW
 
 @RAW_staticbuff(bytes:12)
-public struct Nonce:Sendable {}
+public struct Nonce:Sendable, Equatable {}
 
 // poly1305 tag is 16 bytes
 @RAW_staticbuff(bytes:16)
-public struct Tag:Sendable {
+public struct Tag:Sendable, Equatable {
 	public init() {
 		self = Self(RAW_staticbuff:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 	}
@@ -20,11 +20,11 @@ public struct InvalidMACError:Swift.Error {
 
 // 16 byte key
 @RAW_staticbuff(bytes:16)
-public struct Key16:Sendable {}
+public struct Key16:Sendable, Equatable {}
 
 // 32 byte key
 @RAW_staticbuff(bytes:32)
-public struct Key32:Sendable {}
+public struct Key32:Sendable, Equatable {}
 
 public struct Context {
 	private var ctx:__crawdog_chachapoly_ctx

@@ -5,6 +5,8 @@ import RAW
 import RAW_chachapoly
 import __crawdog_chachapoly
 
+public typealias Key = Key32
+
 @RAW_staticbuff(bytes:24)
 public struct Nonce:Sendable {}
 

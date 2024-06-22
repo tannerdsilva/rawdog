@@ -37,12 +37,11 @@ int __crawdog_xchachapoly_crypt(__crawdog_xchachapoly_ctx *ctx, const void *nonc
     
 	unsigned char subkey[XCHACHA_KEY_SIZE];
 	unsigned char chacha_nonce[CHACHA_NONCE_SIZE];
-	const unsigned char *hchacha_nonce = nonce; // first 16 bytes of the 24 byte nonce
 
 	// derive subkey using HChaCha20
-	int result = __crawdog_hchacha20(subkey, hchacha_nonce, ctx->key, (const unsigned char *)"expand 32-byte k");
+	int result = __crawdog_hchacha20(subkey, nonce, ctx->key, (const unsigned char *)"expand 32-byte k");
 	if (result != 0) {
-		return -1; // Handle the error appropriately
+		return -1;
 	}
 
 	struct __crawdog_chachapoly_ctx chacha_ctx;
@@ -51,7 +50,8 @@ int __crawdog_xchachapoly_crypt(__crawdog_xchachapoly_ctx *ctx, const void *nonc
     __crawdog_chachapoly_init(&chacha_ctx, subkey, XCHACHA_KEY_SIZE);
 
     // prepare nonce for ChaCha20-Poly1305 (last 8 bytes of the original nonce)
-    memcpy(chacha_nonce, ((const unsigned char*)nonce) + 16, CHACHA_NONCE_SIZE);
+    memcpy(chacha_nonce + 4, ((const unsigned char*)nonce) + 16, 8);
+	memset(chacha_nonce, 0, 4);
 
     // perform the actual encryption or decryption
     return __crawdog_chachapoly_crypt(&chacha_ctx, chacha_nonce, ad, ad_len, input, input_len, output, tag, tag_len, encrypt);
