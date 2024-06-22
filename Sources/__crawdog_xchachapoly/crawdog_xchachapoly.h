@@ -4,6 +4,7 @@
 #define __CRAWDOG_XCHACHAPOLY_H
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #define XCHACHA_NONCE_SIZE 24
 #define CHACHA_NONCE_SIZE 12
