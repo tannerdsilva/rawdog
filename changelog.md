@@ -12,6 +12,10 @@
 
 		- `RAW_blake2\Hasher` now supports `UnsafeMutableRawPointer` as an output type.
 
+		- `RAW_byte` convenience type now conforms to more protocols.
+
+		- Large array of new cryptography functions added (with tests).
+
 ## 12.1.0
 
 - rawdog source code now includes a powerful and complete suite of cryptographic source material. README.md outlines the cryptography included and the original sources for all functions, which are heavily modified in a multitude of ways.

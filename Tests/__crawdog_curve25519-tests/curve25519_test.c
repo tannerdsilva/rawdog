@@ -165,7 +165,6 @@ int speed_test(int loops)
         ecp_PrintHexBytes("sk", secret_key, 32);
         ecp_PrintHexBytes("mehdi_pk", mehdi_publickey, 32);
         ecp_PrintHexBytes("donna_pk", donna_publickey, 32);
-        printf("\n*********** Public keys do not match!! ********************\n");
         return 1;
     }
 
@@ -205,12 +204,6 @@ int speed_test(int loops)
     }
     tm -= tovr;
 
-    printf ("\n-- curve25519-DH --\n"
-            "    Donna: %lu cycles = %.3f usec @3.4GHz -- ratio: %.3f\n", 
-        td, (double)td/3400.0, (double)td/(double)tm);
-    printf ("    Mehdi: %lu cycles = %.3f usec @3.4GHz -- delta: %.2f%%\n", 
-        tm, (double)tm/3400.0, (100.0*(td-tm))/(double)td);
-
     /* --------------------------------------------------------------------- */
     /* Faster implementation using folding of 8 */
     /* --------------------------------------------------------------------- */
@@ -222,12 +215,6 @@ int speed_test(int loops)
         if (t2 < tm) tm = t2;
     }
     tm -= tovr;
-
-    printf ("\n-- curve25519-DH (w/folding) --\n"
-            "    Donna: %lu cycles = %.3f usec @3.4GHz -- ratio: %.3f\n", 
-        td, (double)td/3400.0, (double)td/(double)tm);
-    printf ("    Mehdi: %lu cycles = %.3f usec @3.4GHz -- delta: %.2f%%\n", 
-        tm, (double)tm/3400.0, (100.0*(td-tm))/(double)td);
 
     /* --------------------------------------------------------------------- */
     /* Speed measurement for ed25519 keygen, sign and verify */
@@ -242,9 +229,6 @@ int speed_test(int loops)
     }
     tm -= tovr;
 
-    printf ("\n-- ed25519 --\n"
-            "    KeyGen: %lu cycles = %.3f usec @3.4GHz\n", tm, (double)tm/3400.0);
-
     /* --------------------------------------------------------------------- */
     tm = (U64)(-1);
     for (i = 0; i < loops; i++)
@@ -255,8 +239,6 @@ int speed_test(int loops)
         if (t2 < tm) tm = t2;
     }
     tm -= tovr;
-
-    printf ("      Sign: %lu cycles = %.3f usec @3.4GHz\n", tm, (double)tm/3400.0);
 
     /* --------------------------------------------------------------------- */
     /* Speed measurement for ed25519 keygen, sign using blinding */
@@ -273,9 +255,6 @@ int speed_test(int loops)
     }
     tm -= tovr;
 
-    printf ("    KeyGen: %lu cycles = %.3f usec @3.4GHz (Blinded)\n", 
-        tm, (double)tm/3400.0);
-
     /* --------------------------------------------------------------------- */
     tm = (U64)(-1);
     for (i = 0; i < loops; i++)
@@ -286,9 +265,6 @@ int speed_test(int loops)
         if (t2 < tm) tm = t2;
     }
     tm -= tovr;
-
-    printf ("      Sign: %lu cycles = %.3f usec @3.4GHz (Blinded)\n", 
-        tm, (double)tm/3400.0);
 
     __crawdog_ed25519_blinding_finish(blinding);
 
@@ -303,7 +279,6 @@ int speed_test(int loops)
     }
     tm -= tovr;
 
-    printf ("    Verify: %lu cycles = %.3f usec @3.4GHz\n", tm, (double)tm/3400.0);
     /* --------------------------------------------------------------------- */
     tm = (U64)(-1);
     for (i = 0; i < loops; i++)
@@ -315,8 +290,6 @@ int speed_test(int loops)
     }
     tm -= tovr;
 
-    printf ("    Verify: %lu cycles = %.3f usec @3.4GHz (Init)\n", 
-        tm, (double)tm/3400.0);
     /* --------------------------------------------------------------------- */
     tm = (U64)(-1);
     for (i = 0; i < loops; i++)
@@ -327,9 +300,6 @@ int speed_test(int loops)
         if (t2 < tm) tm = t2;
     }
     tm -= tovr;
-
-    printf ("            %lu cycles = %.3f usec @3.4GHz (Check)\n", 
-        tm, (double)tm/3400.0);
 
     __crawdog_ed25519_verify_finish(ver_context);
 
