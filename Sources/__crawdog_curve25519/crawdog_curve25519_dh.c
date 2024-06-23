@@ -177,8 +177,7 @@ void __crawdog_curve25519_forge_private_key(
 void __crawdog_curve25519_calculate_shared_key(
     unsigned char *shared,      /* [32-bytes] OUT: Created shared key */
     const unsigned char *pk,    /* [32-bytes] IN: Other side's public key */
-    unsigned char *sk)          /* [32-bytes] IN/OUT: Your secret key */
+    const unsigned char *sk)          /* [32-bytes] IN/OUT: Your secret key */
 {
-    ecp_TrimSecretKey(sk);
     ecp_PointMultiply(shared, pk, sk, 32);
 }
