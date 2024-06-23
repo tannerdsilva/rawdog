@@ -29,4 +29,15 @@ public struct PrivateKey:Sendable {
 
 /// represents a shared key in the curve25519 key exchange
 @RAW_staticbuff(bytes:32)
-public struct SharedKey:Sendable {}
+public struct SharedKey:Sendable {
+	public static func compute(privateKey:borrowing PrivateKey, publicKey:consuming PublicKey) -> SharedKey {
+		let newSharedKey = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:MemoryLayout<Self>.size)
+		defer { newSharedKey.deallocate() }
+		privateKey.RAW_access_staticbuff({ publicKeyPtr in
+			publicKey.RAW_access_staticbuff({ privateKeyPtr in
+				__crawdog_curve25519_calculate_shared_key(newSharedKey.baseAddress, publicKeyPtr, privateKeyPtr)
+			})
+		})
+		return Self(RAW_staticbuff:newSharedKey.baseAddress!)
+	}
+}
