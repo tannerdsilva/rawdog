@@ -28,6 +28,6 @@ void __crawdog_xchachapoly_init(__crawdog_xchachapoly_ctx *ctx, const void *key)
 /// @param nonce the 24 byte nonce to use
 /// @param ad the associated data
 /// @param ad_len the length of the associated data
-int __crawdog_xchachapoly_crypt(__crawdog_xchachapoly_ctx *ctx, const void *nonce, const void *ad, int ad_len, void *input, int input_len, void *output, void *tag, int tag_len, int encrypt);
+int __crawdog_xchachapoly_crypt(__crawdog_xchachapoly_ctx *ctx, const void *nonce, const void *ad, int ad_len, const void *input, int input_len, void *output, void *tag, int tag_len, int encrypt);
 
 #endif

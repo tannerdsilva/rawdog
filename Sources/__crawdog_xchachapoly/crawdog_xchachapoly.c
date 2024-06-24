@@ -33,7 +33,7 @@ void __crawdog_xchachapoly_init(__crawdog_xchachapoly_ctx *ctx, const void *key)
  * \return __CRAWDOG_XCHACHAPOLY_OK if no error, __CRAWDOG_XCHACHAPOLY_INVALID_MAC if auth
  *         failed when decrypting
  */
-int __crawdog_xchachapoly_crypt(__crawdog_xchachapoly_ctx *ctx, const void *nonce, const void *ad, int ad_len, void *input, int input_len, void *output, void *tag, int tag_len, int encrypt) {
+int __crawdog_xchachapoly_crypt(__crawdog_xchachapoly_ctx *ctx, const void *nonce, const void *ad, int ad_len, const void *input, int input_len, void *output, void *tag, int tag_len, int encrypt) {
     
 	unsigned char subkey[XCHACHA_KEY_SIZE];
 	unsigned char chacha_nonce[CHACHA_NONCE_SIZE];

@@ -126,7 +126,7 @@ int __crawdog_chachapoly_init(struct __crawdog_chachapoly_ctx *ctx, const void *
 }
 
 int __crawdog_chachapoly_crypt(struct __crawdog_chachapoly_ctx *ctx, const void *nonce,
-        const void *ad, int ad_len, void *input, int input_len,
+        const void *ad, int ad_len, const void *input, int input_len,
         void *output, void *tag, int tag_len, int encrypt)
 {
     unsigned char poly_key[__CRAWDOG_CHACHA_BLOCKLEN];
