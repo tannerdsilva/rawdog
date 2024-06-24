@@ -69,6 +69,9 @@ let package = Package(
 			name:"RAW_chachapoly",
 			targets: ["RAW_chachapoly"]),
 		.library(
+			name:"RAW_xchachapoly",
+			targets: ["RAW_xchachapoly"]),
+		.library(
 			name:"RAW_argon2",
 			targets: ["RAW_argon2"]),
 	],
@@ -89,7 +92,7 @@ let package = Package(
 		], swiftSettings:[]),
 
 		// raw targets
-		.target(name:"RAW_xchachapoly", dependencies:["RAW", "__crawdog_hchacha20", "__crawdog_chachapoly", "RAW_chachapoly"]),
+		.target(name:"RAW_xchachapoly", dependencies:["RAW", "__crawdog_hchacha20", "__crawdog_chachapoly", "RAW_chachapoly", "__crawdog_xchachapoly"]),
 		.target(name:"RAW_mnemonic", dependencies:["RAW", "RAW_blake2"]),
 		.target(name:"RAW_argon2", dependencies:["RAW", "__crawdog_argon2"]),
 		.target(name:"RAW_hmac", dependencies: ["RAW"]),
