@@ -20,10 +20,10 @@ final class xchachapolyTests: XCTestCase {
 		defer {
 			buffer.deallocate()
 		}
-		let returnedTag = try plaintextData.RAW_access_mutating { ptPtr in
+		let returnedTag = try plaintextData.RAW_access { ptPtr in
 			return try aad.RAW_access { aadPtr in
 				var context = RAW_xchachapoly.Context(key:key)
-				return try context.encrypt(nonce:nonce, associatedData:UnsafeRawBufferPointer(aadPtr), inputData:UnsafeMutableRawBufferPointer(start:ptPtr.baseAddress, count:ptPtr.count), output:UnsafeMutableRawPointer(buffer.baseAddress!))
+				return try context.encrypt(nonce:nonce, associatedData:aadPtr, inputData:ptPtr, output:buffer.baseAddress!)
 			}
 		}
 		let expectedTag = RAW_chachapoly.Tag(RAW_staticbuff:try RAW_hex.decode("c0875924c1c7987947deafd8780acf49"))
@@ -43,9 +43,9 @@ final class xchachapolyTests: XCTestCase {
 			defer {
 				byteBuffer.deallocate()
 			}
-			let tag = try plaintext.RAW_access_mutating { ptPtr in
+			let tag = try plaintext.RAW_access { ptPtr in
 				return try [UInt8]().RAW_access { adBuff in
-					return try context.encrypt(nonce:testNonce, associatedData:UnsafeRawBufferPointer(adBuff), inputData:UnsafeMutableRawBufferPointer(ptPtr), output:UnsafeMutableRawPointer(byteBuffer.baseAddress!))
+					return try context.encrypt(nonce:testNonce, associatedData:adBuff, inputData:ptPtr, output:byteBuffer.baseAddress!)
 				}
 			}
 			let decryptedBytes = [UInt8](byteBuffer)
@@ -56,7 +56,7 @@ final class xchachapolyTests: XCTestCase {
 			}
 			try plaintext.RAW_access { ptPtr in
 				return try [UInt8]().RAW_access { adBuff in
-					return try context.decrypt(tag:tag, nonce:testNonce, associatedData:UnsafeRawBufferPointer(adBuff), inputData:UnsafeMutableRawBufferPointer(byteBuffer), output:UnsafeMutableRawPointer(reverseText.baseAddress!))
+					return try context.decrypt(tag:tag, nonce:testNonce, associatedData:adBuff, inputData:UnsafeBufferPointer<UInt8>(byteBuffer), output:reverseText.baseAddress!)
 				}
 			}
 			let reverseBytes = [UInt8](reverseText)
