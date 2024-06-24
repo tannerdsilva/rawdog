@@ -5,7 +5,11 @@ import RAW
 import RAW_chachapoly
 import __crawdog_chachapoly
 
+/// the key type that is used in xchach20apoly1305 operations
 public typealias Key = Key32
+
+/// the tag type that is used on xchacha20poly1305 operations
+public typealias Tag = RAW_chachapoly.Tag
 
 @RAW_staticbuff(bytes:24)
 public struct Nonce:Sendable {}
@@ -39,7 +43,7 @@ public struct Context {
 	///		- inputData: the data to encrypt
 	///		- output: the output buffer to write the encrypted data to. must be at least as large as the input data.
 	/// - returns: the tag that was generated for this encryption
-	public mutating func encrypt(nonce:consuming Nonce, associatedData:UnsafeRawBufferPointer, inputData:UnsafeMutableRawBufferPointer, output:UnsafeMutableRawPointer) throws -> Tag {
+	public mutating func encrypt(nonce:consuming Nonce, associatedData:UnsafeRawBufferPointer, inputData:UnsafeBufferPointer<UInt8>, output:UnsafeMutablePointer<UInt8>) throws -> Tag {
 		var newTag = Tag()
 		let result = nonce.RAW_access_staticbuff { noncePtr in
 			return newTag.RAW_access_staticbuff_mutating { tagPtr in
@@ -61,7 +65,7 @@ public struct Context {
 	///		- tag: the tag to authenticate the decryption
 	///		- nonce: the nonce to use for this decryption
 	///		- associatedData: the associated data to use for this decryption. may be zero length.
-	public mutating func decrypt(tag:consuming Tag, nonce:consuming Nonce, associatedData:UnsafeRawBufferPointer, inputData:UnsafeMutableRawBufferPointer, output:UnsafeMutableRawPointer) throws {
+	public mutating func decrypt(tag:consuming Tag, nonce:consuming Nonce, associatedData:UnsafeRawBufferPointer, inputData:UnsafeBufferPointer<UInt8>, output:UnsafeMutablePointer<UInt8>) throws {
 		let result = nonce.RAW_access_staticbuff { noncePtr in
 			tag.RAW_access_staticbuff_mutating { tagPtr in 
 				return __crawdog_xchachapoly_crypt(&self.ctx, noncePtr, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr, Int32(MemoryLayout<Tag>.size), 0)

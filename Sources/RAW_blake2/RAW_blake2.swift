@@ -141,7 +141,11 @@ public struct Hasher<H:RAW_blake2_func_impl, O> {
 	public mutating func update(_ input:UnsafeRawBufferPointer) throws {
 		try RAW_blake2_func_type.update(state:&state, input_data_ptr:input.baseAddress!, input_data_size:input.count)
 	}
-
+	
+	public mutating func update(_ input:UnsafeBufferPointer<UInt8>) throws {
+		try RAW_blake2_func_type.update(state:&state, input_data_ptr:input.baseAddress!, input_data_size:input.count)
+	}
+	
 	// finishing processes for this struct will vary based on the output type
 }
 
