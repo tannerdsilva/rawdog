@@ -3,18 +3,14 @@ import RAW
 public struct HMAC<H:RAW_hasher> {
 	private var innerContext:RAW_hasher
 	private var outerContext:RAW_hasher
-
 	public init<K>(key:borrowing K) throws where K:RAW_accessible {
 		let scratch = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: Int(H.RAW_hasher_blocksize))
 		defer { scratch.deallocate() }
 		scratch.initialize(repeating:0x36)
 		innerContext = try! H.init()
 		outerContext = try! H.init()
-		
 		let useKey = try key.RAW_access { keyBuffer in
-			// prepare the key and pads
 			if (keyBuffer.count > H.RAW_hasher_blocksize) {
-				// key is longer than block size so hash it first
 				defer {
 					innerContext = try! H.init()
 				}
@@ -24,8 +20,6 @@ public struct HMAC<H:RAW_hasher> {
 				return [UInt8](RAW_decode:keyBuffer.baseAddress!, count:keyBuffer.count)
 			}
 		}
-
-		// xor the key with the ipad and opad
 		for (i, b) in useKey.enumerated() {
 			scratch[i] ^= b
 		}

@@ -3,8 +3,7 @@ import RAW
 
 extension RAW_hasher {
 	public static func hkdfExtract(salt: [UInt8]?, ikm: [UInt8]) throws -> [UInt8] {
-		// Use the correctly formatted salt to perform HMAC
-		return try Self.hmac(key:salt ?? [UInt8](repeating: 0, count: Self.RAW_hasher_outputsize), message: ikm)
+		return try Self.hmac(key:salt ?? [UInt8](repeating:0, count:Self.RAW_hasher_outputsize), message: ikm)
 	}
 
 	public static func hkdfExpand(prk:[UInt8], info:[UInt8]?, len: Int) throws -> [UInt8] {
