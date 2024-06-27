@@ -40,18 +40,20 @@ public struct Context {
 		}
 	}
 	
-	public init(key:borrowing Key32) {
+	// 32 byte key
+	public init<K32>(key:borrowing K32) where K32:RAW_staticbuff, K32.RAW_staticbuff_storetype == Key32.RAW_staticbuff_storetype {
 		var newContext = __crawdog_chachapoly_ctx()
 		key.RAW_access_staticbuff {
-			_ = __crawdog_chachapoly_init(&newContext, $0, Int32(MemoryLayout<Key32>.size))
+			_ = __crawdog_chachapoly_init(&newContext, $0, Int32(MemoryLayout<K32>.size))
 		}
 		self.ctx = newContext
 	}
 	
-	public init(key:borrowing Key16) {
+	// 16 byte key
+	public init<K16>(key:borrowing K16) where K16:RAW_staticbuff, K16.RAW_staticbuff_storetype == Key16.RAW_staticbuff_storetype{
 		var newContext = __crawdog_chachapoly_ctx()
 		key.RAW_access_staticbuff {
-			_ = __crawdog_chachapoly_init(&newContext, $0, Int32(MemoryLayout<Key16>.size))
+			_ = __crawdog_chachapoly_init(&newContext, $0, Int32(MemoryLayout<K16>.size))
 		}
 		self.ctx = newContext
 	}
