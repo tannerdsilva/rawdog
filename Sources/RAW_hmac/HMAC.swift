@@ -44,7 +44,7 @@ public struct HMAC<H:RAW_hasher> {
 }
 
 extension RAW_hasher {
-	public static func hmac<K,M>(key:borrowing K, message:borrowing M) throws -> [UInt8] where K:RAW_accessible, M:RAW_accessible {
+	public static func hmac<K, M>(key:borrowing K, message:borrowing M) throws -> [UInt8] where K:RAW_accessible, M:RAW_accessible {
 		var hmac = try HMAC<Self>(key:key)
 		try hmac.update(message:message)
 		return try hmac.finish()

@@ -5,13 +5,16 @@ import RAW
 @RAW_staticbuff(bytes:32)
 public struct PublicKey:Sendable {
 	/// generates a public key from a private key
-	public init(_ privateKey:borrowing PrivateKey) {
+	public init(_ privateKey:UnsafePointer<PrivateKey>) {
 		var newPublicKey = PublicKey(RAW_staticbuff:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-		privateKey.RAW_access_staticbuff({ privateKeyPtr in
-			newPublicKey.RAW_access_staticbuff_mutating({ publicKeyPtr in
-				__crawdog_curve25519_calculate_public_key(publicKeyPtr, privateKeyPtr)
-			})
+		newPublicKey.RAW_access_staticbuff_mutating({ publicKeyPtr in
+			__crawdog_curve25519_calculate_public_key(publicKeyPtr, privateKey)
 		})
+		defer {
+			newPublicKey.RAW_access_staticbuff_mutating { publicKeyPtr in
+				secureZeroBytes(publicKeyPtr, count:32)
+			}
+		}
 		self = newPublicKey
 	}
 }
@@ -23,6 +26,11 @@ public struct PrivateKey:Sendable {
 	public init() throws {
 		var randomSource = try generateSecureRandomBytes(as:PrivateKey.self)
 		__crawdog_curve25519_forge_private_key(&randomSource)
+		defer {
+			randomSource.RAW_access_staticbuff_mutating { privateKeyPtr in
+				secureZeroBytes(privateKeyPtr, count:32)
+			}
+		}
 		self = randomSource
 	}
 }
@@ -30,14 +38,14 @@ public struct PrivateKey:Sendable {
 /// represents a shared key in the curve25519 key exchange
 @RAW_staticbuff(bytes:32)
 public struct SharedKey:Sendable {
-	public static func compute(privateKey:borrowing PrivateKey, publicKey:consuming PublicKey) -> SharedKey {
-		let newSharedKey = UnsafeMutableBufferPointer<UInt8>.allocate(capacity:MemoryLayout<Self>.size)
-		defer { newSharedKey.deallocate() }
-		privateKey.RAW_access_staticbuff({ publicKeyPtr in
-			publicKey.RAW_access_staticbuff({ privateKeyPtr in
-				__crawdog_curve25519_calculate_shared_key(newSharedKey.baseAddress, publicKeyPtr, privateKeyPtr)
-			})
-		})
-		return Self(RAW_staticbuff:newSharedKey.baseAddress!)
+	public static func compute(privateKey:UnsafePointer<PrivateKey>, publicKey:UnsafePointer<PublicKey>) -> SharedKey {
+		var newSharedKey = Self(RAW_staticbuff:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+		__crawdog_curve25519_calculate_shared_key(&newSharedKey, publicKey, privateKey)
+		defer {
+			newSharedKey.RAW_access_staticbuff_mutating { sharedKeyPtr in
+				secureZeroBytes(sharedKeyPtr, count:32)
+			}
+		}
+		return newSharedKey
 	}
 }

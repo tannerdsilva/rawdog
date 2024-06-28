@@ -75,3 +75,10 @@ public func generateSecureRandomBytes(as _:[UInt8].Type, count:size_t) throws ->
 		count = Int(count)
 	})
 }
+
+public func secureZeroBytes(_ bytes:UnsafeMutableRawPointer, count:size_t) {
+	__craw_secure_zero_bytes(bytes, count)
+	guard __craw_assert_secure_zero_bytes(bytes, count) == 0 else {
+		fatalError("memory assignment failure \(#file):\(#line)")
+	}
+}

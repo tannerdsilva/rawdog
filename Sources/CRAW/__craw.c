@@ -1,4 +1,5 @@
 #include "__craw.h"
+#include <stdint.h>
 
 int __craw_get_system_errno() {
 	return errno;
@@ -70,4 +71,20 @@ int __craw_get_entropy_bytes(uint8_t *out, const size_t len) {
 	close(fd);
 	return i < len ? ret : 0;
 	#endif
+}
+
+void __craw_secure_zero_bytes(uint8_t *ptr, size_t size) {
+    volatile uint8_t *volatile p = ptr;
+    while (size--) {
+        *p++ = 0;
+    }
+}
+
+uint64_t __craw_assert_secure_zero_bytes(const uint8_t *volatile ptr, size_t size) {
+    const volatile uint8_t *volatile p = (const volatile uint8_t *)ptr;
+	volatile uint64_t sum = 0;
+    for (size_t i = 0; i < size; i++) {
+		sum |= p[i];
+    }
+	return sum;
 }

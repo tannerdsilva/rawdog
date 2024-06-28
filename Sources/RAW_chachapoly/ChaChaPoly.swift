@@ -39,6 +39,20 @@ public struct Context {
 				return nil
 		}
 	}
+
+	// pointer to 32 byte key
+	public init<K32P>(key:UnsafePointer<K32P>) where K32P:RAW_staticbuff, K32P.RAW_staticbuff_storetype == Key32.RAW_staticbuff_storetype {
+		var newContext = __crawdog_chachapoly_ctx()
+		_ = __crawdog_chachapoly_init(&newContext, key, Int32(MemoryLayout<K32P>.size))
+		self.ctx = newContext
+	}
+
+	// pointer to 16 byte key
+	public init<K16P>(key:UnsafePointer<K16P>) where K16P:RAW_staticbuff, K16P.RAW_staticbuff_storetype == Key16.RAW_staticbuff_storetype {
+		var newContext = __crawdog_chachapoly_ctx()
+		_ = __crawdog_chachapoly_init(&newContext, key, Int32(MemoryLayout<K16P>.size))
+		self.ctx = newContext
+	}
 	
 	// 32 byte key
 	public init<K32>(key:borrowing K32) where K32:RAW_staticbuff, K32.RAW_staticbuff_storetype == Key32.RAW_staticbuff_storetype {
