@@ -8,6 +8,10 @@ extension __crawdog_blake2s_state:RAW_blake2_state_impl {}
 
 /// blake2s hasher implementation.
 public struct S:RAW_blake2_func_impl {
+
+	@RAW_staticbuff(bytes:32)
+	public struct Hash:Sendable {}
+
 	public static let RAW_blake2_func_impl_exec_init_nokey_f:RAW_blake2_func_impl_exec_init_nokey_t = __crawdog_blake2s_init
 	public static let RAW_blake2_func_impl_exec_init_keyed_f:RAW_blake2_func_impl_exec_init_keyed_t = __crawdog_blake2s_init_key
 	public static let RAW_blake2_func_impl_exec_update_f:RAW_blake2_func_impl_exec_update_t = __crawdog_blake2s_update
@@ -19,7 +23,7 @@ public struct S:RAW_blake2_func_impl {
 	public static let RAW_blake2_func_impl_blocklen = __CRAWDOG_BLAKE2S_BLOCKBYTES.rawValue
 	public static let RAW_blake2_func_impl_outlen = __CRAWDOG_BLAKE2S_OUTBYTES.rawValue
 
-	public typealias RAW_blake2_func_impl_outtype = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
+	public typealias RAW_blake2_func_impl_outtype = Hash
 }
 
 extension S:RAW_blake2_func_impl_initparam {

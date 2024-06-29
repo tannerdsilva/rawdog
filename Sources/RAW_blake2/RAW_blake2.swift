@@ -85,7 +85,7 @@ public protocol RAW_blake2_func_impl {
 	static var RAW_blake2_func_impl_blocklen:UInt32 { get }
 
 	/// the static output type of the hashing implementation in question.
-	associatedtype RAW_blake2_func_impl_outtype
+	associatedtype RAW_blake2_func_impl_outtype:RAW_staticbuff
 }
 
 extension RAW_blake2_func_impl {
@@ -130,12 +130,12 @@ extension RAW_blake2_func_impl {
 }
 
 /// main blake2 hasher
-public struct Hasher<H:RAW_blake2_func_impl, O> {
+public struct Hasher<H:RAW_blake2_func_impl, RAW_blake2_out_type> {
 	/// the hashing variant that this hasher has implemented.
 	public typealias RAW_blake2_func_type = H
 
 	/// the output type of the hashing variant that this hasher has implemented.
-	public typealias RAW_blake2_out_type = O
+	public typealias RAW_blake2_out_type = H.RAW_blake2_func_impl_outtype
 
 	/// internal state of the hasher
 	internal var state:H.RAW_blake2_statetype
@@ -148,8 +148,21 @@ public struct Hasher<H:RAW_blake2_func_impl, O> {
 	public mutating func update(_ input:UnsafeBufferPointer<UInt8>) throws {
 		try RAW_blake2_func_type.update(state:&state, input_data_ptr:input.baseAddress!, input_data_size:input.count)
 	}
-	
-	// finishing processes for this struct will vary based on the output type
+}
+
+extension Hasher:RAW_hasher where RAW_blake2_out_type:RAW_staticbuff, RAW_blake2_out_type.RAW_staticbuff_storetype == RAW_blake2_func_type.RAW_blake2_func_impl_outtype.RAW_staticbuff_storetype {
+	public static var RAW_hasher_blocksize: size_t {
+		size_t(H.RAW_blake2_func_impl_blocklen)
+	}
+
+	public typealias RAW_hasher_outputtype = RAW_blake2_out_type
+
+	public mutating func finish<O>(into output:inout Optional<O>) throws where O:RAW_staticbuff, O.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype {
+		output = O(RAW_staticbuff: O.RAW_staticbuff_zeroed())
+		try output!.RAW_access_staticbuff_mutating { buffer in
+			try RAW_blake2_func_type.finalize(state: &state, output_data_ptr: buffer)
+		}
+	}
 }
 
 extension Hasher {
@@ -252,8 +265,6 @@ extension Hasher where RAW_blake2_out_type:RAW_staticbuff {
 		return RAW_blake2_out_type(RAW_decode:finalBytes)!
 	}
 }
-
-// extension Hasher:RAW_hasher where RAW_blake2_out_type:RAW_staticbuff, RAW_blake2_out_type.RAW_staticbuff_storetype == RAW_blake2_fu
 	
 // 	public typealias RAW_hasher_outputtype = RAW_blake2_out_type
 	
@@ -285,15 +296,15 @@ extension Hasher where RAW_blake2_out_type:RAW_staticbuff {
 // 		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:outputLength)
 // 	}
 
-// 	public mutating func finish<K>(into destination:inout Optional<K>) throws where K:RAW_staticbuff, K.RAW_staticbuff_storetype == RAW_blake2_out_type.RAW_staticbuff_storetype {
-// 		destination = K.RAW_staticbuff_zeroed()
-// 		try destination!.RAW_access_staticbuff_mutating { buffer in
-// 			try RAW_blake2_func_type.finalize(state:&state, output_data_ptr:buffer)
-// 		}
-// 	}
+	// public mutating func finish<K>(into destination:inout Optional<K>) throws where K:RAW_staticbuff, K.RAW_staticbuff_storetype == RAW_blake2_out_type.RAW_staticbuff_storetype {
+	// 	destination = K.RAW_staticbuff_zeroed()
+	// 	try destination!.RAW_access_staticbuff_mutating { buffer in
+	// 		try RAW_blake2_func_type.finalize(state:&state, output_data_ptr:buffer)
+	// 	}
+	// }
 // }
 
-extension Hasher where H:RAW_blake2_func_impl_initparam, O == [UInt8] {
+extension Hasher where H:RAW_blake2_func_impl_initparam, RAW_blake2_out_type == [UInt8] {
 	public init(param:UnsafePointer<H.RAW_blake2_paramtype>) throws {
 		var newState = H.RAW_blake2_statetype()
 		try H.create(state:&newState, param:param)

@@ -37,6 +37,40 @@ public struct HMAC<H:RAW_hasher> {
 		try outerContext.update(scratch)
 	}
 
+	public init<K>(key:UnsafePointer<K>) throws where K:RAW_accessible {
+		let scratch = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: Int(H.RAW_hasher_blocksize))
+		defer { scratch.deallocate() }
+		scratch.initialize(repeating:0x36)
+		innerContext = try! H.init()
+		outerContext = try! H.init()
+		let useKey = try key.pointee.RAW_access { keyBuffer in
+			if (keyBuffer.count > H.RAW_hasher_blocksize) {
+				defer {
+					innerContext = try! H.init()
+				}
+				try innerContext.update(keyBuffer)
+				
+				var useKey:H.RAW_hasher_outputtype? = nil
+				try innerContext.finish(into:&useKey)
+				return useKey!.RAW_access { keyBuffer in
+					return [UInt8](RAW_decode:keyBuffer.baseAddress!, count:keyBuffer.count)
+				}
+			} else {
+				return [UInt8](RAW_decode:keyBuffer.baseAddress!, count:keyBuffer.count)
+			}
+		}
+		for (i, b) in useKey.enumerated() {
+			scratch[i] ^= b
+		}
+		try innerContext.update(scratch)
+
+		scratch.initialize(repeating:0x5c)
+		for (i, b) in useKey.enumerated() {
+			scratch[i] ^= b
+		}
+		try outerContext.update(scratch)
+	}
+
 	public mutating func update<M>(message:borrowing M) throws where M:RAW_accessible {
 		try innerContext.update(message)
 	}
