@@ -5,6 +5,9 @@ import __crawdog_hmac_tests
 import RAW_hex
 import RAW
 
+@RAW_staticbuff(bytes: 20)
+fileprivate struct SHA1Hash:Sendable {}
+
 class HMACSHA1Tests: XCTestCase {
     
     func testHMACSHA1() throws {
@@ -30,10 +33,12 @@ class HMACSHA1Tests: XCTestCase {
         return output 
     }
 
-	func hmacSHA1(key: [UInt8], message: [UInt8]) throws -> [UInt8] {
-		var hmac = try HMAC<RAW_sha1.Hasher>(key: key)
+	fileprivate func hmacSHA1(key: [UInt8], message: [UInt8]) throws -> [UInt8] {
+		var hmac = try HMAC<RAW_sha1.Hasher<SHA1Hash>>(key: key)
 		try hmac.update(message:message)
-		return try hmac.finish()
+		return try hmac.finish().RAW_access({
+			return [UInt8](RAW_decode:$0.baseAddress!, count:$0.count)
+		})
 	}
 
     func randomBytes(count: Int) -> [UInt8] {

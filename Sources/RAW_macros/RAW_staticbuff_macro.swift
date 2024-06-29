@@ -200,7 +200,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 		""")]
 	}
 
-	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+	public static func expansion(of node:SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
 		// parse for the attached declaration
 		let structFinder = StructFinder(viewMode: .sourceAccurate)
 		structFinder.walk(declaration)
@@ -233,7 +233,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.error("could not parse macro usage.")
 			#endif
-			fatalError()
+			return []
 		}
 
 		// find the variable decls in the struct
@@ -346,17 +346,34 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 						return \(varName)
 					}
 				"""))
+
+				declString.append(DeclSyntax("""
+					/// compare two instances of the same type.
+					\(asStruct.modifiers) static func RAW_staticbuff_zeroed() -> RAW_staticbuff_storetype {
+						return \(raw:generateZeroLiteralExpression(byteCount:UInt16(byteCount)))
+					}
+				"""))
+
 			// emit a comparison operator that equates to a linear execution of the various members of the staticbuff
 			case .concatType(let tokens):
 				// assemble the primary extension declaration.
 				var buildStoreTypes:[String] = []
+				var buildZeroedCommand:[String] = []
 				for token in tokens {
 					buildStoreTypes.append("\(token.text).RAW_staticbuff_storetype")
+					buildZeroedCommand.append("\(token.text).RAW_staticbuff_zeroed()")
 				}
 				declString.append(
 					DeclSyntax("""
 					/// \(raw:tokens.count)x UInt8 literal type
 					\(raw:asStruct.modifiers) typealias RAW_staticbuff_storetype = (\(raw:buildStoreTypes.joined(separator: ", ")))
+				"""))
+				declString.append(
+					DeclSyntax("""
+					/// returns a zeroed instance of the RAW_staticbuff type.
+					\(raw:asStruct.modifiers) static func RAW_staticbuff_zeroed() -> RAW_staticbuff_storetype {
+						return (\(raw:buildZeroedCommand.joined(separator: ", ")))
+					}
 				"""))
 				var tokensDown = tokens
 				var varNameVarType = [TokenSyntax:IdentifierTypeSyntax]()
@@ -506,6 +523,10 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 							return UnsafeRawPointer(ptr).load(as:RAW_staticbuff_storetype.self)
 						}
 					}
+				"""))
+
+				declString.append(DeclSyntax("""
+
 				"""))
 			}
 

@@ -1,5 +1,5 @@
 import XCTest
-@testable import RAW_hkdf
+@testable import RAW_kdf
 import RAW_sha256
 // import __crawdog_hmac_tests
 import __crawdog_hkdf_tests
@@ -20,7 +20,9 @@ class HKDFTests: XCTestCase {
 									0xd7, 0xc2, 0xb3, 0xe5]
 
 		do {
-			let prk = try RAW_sha256.Hasher.hkdfExtract(salt: salt, ikm: ikm)
+			let prk = try RAW_sha256.Hasher<Hash>.hkdfExtract(salt: salt, ikm: ikm).RAW_access {
+				return [UInt8](RAW_decode:$0.baseAddress!, count:$0.count)
+			}
 			XCTAssertEqual(prk, expectedPRK)
 		} catch {
 			XCTFail("Error: \(error.localizedDescription)")
@@ -45,7 +47,7 @@ class HKDFTests: XCTestCase {
 									0x08, 0xd5, 0xb8, 0x87, 0x18, 0x58, 0x65]
 
 		do {
-			let okm = try RAW_sha256.Hasher.hkdfExpand(prk: prk, info: info, len: outputLength)
+			let okm = try RAW_sha256.Hasher<Hash>.hkdfExpand(prk: prk, info: info, len: outputLength)
 			XCTAssertEqual(okm, expectedOKM)
 		} catch {
 			XCTFail("Error: \(error.localizedDescription)")
@@ -70,7 +72,7 @@ class HKDFTests: XCTestCase {
 									0x08, 0xd5, 0xb8, 0x87, 0x18, 0x58, 0x65]
 
 		do {
-			let okm = try RAW_sha256.Hasher.hkdf(key: ikm, salt: salt, info: info, outputLength: outputLength)
+			let okm = try RAW_sha256.Hasher<Hash>.hkdf(key: ikm, salt: salt, info: info, outputLength: outputLength)
 			XCTAssertEqual(okm, expectedOKM)
 		} catch {
 			XCTFail("Error: \(error.localizedDescription)")

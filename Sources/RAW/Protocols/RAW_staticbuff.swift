@@ -18,6 +18,8 @@ public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed, RAW_
 	mutating func RAW_access_staticbuff_mutating<R>(_ body:(UnsafeMutableRawPointer) throws -> R) rethrows -> R
 
 	consuming func RAW_staticbuff() -> RAW_staticbuff_storetype
+
+	static func RAW_staticbuff_zeroed() -> RAW_staticbuff_storetype
 }
 
 extension RAW_staticbuff {

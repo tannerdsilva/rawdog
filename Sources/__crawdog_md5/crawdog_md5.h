@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #define __CRAWDOG_MD5_HASH_SIZE				16
-#define __CRAWDOG_MD5_BLOCK_SIZE	16
+#define __CRAWDOG_MD5_BLOCK_SIZE			16
 
 typedef struct {
     uint32_t     lo;

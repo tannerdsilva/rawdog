@@ -17,6 +17,8 @@ public struct B:RAW_blake2_func_impl {
 
 	public static let RAW_blake2_func_impl_blocklen = __CRAWDOG_BLAKE2B_BLOCKBYTES.rawValue
 	public static let RAW_blake2_func_impl_outlen = __CRAWDOG_BLAKE2B_OUTBYTES.rawValue
+
+	public typealias RAW_blake2_func_impl_outtype = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
 }
 
 extension B:RAW_blake2_func_impl_initparam {
