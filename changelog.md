@@ -1,3 +1,7 @@
+### 13.0.1
+
+- Fixed bug with xcode building.
+
 # 13.0.0
 	
 - Major releases going forward will do a better job at directly documenting breaking API changes.
