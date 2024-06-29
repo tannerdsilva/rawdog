@@ -165,6 +165,39 @@ extension Hasher:RAW_hasher where RAW_blake2_out_type:RAW_staticbuff, RAW_blake2
 	}
 }
 
+extension Hasher where RAW_blake2_out_type == UnsafeMutableRawPointer {
+	/// initialize the hasher, preparing it for use without a given key value.
+	public init(outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try Self.RAW_blake2_func_type.create(state:&state, output_length:outputLength)
+	}
+	
+	public init<A:RAW_accessible>(key:borrowing A, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try key.RAW_access { keyPtr in
+			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
+		}
+	}
+
+	public init<A:RAW_accessible>(key:UnsafePointer<A>, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try key.pointee.RAW_access { keyPtr in
+			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
+		}
+	}
+	
+	public init(key keyBuffer:UnsafeBufferPointer<UInt8>, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:outputLength)
+	}
+	
+	/// finish the hashing process and return the result as a byte array.
+	public mutating func finish(into output:UnsafeMutableRawPointer) throws -> UnsafeMutableRawPointer {
+		try RAW_blake2_func_type.finalize(state:&state, output_data_ptr:output)
+		return output
+	}
+}
+
 extension Hasher {
 	// initializers for this struct will vary based on the output type
 	public init() throws {
