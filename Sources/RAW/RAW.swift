@@ -1,6 +1,5 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
-import struct CRAW.size_t
 public typealias size_t = CRAW.size_t
 
 #if os(Linux)
@@ -11,6 +10,7 @@ import Darwin
 
 import CRAW
 
+public let RAW_memset = CRAW.memset
 public let RAW_memcmp = CRAW.memcmp
 public let RAW_memcpy = CRAW.memcpy
 public func RAW_strlen(_ str:UnsafeRawPointer) -> size_t {
@@ -29,10 +29,10 @@ internal let mainLogger = Logger(label:"RAW")
 
 @RAW_staticbuff(bytes:1)
 @RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
-public struct RAW_byte:Sendable {}
+public struct RAW_byte:Sendable, ExpressibleByIntegerLiteral, Hashable, Comparable, Equatable, Codable {}
 
 // MARK: Random Bytes
-public func generateSecureRandomBytes(count:Int) throws -> [UInt8] {
+public func generateRandomBytes(count:Int) throws -> [UInt8] {
 	struct GenerateRandomBytesError:Swift.Error {}
 	return try [UInt8](unsafeUninitializedCapacity:count) { buffer, initializedCount in
 		buffer.initialize(repeating:0)
@@ -48,5 +48,37 @@ public func generateSecureRandomBytes(count:Int) throws -> [UInt8] {
 			throw GenerateRandomBytesError()
 		}
 		initializedCount = count
+	}
+}
+
+/// this error is thrown when the secure random bytes generator fails to generate the requested number of bytes
+struct InvalidSecureRandomBytesLengthError:Error {}
+/// source of secure random bytes from the system. this is the most secure way to generate random bytes, and is limited to a maximum 256 bytes.
+/// - parameter S: the type of the static buffer to generate and return
+/// - returns: a static buffer of random bytes
+/// - throws: InvalidSecureRandomBytesLengthError if the requested number of bytes is greater than 256
+public func generateSecureRandomBytes<S>(as _:S.Type) throws -> S where S:RAW_staticbuff {
+	return S(RAW_staticbuff:try generateSecureRandomBytes(as:[UInt8].self, count:MemoryLayout<S>.size))
+}
+/// source of secure random bytes from the system. this is the most secure way to generate random bytes, and is limited to a maximum 256 bytes.
+/// - parameter [UInt8].Type: the type of the static buffer to generate and return
+/// - parameter count: the number of bytes to generate
+/// - returns: the byte array of bytes sourced
+public func generateSecureRandomBytes(as _:[UInt8].Type, count:size_t) throws -> [UInt8] {
+	guard count <= 256 else {
+		throw InvalidSecureRandomBytesLengthError()
+	}
+	return try [UInt8](unsafeUninitializedCapacity:Int(count), initializingWith: { buffer, count in
+		guard __craw_get_entropy_bytes(buffer.baseAddress, count) == 0 else {
+			throw InvalidSecureRandomBytesLengthError()
+		}
+		count = Int(count)
+	})
+}
+
+public func secureZeroBytes(_ bytes:UnsafeMutableRawPointer, count:size_t) {
+	__craw_secure_zero_bytes(bytes, count)
+	guard __craw_assert_secure_zero_bytes(bytes, count) == 0 else {
+		fatalError("memory assignment failure \(#file):\(#line)")
 	}
 }

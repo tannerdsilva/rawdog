@@ -1,6 +1,5 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
-import RAW_macros
 
 /// defines a type as a static buffer type. 
 /// when a type is a static buffer type, it is a fixed size with a "literally expressed" representation in memory. usually, the only way to ensure this is the case in Swift is to write everything as byte tuples (UInt8, UInt8...). thankfully, this macro provides a convenient way to write structures in this way.
@@ -11,12 +10,13 @@ import RAW_macros
 										named(RAW_access_staticbuff_mutating),
 										named(RAW_staticbuff),
 										named(RAW_access),
+										named(RAW_staticbuff_zeroed),
 										named(init(RAW_staticbuff:)),
 										named(RAW_encode(count:)),
 									 	named(RAW_encode(dest:)),
 										named(RAW_compare(lhs_data:lhs_count:rhs_data:rhs_count:)),
 										named(RAW_compare(lhs_data:rhs_data:)))
-@attached(extension,	conformances:	RAW_staticbuff, Sendable)
+@attached(extension,	conformances:	RAW_staticbuff)
 public macro RAW_staticbuff(bytes:size_t) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_macro")
 
 @attached(member, 		names:			named(RAW_staticbuff_storetype),
@@ -25,6 +25,7 @@ public macro RAW_staticbuff(bytes:size_t) = #externalMacro(module:"RAW_macros", 
 										named(RAW_access_staticbuff_mutating),
 										named(RAW_access),
 										named(RAW_staticbuff),
+										named(RAW_staticbuff_zeroed),
 										named(RAW_encode(count:)),
 									 	named(RAW_encode(dest:)),
 										named(RAW_compare(lhs_data:lhs_count:rhs_data:rhs_count:)),

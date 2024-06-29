@@ -3,7 +3,7 @@
 // Copyright (c) 2015 Grigori Goronzy <goronzy@kinoho.net>
 
 #include <stdio.h>
-#include "__crawdog_chachapoly.h"
+#include "crawdog_chachapoly.h"
 #include "testf.h"
 
 /* AEAD test vector from RFC 7539 */
@@ -42,7 +42,7 @@ int __crawdog_chachapoly_test_rfc7539(void)
         0x61, 0x16
     };
 
-    __crawdog_chachapoly_init(&ctx, key, 256);
+    __crawdog_chachapoly_init(&ctx, key, 32);
     __crawdog_chachapoly_crypt(&ctx, nonce, ad, 12, pt, 114, ct, tag, 16, 1);
 
     for (i = 0; i < 114; i++) {
@@ -84,7 +84,7 @@ int __crawdog_chachapoly_test_auth_only(void)
         0x03, 0xDC, 0xD0, 0x84, 0x04, 0x67, 0x80, 0xE6, 0x39, 0x50, 0x67, 0x0D, 0x3B, 0xBC, 0xC8, 0x95
     };
 
-    __crawdog_chachapoly_init(&ctx, key, 256);
+    __crawdog_chachapoly_init(&ctx, key, 32);
     __crawdog_chachapoly_crypt(&ctx, nonce, pt, 114, NULL, 0, NULL, tag, 16, 1);
 
     for (i = 0; i < 16; i++) {

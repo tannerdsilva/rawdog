@@ -1,3 +1,25 @@
+# 13.0.0
+	
+- Major releases going forward will do a better job at directly documenting breaking API changes.
+
+- Introduction of RAW_hasher protocol for hashing agnostic HMAC.
+
+- Breaking API changes in this release (compared to prior):
+
+	- Public API for hashing targets modified (mostly to align with RAW_hasher protocol).
+	
+	- Macro-free `RAW_staticbuff`s will find new function requirements to implement.
+
+- Other changes include:
+
+	- `RAW_blake2\Hasher` now supports `UnsafeMutableRawPointer` as an output type.
+
+	- `RAW_byte` convenience type now conforms to more protocols.
+
+	- Large array of new cryptography functions added (with tests).
+		
+		- Notably: argon2 hashing / kdf!
+
 ## 12.1.0
 
 - rawdog source code now includes a powerful and complete suite of cryptographic source material. README.md outlines the cryptography included and the original sources for all functions, which are heavily modified in a multitude of ways.

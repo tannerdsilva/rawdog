@@ -77,6 +77,15 @@ public protocol RAW_blake2_func_impl {
 	static var RAW_blake2_func_impl_exec_update_f:RAW_blake2_func_impl_exec_update_t { get }
 	/// finalize function
 	static var RAW_blake2_func_impl_exec_finalize_f:RAW_blake2_func_impl_exec_finalize_t { get }
+
+	// sizes related to the hashing implementation
+	/// the output length of the hashing implementation in question.
+	static var RAW_blake2_func_impl_outlen:UInt32 { get }
+	/// the block size of the hashing implementation in question.
+	static var RAW_blake2_func_impl_blocklen:UInt32 { get }
+
+	/// the static output type of the hashing implementation in question.
+	associatedtype RAW_blake2_func_impl_outtype:RAW_staticbuff
 }
 
 extension RAW_blake2_func_impl {
@@ -121,38 +130,91 @@ extension RAW_blake2_func_impl {
 }
 
 /// main blake2 hasher
-public struct Hasher<H:RAW_blake2_func_impl, O> {
+public struct Hasher<H:RAW_blake2_func_impl, RAW_blake2_out_type> {
 	/// the hashing variant that this hasher has implemented.
 	public typealias RAW_blake2_func_type = H
 
 	/// the output type of the hashing variant that this hasher has implemented.
-	public typealias RAW_blake2_out_type = O
+	public typealias RAW_blake2_out_type = H.RAW_blake2_func_impl_outtype
 
 	/// internal state of the hasher
 	internal var state:H.RAW_blake2_statetype
 
-	// initializers for this struct will vary based on the output type
-
-	/// update the hasher with the given bytes as input.
-	public mutating func update(input_data_ptr:UnsafePointer<UInt8>, input_data_size:size_t) throws {
-		try RAW_blake2_func_type.update(state:&state, input_data_ptr:input_data_ptr, input_data_size:input_data_size)
+	/// update the hasher with the given byte buffer as input.
+	public mutating func update(_ input:UnsafeRawBufferPointer) throws {
+		try RAW_blake2_func_type.update(state:&state, input_data_ptr:input.baseAddress!, input_data_size:input.count)
 	}
-
-	// finishing processes for this struct will vary based on the output type
+	
+	public mutating func update(_ input:UnsafeBufferPointer<UInt8>) throws {
+		try RAW_blake2_func_type.update(state:&state, input_data_ptr:input.baseAddress!, input_data_size:input.count)
+	}
 }
 
-extension Hasher {
-	public mutating func update<A>(_ accessible:borrowing A) throws where A:RAW_accessible {
-		try accessible.RAW_access { buffer in
-			try self.update(input_data_ptr:buffer.baseAddress!, input_data_size:buffer.count)
+extension Hasher:RAW_hasher where RAW_blake2_out_type:RAW_staticbuff, RAW_blake2_out_type.RAW_staticbuff_storetype == RAW_blake2_func_type.RAW_blake2_func_impl_outtype.RAW_staticbuff_storetype {
+	public static var RAW_hasher_blocksize: size_t {
+		size_t(H.RAW_blake2_func_impl_blocklen)
+	}
+
+	public typealias RAW_hasher_outputtype = RAW_blake2_out_type
+
+	public mutating func finish<O>(into output:inout Optional<O>) throws where O:RAW_staticbuff, O.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype {
+		output = O(RAW_staticbuff: O.RAW_staticbuff_zeroed())
+		try output!.RAW_access_staticbuff_mutating { buffer in
+			try RAW_blake2_func_type.finalize(state: &state, output_data_ptr: buffer)
 		}
 	}
 }
 
-extension Hasher where O == Array<UInt8> {
+extension Hasher where RAW_blake2_out_type == UnsafeMutableRawPointer {
+	/// initialize the hasher, preparing it for use without a given key value.
+	public init(outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try Self.RAW_blake2_func_type.create(state:&state, output_length:outputLength)
+	}
+	
+	public init<A:RAW_accessible>(key:borrowing A, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try key.RAW_access { keyPtr in
+			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
+		}
+	}
+
+	public init<A:RAW_accessible>(key:UnsafePointer<A>, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try key.pointee.RAW_access { keyPtr in
+			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
+		}
+	}
+	
+	public init(key keyBuffer:UnsafeBufferPointer<UInt8>, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:outputLength)
+	}
+	
 	/// finish the hashing process and return the result as a byte array.
-	public mutating func finish() throws -> Array<UInt8> {
-		return try RAW_blake2_func_type.finalize(state:&state, type:[UInt8].self)
+	public mutating func finish(into output:UnsafeMutableRawPointer) throws -> UnsafeMutableRawPointer {
+		try RAW_blake2_func_type.finalize(state:&state, output_data_ptr:output)
+		return output
+	}
+}
+
+extension Hasher {
+	// initializers for this struct will vary based on the output type
+	public init() throws {
+		state = H.RAW_blake2_statetype()
+		try H.create(state:&state, output_length:size_t(H.RAW_blake2_func_impl_outlen))
+	}
+
+	public mutating func update<A>(_ accessible:borrowing A) throws where A:RAW_accessible {
+		try accessible.RAW_access { buffer in
+			try update(UnsafeRawBufferPointer(buffer))
+		}
+	}
+
+	public mutating func update<A>(_ accessible:UnsafePointer<A>) throws where A:RAW_accessible {
+		try accessible.pointee.RAW_access { buffer in
+			try update(UnsafeRawBufferPointer(buffer))
+		}
 	}
 }
 
@@ -179,10 +241,22 @@ extension Hasher where RAW_blake2_out_type == [UInt8] {
 			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
 		}
 	}
+
+	public init<A:RAW_accessible>(key:UnsafePointer<A>, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try key.pointee.RAW_access { keyPtr in
+			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
+		}
+	}
 	
 	public init(key keyBuffer:UnsafeBufferPointer<UInt8>, outputLength:consuming size_t) throws {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
 		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:outputLength)
+	}
+	
+	/// finish the hashing process and return the result as a byte array.
+	public mutating func finish() throws -> Array<UInt8> {
+		return try RAW_blake2_func_type.finalize(state:&state, type:[UInt8].self)
 	}
 }
 
@@ -197,6 +271,13 @@ extension Hasher where RAW_blake2_out_type:RAW_staticbuff {
 	public init<A:RAW_accessible>(key:borrowing A) throws {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
 		try key.RAW_access { keyPtr in
+			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
+		}
+	}
+
+	public init<A:RAW_accessible>(key:UnsafePointer<A>) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try key.pointee.RAW_access { keyPtr in
 			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
 		}
 	}
@@ -217,8 +298,46 @@ extension Hasher where RAW_blake2_out_type:RAW_staticbuff {
 		return RAW_blake2_out_type(RAW_decode:finalBytes)!
 	}
 }
+	
+// 	public typealias RAW_hasher_outputtype = RAW_blake2_out_type
+	
+// 	public static var RAW_hasher_blocksize:size_t { size_t(H.RAW_blake2_func_impl_blocklen) }
 
-extension Hasher where H:RAW_blake2_func_impl_initparam, O == [UInt8] {
+// 	/// initialize the hasher, preparing it for use without a given key value.
+// 	public init(outputLength:consuming size_t) throws {
+// 		var newState = RAW_blake2_func_type.RAW_blake2_statetype()
+// 		try Self.RAW_blake2_func_type.create(state:&newState, output_length:outputLength)
+// 		self.state = newState
+// 	}
+
+// 	public init<A:RAW_accessible>(key:UnsafePointer<A>, outputLength:consuming size_t) throws {
+// 		state = RAW_blake2_func_type.RAW_blake2_statetype()
+// 		try key.pointee.RAW_access { keyPtr in
+// 			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
+// 		}
+// 	}
+	
+// 	public init<A:RAW_accessible>(key:borrowing A, outputLength:consuming size_t) throws {
+// 		state = RAW_blake2_func_type.RAW_blake2_statetype()
+// 		try key.RAW_access { keyPtr in
+// 			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
+// 		}
+// 	}
+
+// 	public init(key keyBuffer:UnsafeBufferPointer<UInt8>, outputLength:consuming size_t) throws {
+// 		state = RAW_blake2_func_type.RAW_blake2_statetype()
+// 		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:outputLength)
+// 	}
+
+	// public mutating func finish<K>(into destination:inout Optional<K>) throws where K:RAW_staticbuff, K.RAW_staticbuff_storetype == RAW_blake2_out_type.RAW_staticbuff_storetype {
+	// 	destination = K.RAW_staticbuff_zeroed()
+	// 	try destination!.RAW_access_staticbuff_mutating { buffer in
+	// 		try RAW_blake2_func_type.finalize(state:&state, output_data_ptr:buffer)
+	// 	}
+	// }
+// }
+
+extension Hasher where H:RAW_blake2_func_impl_initparam, RAW_blake2_out_type == [UInt8] {
 	public init(param:UnsafePointer<H.RAW_blake2_paramtype>) throws {
 		var newState = H.RAW_blake2_statetype()
 		try H.create(state:&newState, param:param)

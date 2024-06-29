@@ -195,7 +195,16 @@ internal struct RAW_staticbuff {
 		}
 	}
 }
-
+internal func generateZeroLiteralExpression(byteCount:UInt16) -> SwiftSyntax.TupleExprSyntax {
+	var buildContents = LabeledExprListSyntax()
+	var i:UInt16 = 0
+	while i < byteCount {
+		let labeledExpr = LabeledExprSyntax(expression:IntegerLiteralExprSyntax(literal:.integerLiteral("0")), trailingComma:i + 1 < byteCount ? TokenSyntax.commaToken() : nil)
+		buildContents.append(labeledExpr)
+		i += 1
+	}
+	return TupleExprSyntax(leftParen:TokenSyntax.leftParenToken(), elements:buildContents, rightParen:TokenSyntax.rightParenToken())
+}
 internal func generateUnsignedByteTypeExpression(byteCount:UInt16) -> SwiftSyntax.TupleTypeSyntax {
 	return generateTypeExpression(typeSyntax:IdentifierTypeSyntax(name:.identifier("UInt8")), byteCount:byteCount)
 }

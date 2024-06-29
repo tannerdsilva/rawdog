@@ -18,32 +18,32 @@ rawdog distributes and builds its own source material (in c) for all cryptograph
 - SHA1,256,512 hashing
 - MD5 hashing
 - ed25519 signature scheme
+- curve25519 keys
 - bcrypt blowfish password hashing
 - chachapoly AEAD
+- argon2 KDF
 
 these sources come with a complete suite of tests that tested to pass on x86 and ARM, macOS and Linux. the code is also expected to handle endianness natively, although admittedly I do not have the means of verifying the 
 
 ### Cryptographic Attributions
 
-rawdog cryptography is built on various open source contributions written in c. these references were taken as offered from their original authors in either MIT or public domain licenses, and redistributed in this rawdog package with its MIT license.
+rawdog cryptography is built on various open source contributions written in c. these references were taken as offered from their original authors in either MIT, ISC, or public domain licenses. All sources obtained have been heavily modified redistributed in this rawdog package with its MIT license.
 
 - cryptographic sources modified and redistributed in June 2024
 
 	- blake2 hashing - [claimed from public domain](https://github.com/BLAKE2/BLAKE2/blob/ed1974ea83433eba7b2d95c5dcd9ac33cb847913/COPYING#L1) with test vectors referenced in Swift XCTest. Thank you Jean-Philippe Aumasson, Samuel Neves, Zooko Wilcox-O’Hearn, Christian Winnerlein.
 
-	- ed25519 - [claimed from public domain](https://github.com/floodyberry/ed25519-donna/blob/8757bd4cd209cb032853ece0ce413f122eef212c/ed25519.c#L2) with unit tests maintained in modification. Thank you Andrew M.
+	- curve25519 key pairs with ed25519 signatures - [claimed with MIT license](https://github.com/msotoodeh/curve25519/blob/23a656c5234758f50d0576b49e0e9eecff68063b/license.txt#L1) with unit tests maintained in modification. Thank you Mehdi Sotoodeh.
 
 	- crypt_blowfish - [claimed from public domain](https://github.com/openwall/crypt_blowfish/blob/3354bb81eea489e972b0a7c63231514ab34f73a0/crypt.h#L3C70-L4C11) with unit tests mainted in modification. Thank you Solar Designer.
 
-	- chachapoly - [claimed with MIT license](https://github.com/grigorig/chachapoly/blob/ec7d8e03c6f715995b2015e9662a39277b994a74/README.md?plain=1#L11C233-L11C284) with unit test maintained in modification. Thank you Grigori Goronzy.
+	- chacha, poly1305, & chachapoly - [claimed with MIT license](https://github.com/grigorig/chachapoly/blob/ec7d8e03c6f715995b2015e9662a39277b994a74/README.md?plain=1#L11C233-L11C284) with unit tests maintained in modification. Thank you Grigori Goronzy.
 
-	- SHA (implementations 1, 256, 512) & MD5 hashing - [claimed from public domain](https://github.com/WaterJuice/WjCryptLib/blob/e39760a85015b88820d7a2de832155a7c8ff2c88/UNLICENSE#L1) with unit test maintained in modification. Thank you WaterJuice.
+	- SHA (implementations 1, 256, 512) & MD5 hashing - [claimed from public domain](https://github.com/WaterJuice/WjCryptLib/blob/e39760a85015b88820d7a2de832155a7c8ff2c88/UNLICENSE#L1) with unit tests maintained in modification. Thank you WaterJuice.
 
-### Inspiration
+	- Argon2 KDF - [claimed from public domain](https://github.com/P-H-C/phc-winner-argon2/blob/f57e61e19229e23c4445b85494dbf7c07de721cb/LICENSE#L19) with unit tests maintained in modification. Thank you Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves.
 
-The fundamental components of the `RAW` module draw their inspiration from the LMDB and its `MDB_val` structure. Over time, I found immense value in this structure and the protocols built around it, initially developed in my [QuickLMDB library](https://github.com/tannerdsilva/QuickLMDB), and implemented them in numerous Swift projects. 
-
-As I increasingly incorporated this structure and its related protocols from QuickLMDB into my regular coding routines, I decided to create a separate library – rawdog and its `RAW` module – by forking QuickLMDB and its data handling protocols. This decision aimed to help projects standardize, secure, and simplify data transfer methods, fostering an environment that equally accommodates Swift and C programming languages.
+	- hchacha20 - [claimed with ISC license](https://github.com/jedisct1/libsodium/blob/4a15ab7cd0a4b78a7356e5f488d5345b8d314549/LICENSE#L2) with unit tests maintained in modification. Thank you Frank Denis.
 
 ### Versioning
 

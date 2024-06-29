@@ -5,8 +5,13 @@ import RAW
 
 extension __crawdog_blake2b_state:RAW_blake2_state_impl {}
 
+
 /// blake2b hasher implementation.
 public struct B:RAW_blake2_func_impl {
+
+	@RAW_staticbuff(bytes:64)
+	public struct Hash:Sendable {}
+
 	public static let RAW_blake2_func_impl_exec_init_nokey_f:RAW_blake2_func_impl_exec_init_nokey_t = __crawdog_blake2b_init
 	public static let RAW_blake2_func_impl_exec_init_keyed_f:RAW_blake2_func_impl_exec_init_keyed_t = __crawdog_blake2b_init_key
 	public static let RAW_blake2_func_impl_exec_update_f:RAW_blake2_func_impl_exec_update_t = __crawdog_blake2b_update
@@ -14,6 +19,11 @@ public struct B:RAW_blake2_func_impl {
 
 	/// the state type that this hashing variant uses
 	public typealias RAW_blake2_statetype = __crawdog_blake2b_state
+
+	public static let RAW_blake2_func_impl_blocklen = __CRAWDOG_BLAKE2B_BLOCKBYTES.rawValue
+	public static let RAW_blake2_func_impl_outlen = __CRAWDOG_BLAKE2B_OUTBYTES.rawValue
+
+	public typealias RAW_blake2_func_impl_outtype = Hash
 }
 
 extension B:RAW_blake2_func_impl_initparam {
