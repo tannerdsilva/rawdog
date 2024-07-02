@@ -60,6 +60,7 @@ struct InvalidSecureRandomBytesLengthError:Error {}
 public func generateSecureRandomBytes<S>(as _:S.Type) throws -> S where S:RAW_staticbuff {
 	return S(RAW_staticbuff:try generateSecureRandomBytes(as:[UInt8].self, count:MemoryLayout<S>.size))
 }
+
 /// source of secure random bytes from the system. this is the most secure way to generate random bytes, and is limited to a maximum 256 bytes.
 /// - parameter [UInt8].Type: the type of the static buffer to generate and return
 /// - parameter count: the number of bytes to generate
@@ -76,9 +77,26 @@ public func generateSecureRandomBytes(as _:[UInt8].Type, count:size_t) throws ->
 	})
 }
 
+/// applies zeros to the specified memory region. after writing the zeros, the process will read the bytes back to ensure they were zeroed as expected.
 public func secureZeroBytes(_ bytes:UnsafeMutableRawPointer, count:size_t) {
 	__craw_secure_zero_bytes(bytes, count)
 	guard __craw_assert_secure_zero_bytes(bytes, count) == 0 else {
+		fatalError("memory assignment failure \(#file):\(#line)")
+	}
+}
+
+/// applies zeros to the specified memory region. after writing the zeros, the process will read the bytes back to ensure they were zeroed as expected.
+public func secureZeroBytes(_ buffer:UnsafeMutableRawBufferPointer) {
+	__craw_secure_zero_bytes(buffer.baseAddress, buffer.count)
+	guard __craw_assert_secure_zero_bytes(buffer.baseAddress, buffer.count) == 0 else {
+		fatalError("memory assignment failure \(#file):\(#line)")
+	}
+}
+
+/// applies zeros to the specified memory region. after writing the zeros, the process will read the bytes back to ensure they were zeroed as expected.
+public func secureZeroBytes(_ buffer:UnsafeMutableBufferPointer<UInt8>) {
+	__craw_secure_zero_bytes(buffer.baseAddress, buffer.count)
+	guard __craw_assert_secure_zero_bytes(buffer.baseAddress, buffer.count) == 0 else {
 		fatalError("memory assignment failure \(#file):\(#line)")
 	}
 }

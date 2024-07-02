@@ -1,3 +1,7 @@
+### 13.0.2
+
+- Added more variants of the secure zeroing implementation found in `RAW` target.
+
 ### 13.0.1
 
 - Fixed bug with xcode building.
