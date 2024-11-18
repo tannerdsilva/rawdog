@@ -40,7 +40,7 @@ public struct Salt:Sendable {
 	}
 }
 
-public func hash(phrase:consuming String, salt:borrowing Salt) throws -> [UInt8] {
+public func hash(phrase:borrowing String, salt:borrowing Salt) throws -> [UInt8] {
 	var count:Int32 = 0
 	return try salt.RAW_access { saltBuffer in
 		var dataBuffer:UnsafeMutableRawPointer? = nil

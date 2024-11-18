@@ -76,7 +76,19 @@ let package = Package(
 			targets: ["RAW_argon2"]),
 		.library(
 			name:"RAW_hmac",
-			targets:["RAW_hmac"])
+			targets:["RAW_hmac"]),
+		.library(
+			name:"RAW_md5",
+			targets:["RAW_md5"]),
+		.library(
+			name:"RAW_sha1",
+			targets:["RAW_sha1"]),
+		.library(
+			name:"RAW_sha256",
+			targets:["RAW_sha256"]),
+		.library(
+			name:"RAW_sha512",
+			targets:["RAW_sha512"])
 	],
 	dependencies: [
 		.package(url:"https://github.com/apple/swift-syntax.git", "509.0.1"..<"510.0.1"),
