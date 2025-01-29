@@ -13,11 +13,14 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdbool.h>
+#include "time.h"
 
+/// @brief a function that returns the current system errno for the process.
+/// @return the system errno
 int __craw_get_system_errno();
 
-// capture entropy from the system. maximum of 256 bytes.
-// returns 0 on success, errno on failure.
+/// @brief capture entropy from the system. maximum of 256 bytes.
+/// @return 0 on success, errno on failure.
 int __craw_get_entropy_bytes(uint8_t *buf, const size_t len);
 
 // secure zeroing function

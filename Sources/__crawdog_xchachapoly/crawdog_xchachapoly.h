@@ -2,6 +2,7 @@
 // copyright (c) tanner silva 2024. all rights reserved.
 #ifndef __CRAWDOG_XCHACHAPOLY_H
 #define __CRAWDOG_XCHACHAPOLY_H
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -30,4 +31,4 @@ void __crawdog_xchachapoly_init(__crawdog_xchachapoly_ctx *ctx, const void *key)
 /// @param ad_len the length of the associated data
 int __crawdog_xchachapoly_crypt(__crawdog_xchachapoly_ctx *ctx, const void *nonce, const void *ad, int ad_len, const void *input, int input_len, void *output, void *tag, int tag_len, int encrypt);
 
-#endif
+#endif // __CRAWDOG_XCHACHAPOLY_H
