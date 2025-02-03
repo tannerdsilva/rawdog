@@ -1,3 +1,7 @@
+# 14.0.0
+
+- Swift 6.
+
 ### 13.0.3
 
 - Insignificant internal changes.
