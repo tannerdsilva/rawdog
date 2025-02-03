@@ -67,7 +67,7 @@ struct MySpecialUIntType:Sendable {
 	var bitVar16:MyUInt16Equivalent
 	var bitVar32:MyUInt32Equivalent
 	var bitVar64:MyUInt64Equivalent
-	static var myComputedVar:String = "Hello"
+	@MainActor static var myComputedVar:String = "Hello"
 }
 
 @RAW_staticbuff(bytes:8)
@@ -82,7 +82,7 @@ struct EncodedUInt32:ExpressibleByIntegerLiteral, Sendable {}
 @RAW_staticbuff(concat:EncodedUInt64, EncodedUInt32)
 struct MyDually:Sendable {
 	var first: EncodedUInt64
-	static var myThing:MyDually = MyDually(first: 10, second: 20)
+	@MainActor static var myThing:MyDually = MyDually(first: 10, second: 20)
 	var second: EncodedUInt32
 
 	init(first:UInt64, second:UInt32) {

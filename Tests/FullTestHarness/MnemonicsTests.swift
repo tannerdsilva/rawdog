@@ -1,5 +1,5 @@
 import XCTest
-@testable import RAW_mnemonic
+// @testable import RAW_mnemonic
 
 class RAWMnemonicTests: XCTestCase {
 	// func testLength() {
