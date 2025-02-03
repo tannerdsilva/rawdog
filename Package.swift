@@ -1,11 +1,11 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 import CompilerPluginSupport
 
 #if RAWDOG_LOG
 let rawTargetDependencies:[Target.Dependency] = [
 	"CRAW",
-	"RAW_macros"
+	"RAW_macros",
 	.product(name:"Logging", package:"swift-log")
 ]
 #else
@@ -91,8 +91,8 @@ let package = Package(
 			targets:["RAW_sha512"])
 	],
 	dependencies: [
-		.package(url:"https://github.com/apple/swift-syntax.git", "509.0.1"..<"510.0.1"),
-		.package(url:"https://github.com/apple/swift-log.git", "1.0.0"..<"2.0.0")
+		.package(url:"https://github.com/apple/swift-syntax.git", "600.0.0"..<"601.0.1"),
+		.package(url:"https://github.com/apple/swift-log.git", "1.6.2"..<"2.0.0")
 	],
 	targets: [
 		// the macros in this package are implemented here.
