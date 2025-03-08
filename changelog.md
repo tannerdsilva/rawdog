@@ -1,3 +1,9 @@
+# 14.0.0
+
+- Strict typing for all throwing functions, including nested blocks within functions.
+
+- No longer using `rethrows` syntax anywhere.
+
 ### 13.0.3
 
 - Insignificant internal changes.

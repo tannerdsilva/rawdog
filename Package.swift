@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 import CompilerPluginSupport
 
@@ -91,7 +91,7 @@ let package = Package(
 			targets:["RAW_sha512"])
 	],
 	dependencies: [
-		.package(url:"https://github.com/apple/swift-syntax.git", "509.0.1"..<"510.0.1"),
+		.package(url:"https://github.com/apple/swift-syntax.git", "600.0.1"..<"610.0.0"),
 		.package(url:"https://github.com/apple/swift-log.git", "1.0.0"..<"2.0.0")
 	],
 	targets: [
