@@ -7,6 +7,7 @@ import CRAW
 extension __crawdog_blake2s_state:RAW_blake2_state_impl {}
 
 /// blake2s hasher implementation.
+@preconcurrency
 public struct S:RAW_blake2_func_impl {
 
 	@RAW_staticbuff(bytes:32)

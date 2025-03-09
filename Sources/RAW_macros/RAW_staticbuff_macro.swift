@@ -176,12 +176,6 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
-		guard node.is(AttributeSyntax.self) else {
-			#if RAWDOG_MACRO_LOG
-			mainLogger.error("expected labeled expression list, found \(String(describing:node.syntaxNodeType))")
-			#endif
-			fatalError()
-		}
 
 		guard declaration.is(StructDeclSyntax.self) else {
 			#if RAWDOG_MACRO_LOG
@@ -282,7 +276,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 
 			let effectSpecifier = FunctionEffectSpecifiersFinder(viewMode:.sourceAccurate)
 			effectSpecifier.walk(foundFunc)
-			guard effectSpecifier.effectSpecifier == nil || (effectSpecifier.effectSpecifier!.throwsSpecifier == nil && effectSpecifier.effectSpecifier!.asyncSpecifier == nil) else {
+			guard effectSpecifier.effectSpecifier == nil || (effectSpecifier.effectSpecifier!.throwsClause?.throwsSpecifier == nil && effectSpecifier.effectSpecifier!.asyncSpecifier == nil) else {
 				#if RAWDOG_MACRO_LOG
 				mainLogger.error("expected no effect specifier on compare function, found \(effectSpecifier.effectSpecifier)")
 				#endif

@@ -37,7 +37,7 @@ public protocol RAW_blake2_func_impl_initparam {
 	associatedtype RAW_blake2_statetype:RAW_blake2_state_impl
 
 	/// api types for hashing function implementations
-	typealias RAW_blake2_func_impl_initparam_create_t = (UnsafeMutablePointer<RAW_blake2_statetype>, UnsafePointer<RAW_blake2_paramtype>) -> Int32
+	typealias RAW_blake2_func_impl_initparam_create_t = @Sendable (UnsafeMutablePointer<RAW_blake2_statetype>, UnsafePointer<RAW_blake2_paramtype>) -> Int32
 
 	/// the function that initializes the hasher with a given parameter set.
 	static var RAW_blake2_func_impl_initparam_create_f:RAW_blake2_func_impl_initparam_create_t { get }
@@ -60,13 +60,13 @@ public protocol RAW_blake2_func_impl {
 
 	// api types for hashing function implementations
 	/// no-key initialization function type
-	typealias RAW_blake2_func_impl_exec_init_nokey_t = (UnsafeMutablePointer<RAW_blake2_statetype>?, Int) -> Int32
+	typealias RAW_blake2_func_impl_exec_init_nokey_t = @Sendable (UnsafeMutablePointer<RAW_blake2_statetype>?, Int) -> Int32
 	/// keyed initialization function type
-	typealias RAW_blake2_func_impl_exec_init_keyed_t = (UnsafeMutablePointer<RAW_blake2_statetype>?, Int, UnsafeRawPointer?, Int) -> Int32
+	typealias RAW_blake2_func_impl_exec_init_keyed_t = @Sendable (UnsafeMutablePointer<RAW_blake2_statetype>?, Int, UnsafeRawPointer?, Int) -> Int32
 	/// update function type
-	typealias RAW_blake2_func_impl_exec_update_t = (UnsafeMutablePointer<RAW_blake2_statetype>?, UnsafeRawPointer?, Int) -> Int32
+	typealias RAW_blake2_func_impl_exec_update_t = @Sendable (UnsafeMutablePointer<RAW_blake2_statetype>?, UnsafeRawPointer?, Int) -> Int32
 	/// finalize function type
-	typealias RAW_blake2_func_impl_exec_finalize_t = (UnsafeMutablePointer<RAW_blake2_statetype>?, UnsafeMutableRawPointer?, Int) -> Int32
+	typealias RAW_blake2_func_impl_exec_finalize_t = @Sendable (UnsafeMutablePointer<RAW_blake2_statetype>?, UnsafeMutableRawPointer?, Int) -> Int32
 
 	// api functions for hashing function implementations
 	/// no-key initialization function

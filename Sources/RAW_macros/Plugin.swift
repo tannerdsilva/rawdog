@@ -166,7 +166,7 @@ internal struct RAW_staticbuff {
 			return .visitChildren
 		}
 		override func visit(_ node:LabeledExprListSyntax) -> SyntaxVisitorContinueKind {
-			guard let firstItem = node.first?.as(LabeledExprSyntax.self) else {
+			guard let firstItem = node.first else {
 				return .skipChildren
 			}
 			guard let firstLabel = firstItem.label else {
