@@ -275,7 +275,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 
 			let effectSpecifier = FunctionEffectSpecifiersFinder(viewMode:.sourceAccurate)
 			effectSpecifier.walk(foundFunc)
-			guard effectSpecifier.effectSpecifier == nil || (effectSpecifier.effectSpecifier!.throwsClause == nil && effectSpecifier.effectSpecifier!.asyncSpecifier == nil) else {
+			guard effectSpecifier.effectSpecifier == nil || (effectSpecifier.effectSpecifier!.throwsClause?.throwsSpecifier == nil && effectSpecifier.effectSpecifier!.asyncSpecifier == nil) else {
 				#if RAWDOG_MACRO_LOG
 				mainLogger.error("expected no effect specifier on compare function, found \(effectSpecifier.effectSpecifier)")
 				#endif
@@ -549,23 +549,23 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 		declString.append(DeclSyntax("""
-			\(asStruct.modifiers) borrowing func RAW_access<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
-				return try withUnsafePointer(to:self) { buff in
+			\(asStruct.modifiers) borrowing func RAW_access<R, E>(_ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
 					let asBuffer = UnsafeBufferPointer<UInt8>(start:UnsafeRawPointer(buff).assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size)
 					return try body(asBuffer)
 				}
 			}
 		"""))
 		declString.append(DeclSyntax("""
-			\(asStruct.modifiers) borrowing func RAW_access_staticbuff<R>(_ body:(UnsafeRawPointer) throws -> R) rethrows -> R {
-				return try withUnsafePointer(to:self) { buff in
+			\(asStruct.modifiers) borrowing func RAW_access_staticbuff<R, E>(_ body:(UnsafeRawPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
 					return try body(buff)
 				}
 			}
 		"""))
 		declString.append(DeclSyntax("""
-			\(asStruct.modifiers) mutating func RAW_access_staticbuff_mutating<R>(_ body:(UnsafeMutableRawPointer) throws -> R) rethrows -> R {
-				return try withUnsafeMutablePointer(to:&self) { buff in
+			\(asStruct.modifiers) mutating func RAW_access_staticbuff_mutating<R, E>(_ body:(UnsafeMutableRawPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try withUnsafeMutablePointer(to:&self) { (buff:UnsafeMutablePointer<Self>) throws(E) -> R in
 					return try body(UnsafeMutableRawPointer(buff))
 				}
 			}

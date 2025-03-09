@@ -67,6 +67,6 @@ public func decode(_ words:UnsafeBufferPointer<Word>, into data:UnsafeMutablePoi
 	// recalculate the checksum
 	var hasher = try! RAW_blake2.Hasher<B, [UInt8]>(outputLength:32)
 	try! hasher.update(UnsafeRawBufferPointer(start:data, count:(dataBits + 7) / 8))
-	// let checksum = Array(try! hasher.finish().dropFirst(checksumBitCount(bytes:(dataBits + 7) / 8)))
+//	let checksum = Array(try! hasher.finish().dropFirst(checksumBitCount(bytes:(dataBits + 7) / 8)))
 	fatalError("not complete")
 }

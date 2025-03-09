@@ -1,5 +1,6 @@
 // LICENSE MIT
-// copyright (c) tanner silva 2024. all rights reserved.
+// copyright (c) tanner silva 2025. all rights reserved.
+
 /// represents a raw binary value of a pre-specified, static length.
 public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed, RAW_accessible, Sendable {
 	associatedtype RAW_fixed_type = RAW_staticbuff_storetype
@@ -13,9 +14,9 @@ public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed, RAW_
 
 	init(RAW_staticbuff:consuming RAW_staticbuff_storetype)
 
-	borrowing func RAW_access_staticbuff<R>(_ body:(UnsafeRawPointer) throws -> R) rethrows -> R
+	borrowing func RAW_access_staticbuff<R, E>(_ body:(UnsafeRawPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error
 
-	mutating func RAW_access_staticbuff_mutating<R>(_ body:(UnsafeMutableRawPointer) throws -> R) rethrows -> R
+	mutating func RAW_access_staticbuff_mutating<R, E>(_ body:(UnsafeMutableRawPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error
 
 	consuming func RAW_staticbuff() -> RAW_staticbuff_storetype
 
@@ -92,8 +93,8 @@ extension RAW_staticbuff {
 	}
 
 	// extend a default implementation of the RAW_access_mutating function
-	public mutating func RAW_access_mutating<R>(_ body: (UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R {
-		return try RAW_access_staticbuff_mutating { ptr in
+	public mutating func RAW_access_mutating<R, E>(_ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		return try RAW_access_staticbuff_mutating { (ptr:UnsafeMutableRawPointer) throws(E) -> R in
 			try body(UnsafeMutableBufferPointer(start:ptr.assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size))
 		}
 	}

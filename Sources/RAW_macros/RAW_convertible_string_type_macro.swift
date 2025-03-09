@@ -108,12 +108,12 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
-			\(structDecl.modifiers) borrowing func RAW_access<R>(_ body:(UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R {
+			\(structDecl.modifiers) borrowing func RAW_access<R, E>(_ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 				return try \(bytesVarName).RAW_access(body)
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
-			\(structDecl.modifiers) mutating func RAW_access_mutating<R>(_ body:(UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R {
+			\(structDecl.modifiers) mutating func RAW_access_mutating<R, E>(_ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 				return try \(bytesVarName).RAW_access_mutating(body)
 			}
 		"""))

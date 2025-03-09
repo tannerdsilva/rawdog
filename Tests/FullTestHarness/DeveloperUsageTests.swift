@@ -67,7 +67,11 @@ struct MySpecialUIntType:Sendable {
 	var bitVar16:MyUInt16Equivalent
 	var bitVar32:MyUInt32Equivalent
 	var bitVar64:MyUInt64Equivalent
+<<<<<<< HEAD
 	@MainActor static var myComputedVar:String = "Hello"
+=======
+	static let myComputedVar:String = "Hello"
+>>>>>>> s6
 }
 
 @RAW_staticbuff(bytes:8)
@@ -82,7 +86,7 @@ struct EncodedUInt32:ExpressibleByIntegerLiteral, Sendable {}
 @RAW_staticbuff(concat:EncodedUInt64, EncodedUInt32)
 struct MyDually:Sendable {
 	var first: EncodedUInt64
-	@MainActor static var myThing:MyDually = MyDually(first: 10, second: 20)
+	static let myThing:MyDually = MyDually(first: 10, second: 20)
 	var second: EncodedUInt32
 
 	init(first:UInt64, second:UInt32) {
@@ -95,9 +99,9 @@ extension MyDually:Comparable, Equatable {}
 
 final class TestDeveloperUsage:XCTestCase {
 	func testConcatMemoryLayout() {
-		let myUInt64 = MyUInt64Equivalent(RAW_native:66)
-		var myTest:FixedBuff5 = FixedBuff5(RAW_staticbuff:[0, 1, 2, 3, 4]) 
-		let myTest2:FixedBuff5 = [0, 1, 2, 3, 4]
+		let _ = MyUInt64Equivalent(RAW_native:66)
+		var _:FixedBuff5 = FixedBuff5(RAW_staticbuff:[0, 1, 2, 3, 4]) 
+		let _:FixedBuff5 = [0, 1, 2, 3, 4]
 		// let it = myTest as! any RAW_staticbuff
 		// let thing = myTest as! any ExpressibleByArrayLiteral
 //		let thing2 = myTest as! any RAW_comparable_fixed
@@ -105,7 +109,7 @@ final class TestDeveloperUsage:XCTestCase {
 	}
 
 	func testEntropyNoThrow() throws {
-		let randomBytes = try generateSecureRandomBytes(as:MySpecialUIntType.self)
+		let _ = try generateSecureRandomBytes(as:MySpecialUIntType.self)
 	}
 	func testSortingByFirstVariable() {
 

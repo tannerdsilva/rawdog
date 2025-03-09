@@ -11,10 +11,10 @@ public struct BP:RAW_blake2_func_impl {
 	@RAW_staticbuff(bytes:64)
 	public struct Hash:Sendable {}
 
-	public static nonisolated(unsafe) let RAW_blake2_func_impl_exec_init_nokey_f:RAW_blake2_func_impl_exec_init_nokey_t = __crawdog_blake2bp_init
-	public static nonisolated(unsafe) let RAW_blake2_func_impl_exec_init_keyed_f:RAW_blake2_func_impl_exec_init_keyed_t = __crawdog_blake2bp_init_key
-	public static nonisolated(unsafe) let RAW_blake2_func_impl_exec_update_f:RAW_blake2_func_impl_exec_update_t = __crawdog_blake2bp_update
-	public static nonisolated(unsafe) let RAW_blake2_func_impl_exec_finalize_f:RAW_blake2_func_impl_exec_finalize_t = __crawdog_blake2bp_final
+	public static let RAW_blake2_func_impl_exec_init_nokey_f:RAW_blake2_func_impl_exec_init_nokey_t = __crawdog_blake2bp_init
+	public static let RAW_blake2_func_impl_exec_init_keyed_f:RAW_blake2_func_impl_exec_init_keyed_t = __crawdog_blake2bp_init_key
+	public static let RAW_blake2_func_impl_exec_update_f:RAW_blake2_func_impl_exec_update_t = __crawdog_blake2bp_update
+	public static let RAW_blake2_func_impl_exec_finalize_f:RAW_blake2_func_impl_exec_finalize_t = __crawdog_blake2bp_final
 
 	/// the state type that this hashing variant uses
 	public typealias RAW_blake2_statetype = __crawdog_blake2bp_state

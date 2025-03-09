@@ -1,6 +1,14 @@
+# 15.0.0
+
+- Revised and improved Swift 6 implementation.
+
 # 14.0.0
 
 - Swift 6.
+
+- Strict typing for all throwing functions, including nested blocks within functions.
+
+- No longer using `rethrows` syntax anywhere.
 
 ### 13.0.3
 

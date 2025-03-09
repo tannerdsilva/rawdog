@@ -2,9 +2,9 @@
 // copyright (c) tanner silva 2024. all rights reserved.
 public protocol RAW_accessible:RAW_encodable {
 	/// allows for non-mutating access to the raw representation of the instance.
-	borrowing func RAW_access<R>(_ body:(UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R
+	borrowing func RAW_access<R, E>(_ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error
 	/// allows for mutating access to the raw representation of the instance.
-	mutating func RAW_access_mutating<R>(_ body:(UnsafeMutableBufferPointer<UInt8>) throws -> R) rethrows -> R
+	mutating func RAW_access_mutating<R, E>(_ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error
 }
 
 extension RAW_accessible {

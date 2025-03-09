@@ -52,7 +52,7 @@ public func generateRandomBytes(count:Int) throws -> [UInt8] {
 }
 
 /// this error is thrown when the secure random bytes generator fails to generate the requested number of bytes
-struct InvalidSecureRandomBytesLengthError:Error {}
+public struct InvalidSecureRandomBytesLengthError:Error {}
 /// source of secure random bytes from the system. this is the most secure way to generate random bytes, and is limited to a maximum 256 bytes.
 /// - parameter S: the type of the static buffer to generate and return
 /// - returns: a static buffer of random bytes
