@@ -15,7 +15,9 @@ struct RAW_macros:CompilerPlugin {
 		RAW_convertible_string_type_macro.self,
 		RAW_staticbuff_floatingpoint_type_macro.self,
 		RAW_staticbuff_fixedwidthinteger_type_macro.self,
-		RAW_staticbuff_macro.self,
+		// RAW_staticbuff_macro.self,
+		RAW_staticbuff_bytes_macro.self,
+		RAW_staticbuff_concat_macro.self
 	]
 }
 
@@ -93,6 +95,14 @@ internal final class InheritedTypeFinder:SyntaxVisitor {
 			return .skipChildren
 		}
 		inheritedTypes[node.name.text] = parent
+		return .skipChildren
+	}
+}
+
+internal final class AccessorBlockLister:SyntaxVisitor {
+	internal var accessorBlocks = [AccessorBlockSyntax]()
+	override func visit(_ node:AccessorBlockSyntax) -> SyntaxVisitorContinueKind {
+		accessorBlocks.append(node)
 		return .skipChildren
 	}
 }

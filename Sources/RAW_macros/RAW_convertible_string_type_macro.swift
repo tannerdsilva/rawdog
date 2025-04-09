@@ -40,7 +40,17 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 			}
 			return .visitChildren
 		}
+		override func visit(_ node:MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+			// verify that this member access expression has a period with a self token after the period\
+			guard node.period == TokenSyntax.periodToken() && node.declName.baseName == TokenSyntax.keyword(Keyword.`self`) else {
+				return .skipChildren
+			}
+			return .visitChildren
+		}
 		override func visit(_ node:DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+			guard node.baseName != TokenSyntax.keyword(Keyword.`self`) else {
+				return .skipChildren
+			}
 			if unicodeType == nil {
 				unicodeType = node
 			}

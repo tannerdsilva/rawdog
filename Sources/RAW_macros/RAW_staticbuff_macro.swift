@@ -68,6 +68,12 @@ public struct StructMustBeSendable:Swift.Error, DiagnosticMessage {
 	public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
 }
 
+public struct InvalidByteCount:Swift.Error, DiagnosticMessage {
+	public var message:String { "the byte count must be a positive (or zero) integer literal." }
+	public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_invalid_byte_count")}
+	public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
+}
+
 public struct InvalidRAW_compareOverride {
 	public struct MissingStaticModifier:Swift.Error, DiagnosticMessage {
 		public var message:String { "expected to find a static modifier on the compare function override, but none was found." }
@@ -86,6 +92,409 @@ public struct InvalidRAW_compareOverride {
 	}
 }
 
+public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
+	private class NodeUsabeParser:SyntaxVisitor {
+		internal var numberOfBytes:Int? = nil
+		override func visit(_ node:IntegerLiteralExprSyntax) -> SyntaxVisitorContinueKind {
+			numberOfBytes = Int(node.literal.text)!
+			return .skipChildren
+		}
+	}
+
+	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
+		guard declaration.is(StructDeclSyntax.self) else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected struct declaration, found \(String(describing:declaration.syntaxNodeType))")
+			#endif
+			return []
+		}
+
+		if isMarkedSendable(declaration.as(StructDeclSyntax.self)!) == false {
+			// a diagnostic will be thrown here by the attached member macro. in this condition, adding the extension would only cause more errors, so we do nothing to avoid confusion to the end developer.
+			return []
+		}
+
+		// determine how many bytes this macro is to be used for.
+		let nodeConfig = NodeUsabeParser(viewMode: .sourceAccurate)
+		nodeConfig.walk(node)
+		guard let byteCount = nodeConfig.numberOfBytes else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("could not parse macro usage.")
+			#endif
+			return []
+		}
+		guard byteCount >= 0 else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("byte count must be greater than 0.")
+			#endif
+			context.addDiagnostics(from:InvalidByteCount(), node:node)
+			return []
+		}
+
+		return [try ExtensionDeclSyntax("""
+			extension \(type):RAW_staticbuff {}
+		""")]
+	}
+
+	public static func expansion(of node:SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+		// parse for the attached declaration
+		let structFinder = StructFinder(viewMode: .sourceAccurate)
+		structFinder.walk(declaration)
+		guard let asStruct = structFinder.structDecl else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected struct declaration, found \(String(describing:declaration.syntaxNodeType))")
+			#endif
+			context.addDiagnostics(from:ExpectedStructAttachment(found:declaration.syntaxNodeType), node:node)
+			return []
+		}
+
+		// parse for the sendable protocol conformance
+		var foundInheritanceClause:InheritanceClauseSyntax? = nil
+		guard isMarkedSendable(asStruct, withInheritanceClause:&foundInheritanceClause) else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected struct to conform to Sendable protocol, but it does not.")
+			#endif
+			var attachSyntax:SyntaxProtocol? = foundInheritanceClause
+			if attachSyntax == nil {
+				attachSyntax = asStruct
+			}
+			context.addDiagnostics(from:StructMustBeSendable(), node:attachSyntax!)
+			return []
+		}
+
+		// determine how many bytes this macro is to be used for.
+		let nodeConfig = NodeUsabeParser(viewMode: .sourceAccurate)
+		nodeConfig.walk(node)
+		guard let byteCount = nodeConfig.numberOfBytes else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("could not parse macro usage.")
+			#endif
+			return []
+		}
+		guard byteCount >= 0 else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("byte count must be greater than 0.")
+			#endif
+			context.addDiagnostics(from:InvalidByteCount(), node:node)
+			return []
+		}
+
+		// find the RAW_compare functions in the struct. it may be overridden, but is not required to be.
+		let compareFinder = FunctionFinder(viewMode:.sourceAccurate)
+		compareFinder.validMatches.update(with:"RAW_compare")
+		compareFinder.walk(asStruct)
+		for foundFunc in compareFinder.funcDecl {
+
+			#if RAWDOG_MACRO_LOG
+			mainLogger.info("found RAW_compare override in struct declaration. validating format and naming...")
+			#endif
+
+			// check for the static modifier
+			let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
+			staticFinder.walk(foundFunc)
+			if staticFinder.foundStaticModifier == nil {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("static modifier not found on compare function. this function will be skipped.")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.MissingStaticModifier(), node:foundFunc)
+				continue
+			}
+
+			var fparams = FunctionParameterLister(viewMode:.sourceAccurate)
+			fparams.walk(foundFunc)
+			guard fparams.parameters.count == 2, fparams.parameters[0].firstName.text == "lhs_data", let idL = fparams.parameters[0].type.as(IdentifierTypeSyntax.self), let idR = fparams.parameters[1].type.as(IdentifierTypeSyntax.self), fparams.parameters[1].firstName.text == "rhs_data" && idL.name.text == "UnsafeRawPointer" && idR.name.text == "UnsafeRawPointer" else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected exactly one parameter in compare function, found \(fparams.parameters.count)")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				continue
+			}
+
+			let returnClauseFinder = ReturnClauseFinder(viewMode:.sourceAccurate)
+			returnClauseFinder.walk(foundFunc)
+			guard returnClauseFinder.returnClause?.type.as(IdentifierTypeSyntax.self)?.name.text == "Int32" else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected return type of Int32, found \(returnClauseFinder.returnClause?.type)")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				continue
+			}
+
+			let effectSpecifier = FunctionEffectSpecifiersFinder(viewMode:.sourceAccurate)
+			effectSpecifier.walk(foundFunc)
+			guard effectSpecifier.effectSpecifier == nil || (effectSpecifier.effectSpecifier!.throwsClause?.throwsSpecifier == nil && effectSpecifier.effectSpecifier!.asyncSpecifier == nil) else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected no effect specifier on compare function, found \(effectSpecifier.effectSpecifier)")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				continue
+			}
+		}
+
+		var declString = [DeclSyntax]()
+		let varName = context.makeUniqueName("RAW_staticbuff_private_store")
+		// assemble the primary extension declaration.
+		declString.append(
+			DeclSyntax("""
+			/// \(raw:byteCount)x UInt8 literal type (identical to ``RAW_fixed_type``)
+			\(raw:asStruct.modifiers) typealias RAW_staticbuff_storetype = \(generateUnsignedByteTypeExpression(byteCount:UInt16(byteCount)))
+		"""))
+		declString.append(
+			DeclSyntax("""
+			private var \(varName):RAW_staticbuff_storetype
+			""")
+		)
+
+		// throw a diagnostic on any variable declarations that are not computed
+		let varScanner = VariableDeclLister(viewMode:.sourceAccurate)
+		varScanner.walk(asStruct)
+		for curVar in varScanner.varDecls {
+			let abLister = AccessorBlockLister(viewMode:.sourceAccurate)
+			abLister.walk(curVar)
+			let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
+			staticFinder.walk(curVar)
+
+			// functions that are NOT static AND NOT computed are blocked from being used in this macro.
+			if abLister.accessorBlocks.count == 0 && staticFinder.foundStaticModifier == nil {
+				context.addDiagnostics(from:StoredVariablesUnsupported(), node:curVar)
+			}
+		}
+
+		declString.append(DeclSyntax("""
+			/// initialize the static buffer from its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
+			\(asStruct.modifiers) init(RAW_staticbuff storetype:consuming RAW_staticbuff_storetype) {
+				#if DEBUG
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is a misuse of the macro")
+				#endif
+				\(varName) = storetype
+			}
+		"""))
+
+		declString.append(DeclSyntax("""
+			/// borrow the raw representation of the static buffer.
+			\(asStruct.modifiers) consuming func RAW_staticbuff() -> RAW_staticbuff_storetype {
+				return \(varName)
+			}
+		"""))
+
+		declString.append(DeclSyntax("""
+			/// compare two instances of the same type.
+			\(asStruct.modifiers) static func RAW_staticbuff_zeroed() -> RAW_staticbuff_storetype {
+				return \(raw:generateZeroLiteralExpression(byteCount:UInt16(byteCount)))
+			}
+		"""))
+
+		// apply the default implementations for the protocol conformance
+		declString.append(DeclSyntax("""
+			/// initialize the static buffer from a pointer to its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
+			\(asStruct.modifiers) init(RAW_staticbuff ptr:UnsafeRawPointer) {
+				#if DEBUG
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is a misuse of the macro")
+				#endif
+				self = ptr.load(as:Self.self)
+			}
+		"""))
+
+		declString.append(DeclSyntax("""
+			\(asStruct.modifiers) borrowing func RAW_encode(count: inout size_t) {
+				count += MemoryLayout<RAW_staticbuff_storetype>.size
+			}
+		"""))
+		declString.append(DeclSyntax("""
+			@discardableResult \(asStruct.modifiers) borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
+				withUnsafePointer(to:self) { buff in
+					_ = RAW_memcpy(dest, buff, MemoryLayout<RAW_staticbuff_storetype>.size)!
+				}
+				return dest.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
+			}
+		"""))
+		declString.append(DeclSyntax("""
+			\(asStruct.modifiers) borrowing func RAW_access<R, E>(_ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
+					let asBuffer = UnsafeBufferPointer<UInt8>(start:UnsafeRawPointer(buff).assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size)
+					return try body(asBuffer)
+				}
+			}
+		"""))
+		declString.append(DeclSyntax("""
+			\(asStruct.modifiers) borrowing func RAW_access_staticbuff<R, E>(_ body:(UnsafeRawPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
+					return try body(buff)
+				}
+			}
+		"""))
+		declString.append(DeclSyntax("""
+			\(asStruct.modifiers) mutating func RAW_access_staticbuff_mutating<R, E>(_ body:(UnsafeMutableRawPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try withUnsafeMutablePointer(to:&self) { (buff:UnsafeMutablePointer<Self>) throws(E) -> R in
+					return try body(UnsafeMutableRawPointer(buff))
+				}
+			}
+		"""))
+		
+		return declString
+	}
+}
+
+public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
+	/// used to determine the mode that this macro is being used in.
+	fileprivate class NodeUsageParser:SyntaxVisitor {
+		var typeTokens:[TokenSyntax]? = nil
+		override func visit(_ node:MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+			// verify that this member access expression has a period with a self token after the period
+			guard node.period == TokenSyntax.periodToken() && node.declName.baseName == TokenSyntax.keyword(Keyword.`self`) else {
+				return .skipChildren
+			}
+			return .visitChildren
+		}
+		override func visit(_ node:DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+			switch node.baseName {
+				case TokenSyntax.keyword(Keyword.`self`):
+					return .skipChildren
+				default:
+					switch typeTokens {
+						case nil:
+							typeTokens = [node.baseName]
+						case .some(var tokens):
+							tokens.append(node.baseName)
+							typeTokens = tokens
+					}
+					return .skipChildren
+			}
+		}
+	}
+
+	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
+		guard declaration.is(StructDeclSyntax.self) else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected struct declaration, found \(String(describing:declaration.syntaxNodeType))")
+			#endif
+			return []
+		}
+
+		if isMarkedSendable(declaration.as(StructDeclSyntax.self)!) == false {
+			// a diagnostic will be thrown here by the attached member macro. in this condition, adding the extension would only cause more errors, so we do nothing to avoid confusion to the end developer.
+			return []
+		}
+
+		return [try ExtensionDeclSyntax("""
+			// extension of \(type) to provide the RAW_staticbuff protocol conformance.
+			extension \(type):RAW_staticbuff {}
+		""")]
+	}
+
+	public static func expansion(of node:SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+		var buildDecls = [DeclSyntax]()
+		
+		/// parse for the attached declaration
+		let structFinder = StructFinder(viewMode: .sourceAccurate)
+		structFinder.walk(declaration)
+		guard let asStruct = structFinder.structDecl else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected struct declaration, found \(String(describing:declaration.syntaxNodeType))")
+			#endif
+			context.addDiagnostics(from:ExpectedStructAttachment(found:declaration.syntaxNodeType), node:node)
+			buildDecls.append(DeclSyntax("""
+				/// there was no struct found
+				var testThing:String = "poo"
+			"""))
+			return buildDecls
+		}
+
+		buildDecls.append(DeclSyntax("""
+			/// attached struct successfully identified
+			var myTestThing:String = "poofoo"
+		"""))
+
+		// parse for the sendable protocol conformance
+		var foundInheritanceClause:InheritanceClauseSyntax?
+		guard isMarkedSendable(asStruct, withInheritanceClause:&foundInheritanceClause) else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected struct to conform to Sendable protocol, but it does not.")
+			#endif
+			var attachSyntax:SyntaxProtocol? = foundInheritanceClause
+			if attachSyntax == nil {
+				attachSyntax = asStruct
+			}
+			context.addDiagnostics(from:StructMustBeSendable(), node:attachSyntax!)
+			buildDecls.append(DeclSyntax("""
+				/// there is no inheritance clause found
+				var myTest:String = "fooboo"
+			"""))
+			return buildDecls
+		}
+
+		buildDecls.append(DeclSyntax("""
+			/// inheritance clause successfully found
+			var myTestVariable:String = "fooohoo"
+		"""))
+
+		// determine how the macro was used.
+		let nodeConfig = NodeUsageParser(viewMode: .sourceAccurate)
+		nodeConfig.walk(node)
+		guard let typeTokens = nodeConfig.typeTokens else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("could not parse macro usage.")
+			#endif
+			buildDecls.append(DeclSyntax("""
+				/// there are no type tokens found in the following syntax...
+				/*
+				\(raw:node)
+				*/
+				var foobar:String = "foobar"
+			"""))
+			return buildDecls
+		}
+
+		buildDecls.append(DeclSyntax("""
+			/// detected types from macro syntax: \(raw:typeTokens)
+			var myVar:String = "foo"
+		"""))
+
+		// parse the variable declarations in the struct.
+		let varScanner = VariableDeclLister(viewMode:.sourceAccurate)
+
+		return buildDecls
+	}
+}
+
+fileprivate final class VariableDeclLister:SyntaxVisitor {
+	var varDecls = [VariableDeclSyntax]()
+	override func visit(_ node:VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+		varDecls.append(node)
+		return .skipChildren
+	}
+	override func visit(_ node:CodeBlockSyntax) -> SyntaxVisitorContinueKind {
+		return .skipChildren
+	}
+}
+
+fileprivate final class StoredVariableDeclLister:SyntaxVisitor {
+	var storedVarDecls:[VariableDeclSyntax]? = nil
+	override func visit(_ node:VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+		// determine if this is a computed variable
+		let abLister = AccessorBlockLister(viewMode:.sourceAccurate)
+		abLister.walk(node)
+
+		// determine if this is a static variable
+		let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
+		staticFinder.walk(node)
+
+		// functions that are NOT static AND NOT computed are blocked from being used in this macro.
+		if abLister.accessorBlocks.count == 0 && staticFinder.foundStaticModifier == nil {
+			if storedVarDecls == nil {
+				storedVarDecls = [node]
+			} else {
+				storedVarDecls!.append(node)
+			}
+		}
+		return .skipChildren
+	}
+}
+
 public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 	/// defines the two types of usages for this macro code.
 	public enum MacroUsageMode {
@@ -96,9 +505,19 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 	}
 
 	/// used to determine the mode that this macro is being used in.
-	private class NodeUsageParser:SyntaxVisitor {
+	fileprivate class NodeUsageParser:SyntaxVisitor {
 		var mode:MacroUsageMode? = nil
+		override func visit(_ node:MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+			// verify that this member access expression has a period with a self token after the period
+			guard node.period == TokenSyntax.periodToken() && node.declName.baseName == TokenSyntax.keyword(Keyword.`self`) else {
+				return .skipChildren
+			}
+			return .visitChildren
+		}
 		override func visit(_ node:DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+			guard node.baseName != TokenSyntax.keyword(Keyword.`self`) else {
+				return .skipChildren
+			}
 			switch mode {
 				case nil:
 					mode = .concatType([node.baseName])
@@ -117,24 +536,6 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 				default:
 				break;
 			}
-			return .skipChildren
-		}
-	}
-
-	private class VariableDeclLister:SyntaxVisitor {
-		var varDecls = [VariableDeclSyntax]()
-		override func visit(_ node:VariableDeclSyntax) -> SyntaxVisitorContinueKind {
-			varDecls.append(node)
-			return .skipChildren
-		}
-		override func visit(_ node:CodeBlockSyntax) -> SyntaxVisitorContinueKind {
-			return .skipChildren
-		}
-	}
-	private class AccessorBlockLister:SyntaxVisitor {
-		var accessorBlocks = [AccessorBlockSyntax]()
-		override func visit(_ node:AccessorBlockSyntax) -> SyntaxVisitorContinueKind {
-			accessorBlocks.append(node)
 			return .skipChildren
 		}
 	}
@@ -194,7 +595,7 @@ public struct RAW_staticbuff_macro:MemberMacro, ExtensionMacro {
 	}
 
 	public static func expansion(of node:SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-		// parse for the attached declaration
+		/// parse for the attached declaration
 		let structFinder = StructFinder(viewMode: .sourceAccurate)
 		structFinder.walk(declaration)
 		guard let asStruct = structFinder.structDecl else {

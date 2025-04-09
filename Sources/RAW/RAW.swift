@@ -29,7 +29,13 @@ internal let mainLogger = Logger(label:"RAW")
 
 @RAW_staticbuff(bytes:1)
 @RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
-public struct RAW_byte:Sendable, ExpressibleByIntegerLiteral, Hashable, Comparable, Equatable, Codable {}
+public struct RAW_byte:Sendable, Hashable, Comparable, Equatable, Codable {}
+
+@RAW_staticbuff(concat:RAW_byte.self, RAW_byte.self)
+public struct DualBytes:Sendable {
+	var myByte:RAW_byte
+	var secondByte:RAW_byte
+}
 
 // MARK: Random Bytes
 public func generateRandomBytes(count:Int) throws -> [UInt8] {
