@@ -339,44 +339,301 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 	}
 }
 
+public struct FoundLabeledExpr:Swift.Error, DiagnosticMessage {
+	public var message:String { "labeled expression list was successfully found." }
+	public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_found_labeled_expr")}
+	public var severity: SwiftDiagnostics.DiagnosticSeverity { .remark }
+}
+
 public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
-	/// used to determine the mode that this macro is being used in.
-	fileprivate class NodeUsageParser:SyntaxVisitor {
-		var typeTokens:[TokenSyntax]? = nil
-		override func visit(_ node:MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-			// verify that this member access expression has a period with a self token after the period
-			guard node.period == TokenSyntax.periodToken() && node.declName.baseName == TokenSyntax.keyword(Keyword.`self`) else {
-				return .skipChildren
-			}
-			return .visitChildren
-		}
-		override func visit(_ node:DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
-			switch node.baseName {
-				case TokenSyntax.keyword(Keyword.`self`):
-					return .skipChildren
-				default:
-					switch typeTokens {
-						case nil:
-							typeTokens = [node.baseName]
-						case .some(var tokens):
-							tokens.append(node.baseName)
-							typeTokens = tokens
-					}
-					return .skipChildren
-			}
+
+	// added when the user invokes the concat macro but doesn't specify any types.
+	public struct MissingConcatTypes:Swift.Error, DiagnosticMessage {
+		public var message:String { "expected to find at least one type token for the concat macro." }
+		public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_concat_missing_types")}
+		public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
+	}
+
+	public struct UsageExpectationRemark:Swift.Error, DiagnosticMessage {
+		public var message:String { "expecting to find \(types.count) stored variables in attached struct." }
+		public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_concat_usage_expectation")}
+		public var severity: SwiftDiagnostics.DiagnosticSeverity { .remark }
+
+		private let types:[TokenSyntax]
+		internal init(types:[TokenSyntax]) {
+			self.types = types
 		}
 	}
 
-	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
-		guard declaration.is(StructDeclSyntax.self) else {
-			#if RAWDOG_MACRO_LOG
-			mainLogger.error("expected struct declaration, found \(String(describing:declaration.syntaxNodeType))")
-			#endif
-			return []
+	/// used to determine the mode that this macro is being used in.
+	fileprivate final class NodeUsageParser:SyntaxVisitor {
+		private final class TypeNameParser:SyntaxVisitor {
+			fileprivate var typeTokens:[TokenSyntax]? = nil
+			override func visit(_ node:DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+				switch typeTokens {
+					case nil:
+						typeTokens = [node.baseName]
+					case .some(var tokens):
+						tokens.append(node.baseName)
+						typeTokens = tokens
+				}
+				return .skipChildren
+			}
+		}
+		var typeTokens:[TokenSyntax]? = nil
+		override func visit(_ node:MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+			let tnp = TypeNameParser(viewMode:.sourceAccurate)
+			guard node.base != nil else {
+				return .skipChildren
+			}
+			tnp.walk(node.base!)
+			guard tnp.typeTokens?.count == 1 else {
+				return .skipChildren
+			}
+			switch typeTokens {
+				case nil:
+					typeTokens = [tnp.typeTokens!.first!]
+				case .some(var tokens):
+					tokens.append(tnp.typeTokens!.first!)
+					typeTokens = tokens
+			}
+			return .skipChildren
+		}
+	}
+
+	private class TuplePatternLister:SyntaxVisitor {
+		var tuplePatterns = [TuplePatternSyntax]()
+		override func visit(_ node:TuplePatternSyntax) -> SyntaxVisitorContinueKind {
+			tuplePatterns.append(node)
+			return .skipChildren
+		}
+	}
+	private class InitializationFinder:SyntaxVisitor {
+		var initializers: [InitializerClauseSyntax] = [InitializerClauseSyntax]()
+		override func visit(_ node:InitializerClauseSyntax) -> SyntaxVisitorContinueKind {
+			initializers.append(node)
+			return .skipChildren
+		}
+	}
+	private class VariableTypeAnnotationFinder:SyntaxVisitor {
+		var typeAnnotation:IdentifierTypeSyntax? = nil
+		override func visit(_ node:TypeAnnotationSyntax) -> SyntaxVisitorContinueKind {
+			guard typeAnnotation == nil else {
+				return .skipChildren
+			}
+			let idScanner = IdTypeLister(viewMode:.sourceAccurate)
+			idScanner.walk(node)
+			typeAnnotation = idScanner.listedIDTypes.first
+			return .skipChildren
+		}
+	}
+	private class VariableNameFinder:SyntaxVisitor {
+		var name:TokenSyntax? = nil
+		override func visit(_ node:PatternBindingSyntax) -> SyntaxVisitorContinueKind {
+			guard name == nil else {
+				return .skipChildren
+			}
+			name = node.pattern.as(IdentifierPatternSyntax.self)?.identifier
+			return .skipChildren
+		}
+	}
+
+	public static func determineIfUsageCompliant(declaration:some SwiftSyntax.DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax, context:some SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) -> (StructDeclSyntax)? {
+		// parse for the attached declaration. the attached declaration must be a struct.
+		let structFinder = StructFinder(viewMode:.sourceAccurate)
+		structFinder.walk(declaration)
+		guard let asStruct = structFinder.structDecl else {
+			if addDiagnostics == true {
+				context.addDiagnostics(from:ExpectedStructAttachment(found:declaration.syntaxNodeType), node:node)
+			}
+			return nil
 		}
 
-		if isMarkedSendable(declaration.as(StructDeclSyntax.self)!) == false {
-			// a diagnostic will be thrown here by the attached member macro. in this condition, adding the extension would only cause more errors, so we do nothing to avoid confusion to the end developer.
+		// determine the inheritance clause of the struct. this is used to determine if the struct is marked as Sendable.
+		var foundInheritanceClause:InheritanceClauseSyntax? = nil
+		guard isMarkedSendable(asStruct, withInheritanceClause:&foundInheritanceClause) else {
+			var attachSyntax:SyntaxProtocol? = foundInheritanceClause
+			if attachSyntax == nil {
+				attachSyntax = asStruct
+			}
+			if addDiagnostics == true {
+				context.addDiagnostics(from:StructMustBeSendable(), node:attachSyntax!)
+			}
+			return nil
+		}
+
+		// determine how the macro was used. there should be some number of type tokens in the macro usage.
+		let nodeConfig = NodeUsageParser(viewMode: .sourceAccurate)
+		nodeConfig.walk(node)
+		guard let typeTokens = nodeConfig.typeTokens else {
+			if addDiagnostics == true {
+				context.addDiagnostics(from:MissingConcatTypes(), node:node)
+			}
+			return nil
+		}
+		guard typeTokens.count > 0 else {
+			if addDiagnostics == true {
+				context.addDiagnostics(from:MissingConcatTypes(), node:node)
+			}
+			return nil
+		}
+
+		var usageExpectation:UsageExpectationRemark? = UsageExpectationRemark(types:typeTokens)
+
+		// find the RAW_compare function (as it may be overridden by the user). functions matching RAW_compare must be perfectly implemented else they will be rejected.
+		let compareFinder = FunctionFinder(viewMode:.sourceAccurate)
+		compareFinder.validMatches.update(with:"RAW_compare")
+		compareFinder.walk(asStruct)
+		for foundFunc in compareFinder.funcDecl {
+			// raw compare function overrides have the signature `static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32`
+			
+			// validate that the static modifier is present
+			let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
+			staticFinder.walk(foundFunc)
+			if staticFinder.foundStaticModifier == nil {
+				if addDiagnostics == true {
+					context.addDiagnostics(from:InvalidRAW_compareOverride.MissingStaticModifier(), node:foundFunc)
+				}
+				return nil
+			}
+
+			// list the function parameters and validate that they are the expected types
+			var fparams = FunctionParameterLister(viewMode:.sourceAccurate)
+			fparams.walk(foundFunc)
+			guard fparams.parameters.count == 2, fparams.parameters[0].firstName.text == "lhs_data", let idL = fparams.parameters[0].type.as(IdentifierTypeSyntax.self), let idR = fparams.parameters[1].type.as(IdentifierTypeSyntax.self), fparams.parameters[1].firstName.text == "rhs_data" && idL.name.text == "UnsafeRawPointer" && idR.name.text == "UnsafeRawPointer" else {
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				return nil
+			}
+
+			let returnClauseFinder = ReturnClauseFinder(viewMode:.sourceAccurate)
+			returnClauseFinder.walk(foundFunc)
+			guard returnClauseFinder.returnClause?.type.as(IdentifierTypeSyntax.self)?.name.text == "Int32" else {
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				return nil
+			}
+
+			let effectSpecifier = FunctionEffectSpecifiersFinder(viewMode:.sourceAccurate)
+			effectSpecifier.walk(foundFunc)
+			guard effectSpecifier.effectSpecifier == nil || (effectSpecifier.effectSpecifier!.throwsClause?.throwsSpecifier == nil && effectSpecifier.effectSpecifier!.asyncSpecifier == nil) else {
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				return nil
+			}
+		}
+
+		let varScanner = VariableDeclLister(viewMode:.sourceAccurate)
+		varScanner.walk(asStruct)
+
+		var validVarDeclImplementations = Set<VariableDeclSyntax>()
+		var ignoreVarDeclImplementations = Set<VariableDeclSyntax>()
+		var problemVarDeclImplementations = Set<VariableDeclSyntax>()
+		var typeTokensRemaining = typeTokens
+		varLoop: for curVar in varScanner.varDecls {
+
+			// variables with accessor blocks are allowed and do not fall into the validation logic
+			let abLister = AccessorBlockLister(viewMode:.sourceAccurate)
+			abLister.walk(curVar)
+			guard abLister.accessorBlocks.count == 0 else {
+				// ignore this decl syntax
+				ignoreVarDeclImplementations.insert(curVar)
+				continue varLoop
+			}
+
+			// static variables are allowed and do not fall into the validation logic, since these are global variables and not anything affecting the memory layout of an instance of the struct.
+			let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
+			staticFinder.walk(curVar)
+			guard staticFinder.foundStaticModifier == nil else {
+				// ignore this decl syntax
+				ignoreVarDeclImplementations.insert(curVar)
+				continue varLoop
+			}
+
+			// at this point the varaible decl should be flagged if it is overflowing from the number of expected types.
+			if addDiagnostics == true && typeTokensRemaining.count == 0 {
+				// if there are no type tokens remaining, then this variable is not expected to be here.
+				if addDiagnostics == true {
+					context.addDiagnostics(from:ExtraneousVariableDeclaration(), node:curVar)
+				}
+				// this decl syntax is a problem
+				problemVarDeclImplementations.insert(curVar)
+				continue varLoop
+			}
+
+			// validate that no tuple patterns are used in the declaration of this variable.
+			let tupleFinder = TuplePatternLister(viewMode:.sourceAccurate)
+			tupleFinder.walk(curVar)
+			guard tupleFinder.tuplePatterns.count == 0 else {
+				if addDiagnostics == true {
+					context.addDiagnostics(from:TuplePatternBindingsUnsupported(), node:curVar)
+				}
+				// this decl syntax is a problem
+				problemVarDeclImplementations.insert(curVar)
+				typeTokensRemaining.remove(at:0)
+				continue varLoop
+			}
+
+			// validate that the variable is not initialized.
+			let initFinder = InitializationFinder(viewMode:.sourceAccurate)
+			initFinder.walk(curVar)
+			guard initFinder.initializers.count == 0 else {
+				if addDiagnostics == true {
+					context.addDiagnostics(from:VariableInitializationUnsupported(), node:curVar)
+				}
+				// this decl syntax is a problem
+				problemVarDeclImplementations.insert(curVar)
+				typeTokensRemaining.remove(at:0)
+				continue varLoop
+			}
+
+			// determine the type annotation of the variable. this is used to determine if the variable is a valid type.
+			let typeFinder = VariableTypeAnnotationFinder(viewMode:.sourceAccurate)
+			typeFinder.walk(curVar)
+			guard let typeAnnotation = typeFinder.typeAnnotation else {
+				if addDiagnostics == true {
+					context.addDiagnostics(from:UnexpectedVariableType(expectedType:typeTokens.first!, foundType:nil), node:curVar)
+				}
+				typeTokensRemaining.remove(at:0)
+				continue varLoop
+			}
+
+			// check that the type annotation matches the expected type
+			guard typeAnnotation.name.text == typeTokens.first!.text else {
+				if addDiagnostics == true {
+					context.addDiagnostics(from:UnexpectedVariableType(expectedType:typeTokens.first!, foundType:typeAnnotation.name), node:curVar)
+				}
+				typeTokensRemaining.remove(at:0)
+				continue varLoop
+			}
+
+			let varNameFinder = VariableNameFinder(viewMode:.sourceAccurate)
+			varNameFinder.walk(curVar)
+			guard let varName = varNameFinder.name else {
+				if addDiagnostics == true {
+					context.addDiagnostics(from:UnexpectedVariableType(expectedType:typeTokens.first!, foundType:typeAnnotation.name), node:curVar)
+				}
+				typeTokensRemaining.remove(at:0)
+				continue varLoop
+			}
+			validVarDeclImplementations.insert(curVar)
+			typeTokensRemaining.remove(at:0)
+		}
+
+		guard problemVarDeclImplementations.count == 0 else {
+			return nil
+		}
+
+		// flag leftover type tokens (in the macro syntax) as extraneous if they exist.
+		for token in typeTokensRemaining {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("extraneous type \(token.text) found. this type will be skipped.")
+			#endif
+			context.addDiagnostics(from:UnimplementedVariableMember(), node:token)
+		}
+
+		return asStruct
+	}
+
+	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
+		guard Self.determineIfUsageCompliant(declaration:declaration, node:node, context:context, addDiagnostics:true) != nil else {
 			return []
 		}
 
@@ -387,6 +644,10 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 	}
 
 	public static func expansion(of node:SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+		guard Self.determineIfUsageCompliant(declaration:declaration, node:node, context:context, addDiagnostics:false) != nil else {
+			return []
+		}
+		
 		var buildDecls = [DeclSyntax]()
 		
 		/// parse for the attached declaration
@@ -397,17 +658,8 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 			mainLogger.error("expected struct declaration, found \(String(describing:declaration.syntaxNodeType))")
 			#endif
 			context.addDiagnostics(from:ExpectedStructAttachment(found:declaration.syntaxNodeType), node:node)
-			buildDecls.append(DeclSyntax("""
-				/// there was no struct found
-				var testThing:String = "poo"
-			"""))
-			return buildDecls
+			return []
 		}
-
-		buildDecls.append(DeclSyntax("""
-			/// attached struct successfully identified
-			var myTestThing:String = "poofoo"
-		"""))
 
 		// parse for the sendable protocol conformance
 		var foundInheritanceClause:InheritanceClauseSyntax?
@@ -420,17 +672,8 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 				attachSyntax = asStruct
 			}
 			context.addDiagnostics(from:StructMustBeSendable(), node:attachSyntax!)
-			buildDecls.append(DeclSyntax("""
-				/// there is no inheritance clause found
-				var myTest:String = "fooboo"
-			"""))
-			return buildDecls
+			return []
 		}
-
-		buildDecls.append(DeclSyntax("""
-			/// inheritance clause successfully found
-			var myTestVariable:String = "fooohoo"
-		"""))
 
 		// determine how the macro was used.
 		let nodeConfig = NodeUsageParser(viewMode: .sourceAccurate)
@@ -439,23 +682,217 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 			#if RAWDOG_MACRO_LOG
 			mainLogger.error("could not parse macro usage.")
 			#endif
-			buildDecls.append(DeclSyntax("""
-				/// there are no type tokens found in the following syntax...
-				/*
-				\(raw:node)
-				*/
-				var foobar:String = "foobar"
-			"""))
-			return buildDecls
+			return []
 		}
-
-		buildDecls.append(DeclSyntax("""
-			/// detected types from macro syntax: \(raw:typeTokens)
-			var myVar:String = "foo"
-		"""))
+		guard typeTokens.count > 0 else {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("expected to find at least one type token, found \(typeTokens.count)")
+			#endif
+			return []
+		}
 
 		// parse the variable declarations in the struct.
 		let varScanner = VariableDeclLister(viewMode:.sourceAccurate)
+		varScanner.walk(asStruct)
+
+		// find the RAW_compare functions in the struct
+		let compareFinder = FunctionFinder(viewMode:.sourceAccurate)
+		compareFinder.validMatches.update(with:"RAW_compare")
+		compareFinder.walk(asStruct)
+		var compareOverridden = false
+		for foundFunc in compareFinder.funcDecl {
+			let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
+			staticFinder.walk(foundFunc)
+			if staticFinder.foundStaticModifier == nil {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("static modifier not found on compare function. this function will be skipped.")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.MissingStaticModifier(), node:foundFunc)
+				continue
+			}
+
+			var fparams = FunctionParameterLister(viewMode:.sourceAccurate)
+			fparams.walk(foundFunc)
+			guard fparams.parameters.count == 2, fparams.parameters[0].firstName.text == "lhs_data", let idL = fparams.parameters[0].type.as(IdentifierTypeSyntax.self), let idR = fparams.parameters[1].type.as(IdentifierTypeSyntax.self), fparams.parameters[1].firstName.text == "rhs_data" && idL.name.text == "UnsafeRawPointer" && idR.name.text == "UnsafeRawPointer" else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected exactly one parameter in compare function, found \(fparams.parameters.count)")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				continue
+			}
+
+			let returnClauseFinder = ReturnClauseFinder(viewMode:.sourceAccurate)
+			returnClauseFinder.walk(foundFunc)
+			guard returnClauseFinder.returnClause?.type.as(IdentifierTypeSyntax.self)?.name.text == "Int32" else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected return type of Int32, found \(returnClauseFinder.returnClause?.type)")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				continue
+			}
+
+			let effectSpecifier = FunctionEffectSpecifiersFinder(viewMode:.sourceAccurate)
+			effectSpecifier.walk(foundFunc)
+			guard effectSpecifier.effectSpecifier == nil || (effectSpecifier.effectSpecifier!.throwsClause?.throwsSpecifier == nil && effectSpecifier.effectSpecifier!.asyncSpecifier == nil) else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected no effect specifier on compare function, found \(effectSpecifier.effectSpecifier)")
+				#endif
+				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
+				continue
+			}
+
+			compareOverridden = true
+		}
+
+		var tokensDown = typeTokens
+		var varNameVarType = [TokenSyntax:IdentifierTypeSyntax]()
+		varLoop: for curVar in varScanner.varDecls {
+
+			let abLister = AccessorBlockLister(viewMode:.sourceAccurate)
+			abLister.walk(curVar)
+			guard abLister.accessorBlocks.count == 0 else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("this variable was found to have a computed accessor block. this variable will be skipped.")
+				#endif
+				continue varLoop
+			}
+
+			let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
+			staticFinder.walk(curVar)
+			guard staticFinder.foundStaticModifier == nil else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("this variable was found to have a static modifier. this variable will be skipped.")
+				#endif
+				continue varLoop
+			}
+
+			if tokensDown.count == 0 {
+				guard abLister.accessorBlocks.count > 0 || staticFinder.foundStaticModifier != nil else {
+					#if RAWDOG_MACRO_LOG
+					mainLogger.error("extraneous variable declaration found. this variable will be skipped.")
+					#endif
+					context.addDiagnostics(from:ExtraneousVariableDeclaration(), node:curVar)
+					continue varLoop
+				}
+				continue varLoop
+			}
+
+			
+			// find the type of the variable
+			let tupleFinder = TuplePatternLister(viewMode:.sourceAccurate)
+			tupleFinder.walk(curVar)
+			guard tupleFinder.tuplePatterns.count == 0 else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected exactly one tuple pattern in variable declaration, found \(tupleFinder.tuplePatterns.count)")
+				#endif
+				context.addDiagnostics(from:TuplePatternBindingsUnsupported(), node:curVar)
+				continue varLoop
+			}
+
+			let initFinder = InitializationFinder(viewMode:.sourceAccurate)
+			initFinder.walk(curVar)
+			guard initFinder.initializers.count == 0 else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected exactly one initializer clause in variable declaration, found \(initFinder.initializers.count)")
+				#endif
+				context.addDiagnostics(from:VariableInitializationUnsupported(), node:curVar)
+				continue varLoop
+			}
+
+			let typeFinder = VariableTypeAnnotationFinder(viewMode:.sourceAccurate)
+			typeFinder.walk(curVar)
+			guard let typeAnnotation = typeFinder.typeAnnotation else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected exactly one type annotation in variable declaration, found \(typeFinder.typeAnnotation == nil ? 0 : 2)")
+				#endif
+				context.addDiagnostics(from:UnexpectedVariableType(expectedType:tokensDown.first!, foundType:nil), node:curVar)
+				tokensDown.remove(at:0)
+				continue varLoop
+			}
+
+			// check that the type annotation matches the expected type
+			guard typeAnnotation.name.text == tokensDown.first!.text else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected variable type annotation to be \(tokensDown.first!.text), found \(typeAnnotation.name.text)")
+				#endif
+				context.addDiagnostics(from:UnexpectedVariableType(expectedType:tokensDown.first!, foundType:typeAnnotation.name), node:curVar)
+				tokensDown.remove(at:0)
+				continue varLoop
+			}
+
+			let varNameFinder = VariableNameFinder(viewMode:.sourceAccurate)
+			varNameFinder.walk(curVar)
+			guard let varName = varNameFinder.name else {
+				#if RAWDOG_MACRO_LOG
+				mainLogger.error("expected exactly one variable name in variable declaration, found \(varNameFinder.name == nil ? 0 : 2)")
+				#endif
+				context.addDiagnostics(from:UnexpectedVariableType(expectedType:tokensDown.first!, foundType:typeAnnotation.name), node:curVar)
+				tokensDown.remove(at:0)
+				continue varLoop
+			}
+
+			tokensDown.remove(at:0)
+			varNameVarType[varName] = typeAnnotation
+		}
+
+		// flag leftover type tokens (in the macro syntax) as extraneous if they exist.
+		for token in tokensDown {
+			#if RAWDOG_MACRO_LOG
+			mainLogger.error("extraneous type \(token.text) found. this type will be skipped.")
+			#endif
+			context.addDiagnostics(from:UnimplementedVariableMember(), node:token)
+		}
+
+		// write the custom compare function for this type.
+		var buildCompare = [String]()
+		for (_, curType) in varNameVarType {
+			buildCompare.append("""
+				compare_result = \(curType.name.text).RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
+				guard compare_result == 0 else {
+					return compare_result
+				}
+			""")
+		}
+
+		if compareOverridden == false {
+			buildDecls.append(DeclSyntax("""
+				/// compare two instances of the same type.
+				\(raw:asStruct.modifiers) static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+					#if DEBUG
+					assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+					assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is a misuse of the macro")
+					assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is a misuse of the macro")
+					#endif
+					var compare_result:Int32
+					var lhs_seeker = lhs_data
+					var rhs_seeker = rhs_data
+
+					\(raw:buildCompare.joined(separator: "\n"))
+
+					return compare_result
+				}
+			"""))
+		}
+		buildDecls.append(DeclSyntax("""
+			\(raw:asStruct.modifiers) init(RAW_staticbuff storetype:consuming RAW_staticbuff_storetype) {
+				#if DEBUG
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is a misuse of the macro")
+				#endif
+				self = withUnsafePointer(to:&storetype) { ptr in
+					return UnsafeRawPointer(ptr).load(as:Self.self)
+				}
+			}
+		"""))
+
+		buildDecls.append(DeclSyntax("""
+			\(raw:asStruct.modifiers) consuming func RAW_staticbuff() -> RAW_staticbuff_storetype {
+				return withUnsafePointer(to:&self) { ptr in
+					return UnsafeRawPointer(ptr).load(as:RAW_staticbuff_storetype.self)
+				}
+			}
+		"""))
 
 		return buildDecls
 	}
