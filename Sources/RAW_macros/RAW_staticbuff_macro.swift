@@ -894,6 +894,72 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 
+		// assemble the primary extension declaration.
+		var buildStoreTypes:[String] = []
+		var buildZeroedCommand:[String] = []
+		for token in typeTokens {
+			buildStoreTypes.append("\(token.text).RAW_staticbuff_storetype")
+			buildZeroedCommand.append("\(token.text).RAW_staticbuff_zeroed()")
+		}
+		buildDecls.append(
+			DeclSyntax("""
+				\(raw:asStruct.modifiers) typealias RAW_staticbuff_storetype = (\(raw:buildStoreTypes.joined(separator: ", ")))
+			"""))
+		buildDecls.append(
+			DeclSyntax("""
+				/// returns a zeroed instance of the RAW_staticbuff type.
+				\(raw:asStruct.modifiers) static func RAW_staticbuff_zeroed() -> RAW_staticbuff_storetype {
+					return (\(raw:buildZeroedCommand.joined(separator: ", ")))
+				}
+			"""))
+
+		// apply the default implementations for the protocol conformance
+		buildDecls.append(DeclSyntax("""
+			/// initialize the static buffer from a pointer to its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
+			\(asStruct.modifiers) init(RAW_staticbuff ptr:UnsafeRawPointer) {
+				#if DEBUG
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<Self>.stride == MemoryLayout<RAW_staticbuff_storetype>.stride, "static buffer type stride mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<Self>.alignment == MemoryLayout<RAW_staticbuff_storetype>.alignment, "static buffer type alignment mismatch. this is a misuse of the macro")
+				#endif
+				self = ptr.load(as:Self.self)
+			}
+		"""))
+		buildDecls.append(DeclSyntax("""
+			\(asStruct.modifiers) borrowing func RAW_encode(count: inout size_t) {
+				count += MemoryLayout<RAW_staticbuff_storetype>.size
+			}
+		"""))
+		buildDecls.append(DeclSyntax("""
+			@discardableResult \(asStruct.modifiers) borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
+				withUnsafePointer(to:self) { buff in
+					_ = RAW_memcpy(dest, buff, MemoryLayout<RAW_staticbuff_storetype>.size)!
+				}
+				return dest.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
+			}
+		"""))
+		buildDecls.append(DeclSyntax("""
+			\(asStruct.modifiers) borrowing func RAW_access<R, E>(_ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
+					let asBuffer = UnsafeBufferPointer<UInt8>(start:UnsafeRawPointer(buff).assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size)
+					return try body(asBuffer)
+				}
+			}
+		"""))
+		buildDecls.append(DeclSyntax("""
+			\(asStruct.modifiers) borrowing func RAW_access_staticbuff<R, E>(_ body:(UnsafeRawPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
+					return try body(buff)
+				}
+			}
+		"""))
+		buildDecls.append(DeclSyntax("""
+			\(asStruct.modifiers) mutating func RAW_access_staticbuff_mutating<R, E>(_ body:(UnsafeMutableRawPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try withUnsafeMutablePointer(to:&self) { (buff:UnsafeMutablePointer<Self>) throws(E) -> R in
+					return try body(UnsafeMutableRawPointer(buff))
+				}
+			}
+		"""))
 		return buildDecls
 	}
 }
