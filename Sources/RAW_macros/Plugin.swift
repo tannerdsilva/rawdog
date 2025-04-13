@@ -99,6 +99,44 @@ internal final class InheritedTypeFinder:SyntaxVisitor {
 	}
 }
 
+/// identifies the type that a macro is attached to.
+internal final class AttachedMemberTypeIdentifier:SyntaxVisitor {
+	internal enum AttachedType {
+		case structType(StructDeclSyntax)
+		case classType(ClassDeclSyntax)
+		case enumType(EnumDeclSyntax)
+		case protocolType(ProtocolDeclSyntax)
+	}
+	internal var foundType:AttachedType? = nil
+	override func visit(_ node:StructDeclSyntax) -> SyntaxVisitorContinueKind {
+		foundType = .structType(node)
+		return .skipChildren
+	}
+	override func visit(_ node:ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+		foundType = .classType(node)
+		return .skipChildren
+	}
+	override func visit(_ node:EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+		foundType = .enumType(node)
+		return .skipChildren
+	}
+	override func visit(_ node:ProtocolDeclSyntax) -> SyntaxVisitorContinueKind {
+		foundType = .protocolType(node)
+		return .skipChildren
+	}
+}
+
+internal final class VariableDeclLister:SyntaxVisitor {
+	var varDecls = [VariableDeclSyntax]()
+	override func visit(_ node:VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+		varDecls.append(node)
+		return .skipChildren
+	}
+	override func visit(_ node:CodeBlockSyntax) -> SyntaxVisitorContinueKind {
+		return .skipChildren
+	}
+}
+
 internal final class AccessorBlockLister:SyntaxVisitor {
 	internal var accessorBlocks = [AccessorBlockSyntax]()
 	override func visit(_ node:AccessorBlockSyntax) -> SyntaxVisitorContinueKind {
