@@ -178,8 +178,8 @@ fileprivate struct AttachedMemberDiagnostics {
 		}
 	}
 
-	fileprivate static func validateAttachedMember(declaration:some SwiftSyntax.DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax, context:some SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) -> StructDeclSyntax? {
-		// parse for the attached declaration. the attached declaration must be a struct.
+	fileprivate static func validateAttachedMemberBasics(declaration:some SwiftSyntax.DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax, context:some SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) -> StructDeclSyntax? {
+		// parse for the attached declaration. the attached declaration must be a struct. if the attached syntax is not a struct declaration, offer valid suggestions to convert it to a struct.
 		let typeIdentifier = AttachedMemberTypeIdentifier(viewMode:.sourceAccurate)
 		typeIdentifier.walk(declaration)
 		let asStruct:StructDeclSyntax
@@ -192,7 +192,9 @@ fileprivate struct AttachedMemberDiagnostics {
 			case .some(let id):
 				switch id {
 					case .structType(let structDecl):
-						// if the attached declaration is a struct, then we can use it after doing some quick validation.
+						// if the attached declaration is a struct, then we can use it after doing some validation.
+
+						// validate that the attached struct does not have a private modifier.
 						var containsPrivate:DeclModifierSyntax? = nil
 						for mod in structDecl.modifiers {
 							if mod.name.text == "private" {
@@ -224,8 +226,7 @@ fileprivate struct AttachedMemberDiagnostics {
 						guard let inheritanceClauseTypes = structDecl.inheritanceClause?.inheritedTypes, inheritanceClauseTypes.count > 0 else {
 							if addDiagnostics == true {
 								var structDeclModify = structDecl
-								let inhType = InheritedTypeSyntax(type:IdentifierTypeSyntax(name:TokenSyntax("Sendable"), trailingTrivia:.space))
-								structDeclModify.inheritanceClause = InheritanceClauseSyntax(colon:TokenSyntax(":"), inheritedTypes:InheritedTypeListSyntax([inhType]))
+								structDeclModify.inheritanceClause = InheritanceClauseSyntax(colon:TokenSyntax(":"), inheritedTypes:InheritedTypeListSyntax([InheritedTypeSyntax(type:IdentifierTypeSyntax(name:TokenSyntax("Sendable"), trailingTrivia:.space))]))
 								let diagnosticMessage = Diagnostic(
 									node:structDecl.name,
 									message:AttachedMemberDiagnostics.StructMustBeSendable(),
@@ -265,6 +266,8 @@ fileprivate struct AttachedMemberDiagnostics {
 							}
 							return nil
 						}
+
+						// basic struct validation complete.
 						asStruct = structDecl
 						break
 					case .classType(let classDecl):
@@ -505,7 +508,7 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 	}
 
 	fileprivate static func determineIfUsageCompliant(declaration:some SwiftSyntax.DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax, context:some SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) -> (StructDeclSyntax, NodeUsageParser)? {
-		guard let asStruct = AttachedMemberDiagnostics.validateAttachedMember(declaration:declaration, node:node, context:context, addDiagnostics:addDiagnostics) else {
+		guard let asStruct = AttachedMemberDiagnostics.validateAttachedMemberBasics(declaration:declaration, node:node, context:context, addDiagnostics:addDiagnostics) else {
 			return nil
 		}
 
