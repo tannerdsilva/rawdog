@@ -31,10 +31,19 @@ internal let mainLogger = Logger(label:"RAW")
 @RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
 public struct RAW_byte:Sendable, Hashable, Comparable, Equatable, Codable {}
 
-@RAW_staticbuff(concat:RAW_byte.self, RAW_byte.self)
-public struct DualBytes:Sendable {
-	var myByte:RAW_byte
-	var secondByte:RAW_byte
+@RAW_staticbuff(bytes:2)
+public struct DoubleByte:Sendable {}
+
+@RAW_staticbuff(concat:RAW_byte.self, RAW_byte.self, RAW_byte.self, RAW_byte.self)
+internal struct DualBytes:Comparable, Sendable {
+    static func < (lhs: DualBytes, rhs: DualBytes) -> Bool {
+        return true
+    }
+	private var myByte:RAW_byte
+	private var secondByte:RAW_byte
+	// private let myThing:String = "foobar"
+	var thirdByte:RAW_byte
+	var fourthByte:RAW_byte
 }
 
 // MARK: Random Bytes

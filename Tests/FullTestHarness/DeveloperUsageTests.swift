@@ -34,7 +34,9 @@ struct MYSTRUCT:Sendable {
 	private var fourthItem:FixedBuff5
 }
 
-@RAW_staticbuff(concat:EncodedDouble.self, EncodedFloat.self)
+@RAW_staticbuff(concat:
+								EncodedDouble.self,
+								EncodedFloat.self)
 fileprivate struct MYSTRUCT2:Sendable {
 	private var firstItem:EncodedDouble
 	private var secondItem:EncodedFloat

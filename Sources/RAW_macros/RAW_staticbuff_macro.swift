@@ -101,12 +101,11 @@ public struct FoundLabeledExpr:Swift.Error, DiagnosticMessage {
 fileprivate struct AttachedMemberDiagnostics {
 	// diagnostic error that is thrown when the attached body could not be parsed effectively.
 	fileprivate struct UnknownAttachedMemberType:Swift.Error, DiagnosticMessage {
-		private let foundType:SyntaxProtocol.Type
-		fileprivate var message:String { "could not determine the syntax that the macro was attached to. expected to find a struct declaration but found '\(String(describing:foundType))' instead." }
+		fileprivate let message:String
 		fileprivate let diagnosticID:SwiftDiagnostics.MessageID = MessageID(domain:"RAW_macros", id:"attached_member_unidentified_type")
 		fileprivate let severity:SwiftDiagnostics.DiagnosticSeverity = .error
 		fileprivate init(found:SyntaxProtocol.Type) {
-			self.foundType = found
+			self.message =  "could not determine the syntax that the macro was attached to. expected to find a struct declaration but found '\(String(describing:found))' instead."
 		}
 	}
 
@@ -225,7 +224,7 @@ fileprivate struct AttachedMemberDiagnostics {
 						guard let inheritanceClauseTypes = structDecl.inheritanceClause?.inheritedTypes, inheritanceClauseTypes.count > 0 else {
 							if addDiagnostics == true {
 								var structDeclModify = structDecl
-								let inhType = InheritedTypeSyntax(type:IdentifierTypeSyntax(name:TokenSyntax("Sendable")))
+								let inhType = InheritedTypeSyntax(type:IdentifierTypeSyntax(name:TokenSyntax("Sendable"), trailingTrivia:.space))
 								structDeclModify.inheritanceClause = InheritanceClauseSyntax(colon:TokenSyntax(":"), inheritedTypes:InheritedTypeListSyntax([inhType]))
 								let diagnosticMessage = Diagnostic(
 									node:structDecl.name,
@@ -252,11 +251,11 @@ fileprivate struct AttachedMemberDiagnostics {
 						guard foundSendable == true else {
 							// sendable not found. add it to the inheritance clause.
 							if addDiagnostics == true {
-								rebuiltForAppendedSendable.inheritedTypes.append(InheritedTypeSyntax(type:IdentifierTypeSyntax(name:TokenSyntax("Sendable"))))
+								rebuiltForAppendedSendable.inheritedTypes.append(InheritedTypeSyntax(type:IdentifierTypeSyntax(name:TokenSyntax("Sendable"), trailingTrivia:.space)))
 								var structDeclModify = structDecl
 								structDeclModify.inheritanceClause = rebuiltForAppendedSendable
 								let diagnosticMessage = Diagnostic(
-									node:structDecl.name,
+									node:structDecl,
 									message:AttachedMemberDiagnostics.StructMustBeSendable(),
 									fixIts:[
 										.replace(message:AttachedMemberDiagnostics.StructMustBeSendable.FixItDiagnostic(), oldNode:structDecl, newNode:structDeclModify)
@@ -317,6 +316,110 @@ fileprivate struct AttachedMemberDiagnostics {
 		}
 		return asStruct
 	}
+
+	fileprivate struct InstanceVariableDiagnostics {
+		fileprivate final class MemberInstanceVariableLister:SyntaxVisitor {
+			var foundVariables = [VariableDeclSyntax]()
+			override func visit(_ node:VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+				foundVariables.append(node)
+				return .skipChildren
+			}
+		}
+	}
+}
+
+fileprivate struct NodeUsageDiagnostics {
+	fileprivate struct ConvertToValidTypeReference:DiagnosticMessage {
+		fileprivate let message:String
+		fileprivate let diagnosticID:SwiftDiagnostics.MessageID = MessageID(domain:"RAW_macros", id:"staticbuff_convert_to_valid_type_reference")
+		fileprivate let severity:SwiftDiagnostics.DiagnosticSeverity = .error
+		fileprivate init(foundType:TokenSyntax) {
+			self.message = "expected to find a valid type reference, but found '\(foundType.text)' instead. versions of swift 6 and prior will compile and work as expected, but starting in swift 6.1, this syntax will be rejected. please update this syntax to use a valid type reference."
+		}
+		fileprivate struct FixItDiagnostic:FixItMessage {
+			fileprivate let message:String
+			fileprivate let fixItID:SwiftDiagnostics.MessageID = MessageID(domain:"RAW_macros", id:"staticbuff_fix_convert_to_valid_type_reference")
+			fileprivate init(foundType:TokenSyntax) {
+				self.message = "append '.self' syntax after '\(foundType.text)'."
+			}
+		}
+	}
+
+	fileprivate struct IncomplateTypeDeclaration:Swift.Error, DiagnosticMessage {
+		fileprivate let message:String
+		fileprivate let diagnosticID:SwiftDiagnostics.MessageID = MessageID(domain:"RAW_macros", id:"staticbuff_incomplete_type_declaration")
+		fileprivate let severity:SwiftDiagnostics.DiagnosticSeverity = .error
+		fileprivate init() {
+			self.message = "this type declaration is missing the base name for the type. please write a complete type referece to resolve this error."
+		}
+	}
+
+	fileprivate final class ConcatTypeLister:SyntaxVisitor {
+		let context:SwiftSyntaxMacros.MacroExpansionContext
+		var foundLabeledExprList:LabeledExprListSyntax? = nil
+		var foundTypes:[TokenSyntax] = []
+		private let addDiagnostics:Bool
+
+		var valid:Bool = true
+
+		init(context:SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) {
+			self.context = context
+			self.addDiagnostics = addDiagnostics
+			super.init(viewMode:.sourceAccurate)
+		}
+		override func visit(_ node:DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+			if addDiagnostics == true {
+				let diagnosticMessage = Diagnostic(
+					node:node,
+					message:NodeUsageDiagnostics.ConvertToValidTypeReference(foundType:node.baseName),
+					fixIts:[
+						.replace(message:NodeUsageDiagnostics.ConvertToValidTypeReference.FixItDiagnostic(foundType:node.baseName), oldNode:node, newNode:DeclSyntax("\(node.baseName).self"))
+					]
+				)
+				context.diagnose(diagnosticMessage)
+			}
+			valid = false
+			return .skipChildren
+		}
+		override func visit(_ node:LabeledExprListSyntax) -> SyntaxVisitorContinueKind {
+			switch foundLabeledExprList {
+				case nil:
+					foundLabeledExprList = node
+					return .visitChildren
+				case .some:
+					return .skipChildren
+			}
+		}
+		private final class ValidDeclReferenceExprSyntaxLister:SyntaxVisitor {
+			var foundDeclReferenceExpr:Array<DeclReferenceExprSyntax> = []
+			override func visit(_ node:DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+				foundDeclReferenceExpr.append(node)
+				return .skipChildren
+			}
+		}
+		override func visit(_ node:MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+			guard node.base != nil else {
+				valid = false
+				if addDiagnostics == true {
+					context.addDiagnostics(from:NodeUsageDiagnostics.IncomplateTypeDeclaration(), node:node)
+				}
+				return .skipChildren
+			}
+			let validDeclReferenceExprLister = ValidDeclReferenceExprSyntaxLister(viewMode:.sourceAccurate)
+			validDeclReferenceExprLister.walk(node.base!)
+			guard validDeclReferenceExprLister.foundDeclReferenceExpr.count == 1 else {
+				valid = false
+				if addDiagnostics == true {
+					context.addDiagnostics(from:NodeUsageDiagnostics.IncomplateTypeDeclaration(), node:node)
+				}
+				return .skipChildren
+			}
+
+			let foundDeclReferenceExpr = validDeclReferenceExprLister.foundDeclReferenceExpr.first!
+			foundTypes.append(foundDeclReferenceExpr.baseName)
+			return .skipChildren
+		}
+	}
 }
 
 public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
@@ -326,17 +429,6 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 		public var message:String { "expected to find at least one type token for the concat macro." }
 		public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_concat_missing_types")}
 		public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
-	}
-
-	public struct UsageExpectationRemark:Swift.Error, DiagnosticMessage {
-		public var message:String { "expecting to find \(types.count) stored variables in attached struct." }
-		public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_concat_usage_expectation")}
-		public var severity: SwiftDiagnostics.DiagnosticSeverity { .remark }
-
-		private let types:[TokenSyntax]
-		internal init(types:[TokenSyntax]) {
-			self.types = types
-		}
 	}
 
 	/// used to determine the mode that this macro is being used in.
@@ -414,6 +506,12 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 
 	fileprivate static func determineIfUsageCompliant(declaration:some SwiftSyntax.DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax, context:some SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) -> (StructDeclSyntax, NodeUsageParser)? {
 		guard let asStruct = AttachedMemberDiagnostics.validateAttachedMember(declaration:declaration, node:node, context:context, addDiagnostics:addDiagnostics) else {
+			return nil
+		}
+
+		let concatLister = NodeUsageDiagnostics.ConcatTypeLister(context:context, addDiagnostics:addDiagnostics)
+		concatLister.walk(node)
+		guard concatLister.valid == true else {
 			return nil
 		}
 
