@@ -358,14 +358,12 @@ fileprivate struct NodeUsageDiagnostics {
 	}
 
 	fileprivate final class ConcatTypeLister:SyntaxVisitor {
-		let context:SwiftSyntaxMacros.MacroExpansionContext
-		var foundLabeledExprList:LabeledExprListSyntax? = nil
-		var foundTypes:[TokenSyntax] = []
+		private let context:SwiftSyntaxMacros.MacroExpansionContext
+		private var foundLabeledExprList:LabeledExprListSyntax? = nil
+		fileprivate var foundTypes:[TokenSyntax] = []
 		private let addDiagnostics:Bool
-
-		var valid:Bool = true
-
-		init(context:SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) {
+		fileprivate var valid:Bool = true
+		fileprivate init(context:SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) {
 			self.context = context
 			self.addDiagnostics = addDiagnostics
 			super.init(viewMode:.sourceAccurate)
