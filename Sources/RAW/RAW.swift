@@ -31,23 +31,6 @@ internal let mainLogger = Logger(label:"RAW")
 @RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
 public struct RAW_byte:Sendable, Hashable, Comparable, Equatable, Codable {}
 
-@RAW_staticbuff(concat:RAW_byte.self, RAW_byte.self)
-public struct DoubleByte:Sendable {
-	var byte:RAW_byte
-	var byte2:RAW_byte
- 	public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
-		let lhs = lhs_data.assumingMemoryBound(to:RAW_byte.self)
-		let rhs = rhs_data.assumingMemoryBound(to:RAW_byte.self)
-		if lhs.pointee == rhs.pointee {
-			return 0
-		} else if lhs.pointee < rhs.pointee {
-			return -1
-		} else {
-			return 1
-		}
-	}
-}
-
 // MARK: Random Bytes
 public func generateRandomBytes(count:Int) throws -> [UInt8] {
 	struct GenerateRandomBytesError:Swift.Error {}

@@ -333,7 +333,7 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 		}
 	}
 
-	public static func determineIfUsageCompliant(declaration:some SwiftSyntax.DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax, context:some SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) -> (Bool, Int)? {
+	public static func determineIfUsageCompliant(declaration:some SwiftSyntax.DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax, context:some SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) -> (StructDeclSyntax, Bool, Int)? {
 		guard let asStruct = AttachedMemberDiagnostics.validateAttachedMemberBasics(declaration:declaration, node:node, context:context, addDiagnostics:addDiagnostics) else {
 			return nil
 		}
@@ -346,7 +346,6 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 			}
 			return nil
 		}
-
 		guard byteCount >= 0 else {
 			if addDiagnostics {
 				context.addDiagnostics(from:NodeUsageDiagnostics.InvalidByteCount(), node:node)
@@ -458,11 +457,11 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 			// successful validation of the function override.
 			successfulRAWCompareOverride = true
 		}
-		return (successfulRAWCompareOverride, byteCount)
+		return (asStruct, successfulRAWCompareOverride, byteCount)
 	}
 
-	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
-		guard Self.determineIfUsageCompliant(declaration:declaration, node:node, context: context, addDiagnostics:false) != nil else {
+	public static func expansion(of node:SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
+		guard Self.determineIfUsageCompliant(declaration:declaration, node:node, context:context, addDiagnostics:false) != nil else {
 			return []
 		}
 
@@ -472,96 +471,8 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 	}
 
 	public static func expansion(of node:SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-		guard let (isOverridden, byteCount) = Self.determineIfUsageCompliant(declaration:declaration, node:node, context:context, addDiagnostics:true) else {
+		guard let (asStruct, isOverridden, byteCount) = Self.determineIfUsageCompliant(declaration:declaration, node:node, context:context, addDiagnostics:true) else {
 			return []
-		}
-		
-		// parse for the attached declaration
-		let structFinder = StructFinder(viewMode: .sourceAccurate)
-		structFinder.walk(declaration)
-		guard let asStruct = structFinder.structDecl else {
-			context.addDiagnostics(from:ExpectedStructAttachment(found:declaration.syntaxNodeType), node:node)
-			return []
-		}
-
-		// parse for the sendable protocol conformance
-		var foundInheritanceClause:InheritanceClauseSyntax? = nil
-		guard isMarkedSendable(asStruct, withInheritanceClause:&foundInheritanceClause) else {
-			var attachSyntax:SyntaxProtocol? = foundInheritanceClause
-			if attachSyntax == nil {
-				attachSyntax = asStruct
-			}
-			context.addDiagnostics(from:StructMustBeSendable(), node:attachSyntax!)
-			return []
-		}
-
-		// determine how many bytes this macro is to be used for.
-		let nodeConfig = NodeUsabeParser(viewMode: .sourceAccurate)
-		nodeConfig.walk(node)
-		guard let byteCount = nodeConfig.numberOfBytes else {
-			#if RAWDOG_MACRO_LOG
-			mainLogger.error("could not parse macro usage.")
-			#endif
-			return []
-		}
-		guard byteCount >= 0 else {
-			#if RAWDOG_MACRO_LOG
-			mainLogger.error("byte count must be greater than 0.")
-			#endif
-			context.addDiagnostics(from:InvalidByteCount(), node:node)
-			return []
-		}
-
-		// find the RAW_compare functions in the struct. it may be overridden, but is not required to be.
-		let compareFinder = FunctionFinder(viewMode:.sourceAccurate)
-		compareFinder.validMatches.update(with:"RAW_compare")
-		compareFinder.walk(asStruct)
-		for foundFunc in compareFinder.funcDecl {
-
-			#if RAWDOG_MACRO_LOG
-			mainLogger.info("found RAW_compare override in struct declaration. validating format and naming...")
-			#endif
-
-			// check for the static modifier
-			let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
-			staticFinder.walk(foundFunc)
-			if staticFinder.foundStaticModifier == nil {
-				#if RAWDOG_MACRO_LOG
-				mainLogger.error("static modifier not found on compare function. this function will be skipped.")
-				#endif
-				context.addDiagnostics(from:InvalidRAW_compareOverride.MissingStaticModifier(), node:foundFunc)
-				continue
-			}
-
-			var fparams = FunctionParameterLister(viewMode:.sourceAccurate)
-			fparams.walk(foundFunc)
-			guard fparams.parameters.count == 2, fparams.parameters[0].firstName.text == "lhs_data", let idL = fparams.parameters[0].type.as(IdentifierTypeSyntax.self), let idR = fparams.parameters[1].type.as(IdentifierTypeSyntax.self), fparams.parameters[1].firstName.text == "rhs_data" && idL.name.text == "UnsafeRawPointer" && idR.name.text == "UnsafeRawPointer" else {
-				#if RAWDOG_MACRO_LOG
-				mainLogger.error("expected exactly one parameter in compare function, found \(fparams.parameters.count)")
-				#endif
-				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
-				continue
-			}
-
-			let returnClauseFinder = ReturnClauseFinder(viewMode:.sourceAccurate)
-			returnClauseFinder.walk(foundFunc)
-			guard returnClauseFinder.returnClause?.type.as(IdentifierTypeSyntax.self)?.name.text == "Int32" else {
-				#if RAWDOG_MACRO_LOG
-				mainLogger.error("expected return type of Int32, found \(returnClauseFinder.returnClause?.type)")
-				#endif
-				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
-				continue
-			}
-
-			let effectSpecifier = FunctionEffectSpecifiersFinder(viewMode:.sourceAccurate)
-			effectSpecifier.walk(foundFunc)
-			guard effectSpecifier.effectSpecifier == nil || (effectSpecifier.effectSpecifier!.throwsClause?.throwsSpecifier == nil && effectSpecifier.effectSpecifier!.asyncSpecifier == nil) else {
-				#if RAWDOG_MACRO_LOG
-				mainLogger.error("expected no effect specifier on compare function, found \(effectSpecifier.effectSpecifier)")
-				#endif
-				context.addDiagnostics(from:InvalidRAW_compareOverride.InvalidRAW_comparable_fixedFunction(), node:foundFunc)
-				continue
-			}
 		}
 
 		var declString = [DeclSyntax]()
@@ -589,7 +500,18 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 
 			// functions that are NOT static AND NOT computed are blocked from being used in this macro.
 			if abLister.accessorBlocks.count == 0 && staticFinder.foundStaticModifier == nil {
-				context.addDiagnostics(from:StoredVariablesUnsupported(), node:curVar)
+				var curVarModify = curVar
+				curVarModify.modifiers.append(DeclModifierSyntax(name:"static", trailingTrivia:.space))
+				curVarModify.bindingSpecifier.leadingTrivia = ""
+				let diagnose = Diagnostic(
+					node:curVar,
+					message:AttachedMemberDiagnostics.MemberContentDiagnostics.ExtraneousVariableDeclaration(),
+					fixIts:[
+						.replace(message:AttachedMemberDiagnostics.MemberContentDiagnostics.ExtraneousVariableDeclaration.FixItDiagnosticRemoveMe(), oldNode:curVar, newNode:curVarModify),
+						.replace(message:AttachedMemberDiagnostics.MemberContentDiagnostics.ExtraneousVariableDeclaration.FixItDiagnosticConvertToStatic(), oldNode:curVar, newNode:curVarModify)
+					]
+				)
+				context.diagnose(diagnose)
 			}
 		}
 
