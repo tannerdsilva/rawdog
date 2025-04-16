@@ -501,9 +501,9 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 
 	// added when the user invokes the concat macro but doesn't specify any types.
 	public struct MissingConcatTypes:Swift.Error, DiagnosticMessage {
-		public var message:String { "expected to find at least one type token for the concat macro." }
-		public var diagnosticID:SwiftDiagnostics.MessageID { MessageID(domain:"RAW_macros", id:"staticbuff_concat_missing_types")}
-		public var severity: SwiftDiagnostics.DiagnosticSeverity { .error }
+		public var message:String = "expected to find at least one type token for the concat macro."
+		public var diagnosticID:SwiftDiagnostics.MessageID = MessageID(domain:"RAW_macros", id:"staticbuff_concat_missing_types")
+		public var severity: SwiftDiagnostics.DiagnosticSeverity = .error
 	}
 
 	private final class InitializationFinder:SyntaxVisitor {
