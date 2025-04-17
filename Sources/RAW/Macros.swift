@@ -50,14 +50,19 @@ public macro RAW_staticbuff_fixedwidthinteger_type<T:FixedWidthInteger>(bigEndia
 @attached(extension,	conformances:	RAW_encoded_binaryfloatingpoint)
 public macro RAW_staticbuff_binaryfloatingpoint_type<T:BinaryFloatingPoint>() = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_floatingpoint_type_macro")
 
-@attached(member,		names:			named(init(_:)),
-										named(makeIterator()),
-										named(RAW_access),
-										named(RAW_access_mutating),
-										named(RAW_integer_encoding_impl),
-										named(RAW_convertible_unicode_encoding),
-										named(init(RAW_decode:count:)),
-										named(RAW_encode(count:)),
-										named(RAW_encode(dest:)))
-@attached(extension,	conformances:	RAW_encoded_unicode)
-public macro RAW_convertible_string_type<S:RAW_encoded_fixedwidthinteger>(_:any UnicodeCodec.Type) = #externalMacro(module:"RAW_macros", type:"RAW_convertible_string_type_macro")
+@attached(member)
+// legacy macro syntax
+public macro RAW_convertible_string_type<S:RAW_encoded_fixedwidthinteger>(_:any UnicodeCodec.Type) = #externalMacro(module:"RAW_macros", type:"RAW_convertible_string_type_macro_depricated")
+
+
+// @attached(member,		names:			named(init(_:)),
+// 										named(makeIterator()),
+// 										named(RAW_access),
+// 										named(RAW_access_mutating),
+// 										named(RAW_integer_encoding_impl),
+// 										named(RAW_convertible_unicode_encoding),
+// 										named(init(RAW_decode:count:)),
+// 										named(RAW_encode(count:)),
+// 										named(RAW_encode(dest:)))
+// @attached(extension,	conformances:	RAW_encoded_unicode)
+// public macro RAW_convertible_string_type<U:UnicodeCodec>(backing: any RAW_encoded_fixedwidthinteger.Type) = #externalMacro(module:"RAW_macros", type:"RAW_convertible_string_type_macro_v2")
