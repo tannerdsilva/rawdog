@@ -22,10 +22,10 @@ struct EncodedDouble:Sendable, ExpressibleByFloatLiteral {}
 @RAW_staticbuff_binaryfloatingpoint_type<Float>()
 struct EncodedFloat:Sendable, ExpressibleByFloatLiteral {}
 
-@RAW_staticbuff(concat:			FixedBuff5, 
-								EncodedDouble,
-								EncodedFloat,
-								FixedBuff5)
+@RAW_staticbuff(concat:			FixedBuff5.self, 
+								EncodedDouble.self,
+								EncodedFloat.self,
+								FixedBuff5.self)
 struct MYSTRUCT:Sendable {
 	// this is a test of comments in the struct. (they seem to work ok)
 	private var firstItem:FixedBuff5
@@ -34,7 +34,8 @@ struct MYSTRUCT:Sendable {
 	private var fourthItem:FixedBuff5
 }
 
-@RAW_staticbuff(concat:EncodedDouble, EncodedFloat)
+@RAW_staticbuff(concat:			EncodedDouble.self,
+								EncodedFloat.self)
 fileprivate struct MYSTRUCT2:Sendable {
 	private var firstItem:EncodedDouble
 	private var secondItem:EncodedFloat
@@ -62,16 +63,12 @@ struct MyUInt32Equivalent:Sendable {}
 @RAW_staticbuff(bytes:2)
 struct MyUInt16Equivalent:Sendable {}
 
-@RAW_staticbuff(concat:MyUInt16Equivalent, MyUInt32Equivalent, MyUInt64Equivalent)
+@RAW_staticbuff(concat:MyUInt16Equivalent.self, MyUInt32Equivalent.self, MyUInt64Equivalent.self)
 struct MySpecialUIntType:Sendable {
 	var bitVar16:MyUInt16Equivalent
 	var bitVar32:MyUInt32Equivalent
 	var bitVar64:MyUInt64Equivalent
-<<<<<<< HEAD
-	@MainActor static var myComputedVar:String = "Hello"
-=======
 	static let myComputedVar:String = "Hello"
->>>>>>> s6
 }
 
 @RAW_staticbuff(bytes:8)
@@ -83,7 +80,7 @@ struct EncodedUInt64:ExpressibleByIntegerLiteral, Sendable {}
 struct EncodedUInt32:ExpressibleByIntegerLiteral, Sendable {}
 
 // // mydually - this is used to test the linear sort and compare functions of the ConcatBufferType macro.
-@RAW_staticbuff(concat:EncodedUInt64, EncodedUInt32)
+@RAW_staticbuff(concat:EncodedUInt64.self, EncodedUInt32.self)
 struct MyDually:Sendable {
 	var first: EncodedUInt64
 	static let myThing:MyDually = MyDually(first: 10, second: 20)

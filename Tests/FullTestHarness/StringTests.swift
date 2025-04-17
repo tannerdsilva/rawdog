@@ -8,7 +8,7 @@ import XCTest
 @RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
 fileprivate struct _UTF16_CHAR:Sendable {}
 
-@RAW_convertible_string_type<_UTF16_CHAR>(UTF16)
+@RAW_convertible_string_type<UTF16>(backing:_UTF16_CHAR.self)
 fileprivate struct MyUTF16:ExpressibleByStringLiteral {}
 
 class StringTests: XCTestCase {

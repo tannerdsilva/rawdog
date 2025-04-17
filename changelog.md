@@ -1,3 +1,15 @@
+# 16.0.0
+
+- Revised syntax requirements for macro usage.
+
+	Previous syntax usage guidelines for this library failed to translate into Swift 6.1 without causing errors. This release is mostly focused on restoring the macro functionality for Swift 6 and beyond.
+
+	- Improved macro usage diagnostics.
+
+		- Significant focus given to how macros behave with incomplete or invalid syntax.
+
+		- Fix-It diagnostics are now provided for a majority of macro errors.
+		
 # 15.0.0
 
 - Revised and improved Swift 6 implementation.
