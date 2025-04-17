@@ -457,6 +457,37 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 			// successful validation of the function override.
 			successfulRAWCompareOverride = true
 		}
+
+
+		// throw a diagnostic on any variable declarations that are not computed
+		let varScanner = VariableDeclLister(viewMode:.sourceAccurate)
+		varScanner.walk(asStruct)
+		for curVar in varScanner.varDecls {
+			let abLister = AccessorBlockLister(viewMode:.sourceAccurate)
+			abLister.walk(curVar)
+			let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
+			staticFinder.walk(curVar)
+
+			guard abLister.accessorBlocks.count > 0 || staticFinder.foundStaticModifier != nil else {
+				if addDiagnostics == true {
+					var curVarModify = curVar
+					curVarModify.modifiers.append(DeclModifierSyntax(name:"static", trailingTrivia:.space))
+					curVarModify.bindingSpecifier.leadingTrivia = .space
+					let diagnose = Diagnostic(
+						node:curVar,
+						message:AttachedMemberDiagnostics.MemberContentDiagnostics.ExtraneousVariableDeclaration(),
+						fixIts:[
+							.replace(message:AttachedMemberDiagnostics.MemberContentDiagnostics.ExtraneousVariableDeclaration.FixItDiagnosticRemoveMe(), oldNode:curVar, newNode:DeclSyntax("")),
+							.replace(message:AttachedMemberDiagnostics.MemberContentDiagnostics.ExtraneousVariableDeclaration.FixItDiagnosticConvertToStatic(), oldNode:curVar, newNode:curVarModify)
+						]
+					)
+					context.diagnose(diagnose)
+					return nil
+				}
+				return nil
+			}
+		}
+
 		return (asStruct, successfulRAWCompareOverride, byteCount)
 	}
 
@@ -471,7 +502,7 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 	}
 
 	public static func expansion(of node:SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-		guard let (asStruct, isOverridden, byteCount) = Self.determineIfUsageCompliant(declaration:declaration, node:node, context:context, addDiagnostics:true) else {
+		guard let (asStruct, _, byteCount) = Self.determineIfUsageCompliant(declaration:declaration, node:node, context:context, addDiagnostics:true) else {
 			return []
 		}
 
@@ -488,32 +519,6 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 			private var \(varName):RAW_staticbuff_storetype
 			""")
 		)
-
-		// throw a diagnostic on any variable declarations that are not computed
-		let varScanner = VariableDeclLister(viewMode:.sourceAccurate)
-		varScanner.walk(asStruct)
-		for curVar in varScanner.varDecls {
-			let abLister = AccessorBlockLister(viewMode:.sourceAccurate)
-			abLister.walk(curVar)
-			let staticFinder = StaticModifierFinder(viewMode:.sourceAccurate)
-			staticFinder.walk(curVar)
-
-			// functions that are NOT static AND NOT computed are blocked from being used in this macro.
-			if abLister.accessorBlocks.count == 0 && staticFinder.foundStaticModifier == nil {
-				var curVarModify = curVar
-				curVarModify.modifiers.append(DeclModifierSyntax(name:"static", trailingTrivia:.space))
-				curVarModify.bindingSpecifier.leadingTrivia = ""
-				let diagnose = Diagnostic(
-					node:curVar,
-					message:AttachedMemberDiagnostics.MemberContentDiagnostics.ExtraneousVariableDeclaration(),
-					fixIts:[
-						.replace(message:AttachedMemberDiagnostics.MemberContentDiagnostics.ExtraneousVariableDeclaration.FixItDiagnosticRemoveMe(), oldNode:curVar, newNode:curVarModify),
-						.replace(message:AttachedMemberDiagnostics.MemberContentDiagnostics.ExtraneousVariableDeclaration.FixItDiagnosticConvertToStatic(), oldNode:curVar, newNode:curVarModify)
-					]
-				)
-				context.diagnose(diagnose)
-			}
-		}
 
 		declString.append(DeclSyntax("""
 			/// initialize the static buffer from its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
