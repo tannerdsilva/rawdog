@@ -15,7 +15,7 @@ public enum Error:Swift.Error {
 @RAW_staticbuff(bytes:256)
 public struct Salt:Sendable {
 	public static func generate(passes:UInt = 12) throws -> Self {
-		let newSaltBuffer = __crawdog_crypt_gensalt_ra("$2b$", passes, try! generateSecureRandomBytes(as:[UInt8].self, count:MemoryLayout<Salt>.size), Int32(MemoryLayout<Salt>.size))
+		let newSaltBuffer = __crawdog_crypt_gensalt_ra("$2b$", passes, try! generateSecureRandomBytes(count:MemoryLayout<Salt>.size), Int32(MemoryLayout<Salt>.size))
 		guard newSaltBuffer != nil else {
 			let getErrno = __craw_get_system_errno()
 			switch getErrno {

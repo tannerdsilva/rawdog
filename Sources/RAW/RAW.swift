@@ -58,14 +58,14 @@ public struct InvalidSecureRandomBytesLengthError:Error {}
 /// - returns: a static buffer of random bytes
 /// - throws: InvalidSecureRandomBytesLengthError if the requested number of bytes is greater than 256
 public func generateSecureRandomBytes<S>(as _:S.Type) throws -> S where S:RAW_staticbuff {
-	return S(RAW_staticbuff:try generateSecureRandomBytes(as:[UInt8].self, count:MemoryLayout<S>.size))
+	return S(RAW_staticbuff:try generateSecureRandomBytes(count:MemoryLayout<S>.size))
 }
 
 /// source of secure random bytes from the system. this is the most secure way to generate random bytes, and is limited to a maximum 256 bytes.
 /// - parameter [UInt8].Type: the type of the static buffer to generate and return
 /// - parameter count: the number of bytes to generate
 /// - returns: the byte array of bytes sourced
-public func generateSecureRandomBytes(as _:[UInt8].Type, count:size_t) throws -> [UInt8] {
+public func generateSecureRandomBytes(count:size_t) throws -> [UInt8] {
 	guard count <= 256 else {
 		throw InvalidSecureRandomBytesLengthError()
 	}

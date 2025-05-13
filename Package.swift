@@ -108,7 +108,7 @@ let package = Package(
 
 		// raw targets
 		.target(name:"RAW_xchachapoly", dependencies:["RAW", "__crawdog_hchacha20", "__crawdog_chachapoly", "RAW_chachapoly", "__crawdog_xchachapoly"]),
-		.target(name:"RAW_mnemonic", dependencies:["RAW", "RAW_blake2"]),
+		/*.target(name:"RAW_mnemonic", dependencies:["RAW", "RAW_blake2"]),*/
 		.target(name:"RAW_argon2", dependencies:["RAW", "__crawdog_argon2"]),
 		.target(name:"RAW_hmac", dependencies: ["RAW"]),
 		.target(name:"RAW_kdf", dependencies: ["RAW_hmac", "RAW"]),

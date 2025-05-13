@@ -1,3 +1,7 @@
+# 17.0.0
+
+- Modified the function signature of `generateRandomBytes` variant that handles [UInt8] type. In prior versions, this function clashed with other variants that made it difficult to access both symbols reliably.   
+
 # 16.0.0
 
 - Revised syntax requirements for macro usage.
