@@ -11,6 +11,11 @@ import __crawdog_argon2
 @RAW_staticbuff(bytes:2)
 struct MyFixeDThing:Sendable {}
 
+extension MyFixeDThing:ExpressibleByArrayLiteral {
+	@RAW_staticbuff(bytes:4)
+	struct MyInnie:Sendable {}
+} 
+
 @RAW_staticbuff(bytes:5)
 struct FixedBuff5:Sendable, ExpressibleByArrayLiteral, Equatable {}
 
@@ -49,6 +54,11 @@ fileprivate struct MYSTRUCT2:Sendable {
 		}
 		return EncodedDouble.RAW_compare(lhs_data:&lhs.firstItem, rhs_data:&rhs.firstItem)
 	}
+}
+
+@RAW_staticbuff(concat:MyFixeDThing.MyInnie.self)
+struct MyInnieWrapper:Sendable {
+	var innie:MyFixeDThing.MyInnie
 }
 
 @RAW_staticbuff(bytes:8)

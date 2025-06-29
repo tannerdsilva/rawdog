@@ -1,3 +1,7 @@
+### 17.0.1
+
+- `RAW_staticbuff(concat:)` macro now supports types that are nested within other types (for example, `MyTypeA.SomeInnerType.self`)
+
 # 17.0.0
 
 - Modified the function signature of `generateRandomBytes` variant that handles [UInt8] type. In prior versions, this function clashed with other variants that made it difficult to access both symbols reliably.   
