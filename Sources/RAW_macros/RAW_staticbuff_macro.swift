@@ -6,6 +6,46 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import SwiftDiagnostics
 
+extension Array where Element == TokenSyntax {
+	// returns a string representation of the array of tokens.
+	fileprivate func toTypeSyntaxProtocol() -> TypeSyntaxProtocol? {
+		guard self.count > 0 else {
+			return nil
+		}
+		guard count > 1 else {
+			return IdentifierTypeSyntax(name:self[0])
+		}
+		var curMT:MemberTypeSyntax? = nil
+		let idType = IdentifierTypeSyntax(name:self[0])
+		var i = 1
+		repeat {
+			defer {
+				i += 1
+			}
+			if curMT == nil {
+				let newMT = MemberTypeSyntax(baseType:idType, period:.periodToken(), name:self[i])
+				curMT = newMT
+			} else {
+				curMT = MemberTypeSyntax(baseType:curMT!, period:.periodToken(), name:self[i])
+			}
+		} while i < count
+		return curMT
+	}
+}
+
+extension AttachedMemberDiagnostics.MemberContentDiagnostics.TypeAnnotationFinder.TypeAnnotationType {
+	// returns the type syntax protocol for the type annotation type.
+	fileprivate func toTypeSyntaxProtocol() -> TypeSyntaxProtocol? {
+		switch self {
+			case .memberType(let memberType):
+				return memberType
+			case .identifierType(let identifierType):
+				return identifierType
+			case .tupleType(let tupleType):
+				return tupleType
+		}
+	}
+}
 fileprivate struct AttachedMemberDiagnostics {
 	// diagnostic error that is thrown when the attached body could not be parsed effectively.
 	fileprivate struct UnknownAttachedMemberType:Swift.Error, DiagnosticMessage {
@@ -229,8 +269,9 @@ fileprivate struct AttachedMemberDiagnostics {
 	}
 
 	fileprivate struct MemberContentDiagnostics {
-		fileprivate final class TypeAnnotationBaseFinder:SyntaxVisitor {
+		fileprivate final class TypeAnnotationFinder:SyntaxVisitor {
 			fileprivate enum TypeAnnotationType {
+				case memberType(MemberTypeSyntax)
 				case identifierType(IdentifierTypeSyntax)
 				case tupleType(TupleTypeSyntax)
 			}
@@ -253,7 +294,16 @@ fileprivate struct AttachedMemberDiagnostics {
 						case .some:
 							return .skipChildren
 					}
-				} 
+				}
+				override func visit(_ node:MemberTypeSyntax) -> SyntaxVisitorContinueKind {
+					switch foundTypeAnnotationType {
+						case nil:
+							foundTypeAnnotationType = .memberType(node)
+							return .skipChildren
+						case .some:
+							return .skipChildren
+					}
+				}
 			}
 			var foundTypeAnnotation:TypeAnnotationType? = nil
 			override func visit(_ node:TypeAnnotationSyntax) -> SyntaxVisitorContinueKind {
@@ -289,14 +339,14 @@ fileprivate struct AttachedMemberDiagnostics {
 			fileprivate let message:String
 			fileprivate let diagnosticID:SwiftDiagnostics.MessageID = MessageID(domain:"RAW_macros", id:"staticbuff_variable_type_missing")
 			fileprivate let severity:SwiftDiagnostics.DiagnosticSeverity = .error
-			fileprivate init(expectedType:TokenSyntax) {
-				self.message = "expected to find a variable type of \(expectedType.text), but none was found."
+			fileprivate init(expectedType:TypeSyntaxProtocol) {
+				self.message = "expected to find a variable type of \(expectedType), but none was found."
 			}
 			fileprivate struct FixItDiagnosticSuggestExpectedType:FixItMessage {
 				fileprivate let message:String
 				fileprivate let fixItID:SwiftDiagnostics.MessageID = MessageID(domain:"RAW_macros", id:"staticbuff_fix_variable_type_missing")
-				fileprivate init(expectedType:TokenSyntax) {
-					self.message = "add the expected identifier type \(expectedType.text)."
+				fileprivate init(expectedType:TypeSyntaxProtocol) {
+					self.message = "add the expected identifier type \(expectedType)."
 				}
 			}
 		}
@@ -304,14 +354,14 @@ fileprivate struct AttachedMemberDiagnostics {
 			fileprivate let message:String
 			fileprivate let diagnosticID:SwiftDiagnostics.MessageID = MessageID(domain:"RAW_macros", id:"staticbuff_variable_type_invalid")
 			fileprivate let severity:SwiftDiagnostics.DiagnosticSeverity = .error
-			fileprivate init(expectedType:TokenSyntax, foundType:TokenSyntax) {
-				self.message = "expected to find a variable type of \(expectedType.text), but instead found \(foundType.text)."
+			fileprivate init(expectedType:TypeSyntaxProtocol, foundType:TypeSyntaxProtocol) {
+				self.message = "expected to find a variable type of \(expectedType), but instead found \(foundType)."
 			}
 			fileprivate struct FixItDiagnosticSuggestExpectedType:FixItMessage {
 				fileprivate let message:String
 				fileprivate let fixItID:SwiftDiagnostics.MessageID = MessageID(domain:"RAW_macros", id:"staticbuff_fix_variable_type_invalid")
-				fileprivate init(expectedType:TokenSyntax) {
-					self.message = "replace variable type with the expected identifier type \(expectedType.text)."
+				fileprivate init(expectedType:TypeSyntaxProtocol) {
+					self.message = "replace variable type with the expected type \(expectedType)."
 				}
 			}
 		}
@@ -322,8 +372,8 @@ fileprivate struct AttachedMemberDiagnostics {
 			fileprivate struct FixItDiagnosticSuggestExpectedType:FixItMessage {
 				fileprivate let message:String
 				fileprivate let fixItID:SwiftDiagnostics.MessageID = MessageID(domain:"RAW_macros", id:"staticbuff_fix_variable_type_tuple_not_allowed")
-				fileprivate init(expectedType:TokenSyntax) {
-					self.message = "replace variable type with the expected identifier type \(expectedType.text)."
+				fileprivate init(expectedType:TypeSyntaxProtocol) {
+					self.message = "replace variable type with the expected type \(expectedType)."
 				}
 			}
 		}
@@ -434,7 +484,7 @@ fileprivate struct NodeUsageDiagnostics {
 	fileprivate final class ConcatTypeLister:SyntaxVisitor {
 		private let context:SwiftSyntaxMacros.MacroExpansionContext
 		private var foundLabeledExprList:LabeledExprListSyntax? = nil
-		fileprivate var foundTypes:[TokenSyntax] = []
+		fileprivate var foundTypes:[(ExprSyntax, [TokenSyntax])] = []
 		private let addDiagnostics:Bool
 		fileprivate var valid:Bool = true
 		fileprivate init(context:SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) {
@@ -469,7 +519,7 @@ fileprivate struct NodeUsageDiagnostics {
 			var foundDeclReferenceExpr:Array<DeclReferenceExprSyntax> = []
 			override func visit(_ node:DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
 				foundDeclReferenceExpr.append(node)
-				return .skipChildren
+				return .visitChildren
 			}
 		}
 		override func visit(_ node:MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
@@ -482,7 +532,7 @@ fileprivate struct NodeUsageDiagnostics {
 			}
 			let validDeclReferenceExprLister = ValidDeclReferenceExprSyntaxLister(viewMode:.sourceAccurate)
 			validDeclReferenceExprLister.walk(node.base!)
-			guard validDeclReferenceExprLister.foundDeclReferenceExpr.count == 1 else {
+			guard validDeclReferenceExprLister.foundDeclReferenceExpr.count >= 1 else {
 				valid = false
 				if addDiagnostics == true {
 					context.addDiagnostics(from:NodeUsageDiagnostics.IncomplateTypeDeclaration(), node:node)
@@ -490,8 +540,8 @@ fileprivate struct NodeUsageDiagnostics {
 				return .skipChildren
 			}
 
-			let foundDeclReferenceExpr = validDeclReferenceExprLister.foundDeclReferenceExpr.first!
-			foundTypes.append(foundDeclReferenceExpr.baseName)
+			let foundDeclReferenceExpr = validDeclReferenceExprLister.foundDeclReferenceExpr
+			foundTypes.append((node.base!, foundDeclReferenceExpr.map { $0.baseName }))
 			return .skipChildren
 		}
 	}
@@ -550,7 +600,7 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 		}
 	}
 
-	fileprivate static func determineIfUsageCompliant(declaration:some SwiftSyntax.DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax, context:some SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) -> (StructDeclSyntax, [TokenSyntax], [(name:IdentifierPatternSyntax, type:TokenSyntax)], Bool)? {
+	fileprivate static func determineIfUsageCompliant(declaration:some SwiftSyntax.DeclGroupSyntax, node:SwiftSyntax.AttributeSyntax, context:some SwiftSyntaxMacros.MacroExpansionContext, addDiagnostics:Bool) -> (StructDeclSyntax, [[TokenSyntax]], [(name:IdentifierPatternSyntax, type:[TokenSyntax])], Bool)? {
 		guard let asStruct = AttachedMemberDiagnostics.validateAttachedMemberBasics(declaration:declaration, node:node, context:context, addDiagnostics:addDiagnostics) else {
 			return nil
 		}
@@ -679,7 +729,8 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 		let varScanner = VariableDeclLister(viewMode:.sourceAccurate)
 		varScanner.walk(asStruct)
 		var typeTokensRemaining = typeTokens
-		var assembleVariableNamesAndTypes = [(name:IdentifierPatternSyntax, type:TokenSyntax)]()
+		var assembleVariableNamesAndTypes = [(name:IdentifierPatternSyntax, type:[TokenSyntax])]()
+		var buildAllTypeTokens = [[TokenSyntax]]()
 		varLoop: for curVar in varScanner.varDecls {
 			// variables with accessor blocks are allowed and do not fall into the validation logic
 			let abLister = AccessorBlockLister(viewMode:.sourceAccurate)
@@ -718,20 +769,25 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 			let expectedType = typeTokensRemaining.first!
 
 			// validate that no tuple patterns are used in the declaration of this variable.
-			let typeFinder = AttachedMemberDiagnostics.MemberContentDiagnostics.TypeAnnotationBaseFinder(viewMode:.sourceAccurate)
+			let typeFinder = AttachedMemberDiagnostics.MemberContentDiagnostics.TypeAnnotationFinder(viewMode:.sourceAccurate)
 			typeFinder.walk(curVar.bindings)
 			switch typeFinder.foundTypeAnnotation {
+				case .memberType(let memberType):
+					break;
 				case .identifierType(let idType):
+					guard let expectedType = expectedType.1.toTypeSyntaxProtocol()!.as(IdentifierTypeSyntax.self) else {
+						return nil
+					}
 					// validate that this type is the expected type
-					guard idType.name.text == expectedType.text else {
+					guard idType.name.text == expectedType.name.text else {
 						if addDiagnostics == true {
 							var modifyVar = curVar
 							var firstBinding = modifyVar.bindings.first
-							firstBinding?.typeAnnotation = TypeAnnotationSyntax(colon:.colonToken(), type:IdentifierTypeSyntax(name:expectedType, trailingTrivia:.space))
+							firstBinding?.typeAnnotation = TypeAnnotationSyntax(colon:.colonToken(), type:expectedType)
 							modifyVar.bindings = [firstBinding!]
 							let diagnosticMessage = Diagnostic(
 								node:curVar.bindings,
-								message:AttachedMemberDiagnostics.MemberContentDiagnostics.VariableTypeInvalidExplicit(expectedType:expectedType, foundType:idType.name),
+								message:AttachedMemberDiagnostics.MemberContentDiagnostics.VariableTypeInvalidExplicit(expectedType:expectedType, foundType:idType),
 								fixIts:[
 									.replace(message:AttachedMemberDiagnostics.MemberContentDiagnostics.VariableTypeTupleNotAllowed.FixItDiagnosticSuggestExpectedType(expectedType:expectedType), oldNode:curVar, newNode:modifyVar)
 								]
@@ -744,9 +800,12 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 					break
 				case .tupleType(_):
 					if addDiagnostics == true {
+						guard let expectedType = expectedType.1.toTypeSyntaxProtocol() else {
+							return nil
+						}
 						var modifyVar = curVar
 						var firstBinding = modifyVar.bindings.first!
-						firstBinding.typeAnnotation = TypeAnnotationSyntax(colon:.colonToken(), type:IdentifierTypeSyntax(name:expectedType, trailingTrivia:.space))
+						firstBinding.typeAnnotation = TypeAnnotationSyntax(colon:.colonToken(), type:expectedType)
 						modifyVar.bindings = [firstBinding]
 						let diagnosticMessage = Diagnostic(
 							node:curVar.bindings,
@@ -761,9 +820,12 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 					return nil
 				case nil:
 					if addDiagnostics == true {
+						guard let expectedType = expectedType.1.toTypeSyntaxProtocol() else {
+							return nil
+						}
 						var modifyVar = curVar
 						var firstBinding = modifyVar.bindings.first!
-						firstBinding.typeAnnotation = TypeAnnotationSyntax(colon:.colonToken(), type:IdentifierTypeSyntax(name:expectedType, trailingTrivia:.space))
+						firstBinding.typeAnnotation = TypeAnnotationSyntax(colon:.colonToken(), type:expectedType)
 						modifyVar.bindings = [firstBinding]
 						let diagnosticMessage = Diagnostic(
 							node:curVar.bindings,
@@ -810,8 +872,8 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 				typeTokensRemaining.remove(at:0)
 				return nil
 			}
-
-			assembleVariableNamesAndTypes.append((name:varNameFinder.name!, type:expectedType))
+			assembleVariableNamesAndTypes.append((name:varNameFinder.name!, type:expectedType.1))
+			buildAllTypeTokens.append(expectedType.1)
 			typeTokensRemaining.remove(at:0)
 		}
 
@@ -819,13 +881,13 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 		guard typeTokensRemaining.count == 0 else {
 			for token in typeTokensRemaining {
 				if addDiagnostics == true {
-					context.addDiagnostics(from:AttachedMemberDiagnostics.MemberContentDiagnostics.VariableNotImplemented(), node:token)
+					context.addDiagnostics(from:AttachedMemberDiagnostics.MemberContentDiagnostics.VariableNotImplemented(), node:token.0)
 				}
 			}
 			return nil
 		}
 		
-		return (asStruct, typeTokens, assembleVariableNamesAndTypes, successfulRAWCompareOverride)
+		return (asStruct, buildAllTypeTokens, assembleVariableNamesAndTypes, successfulRAWCompareOverride)
 	}
 
 	public static func expansion(of node: SwiftSyntax.AttributeSyntax, attachedTo declaration: some SwiftSyntax.DeclGroupSyntax, providingExtensionsOf type: some SwiftSyntax.TypeSyntaxProtocol, conformingTo protocols: [SwiftSyntax.TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
@@ -852,7 +914,7 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 			var buildCompare = [String]()
 			for (_, curType) in varNamesAndTypes {
 				buildCompare.append("""
-					compare_result = \(curType.text).RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
+					compare_result = \(curType.map({ $0.text }).joined(separator:".")).RAW_compare(lhs_data_seeking:&lhs_seeker, rhs_data_seeking:&rhs_seeker)
 					guard compare_result == 0 else {
 						return compare_result
 					}
@@ -901,8 +963,8 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 		var buildStoreTypes:[String] = []
 		var buildZeroedCommand:[String] = []
 		for token in typeTokens {
-			buildStoreTypes.append("\(token.text).RAW_staticbuff_storetype")
-			buildZeroedCommand.append("\(token.text).RAW_staticbuff_zeroed()")
+			buildStoreTypes.append("\(token.map({ $0.text }).joined(separator:".")).RAW_staticbuff_storetype")
+			buildZeroedCommand.append("\(token.map({ $0.text }).joined(separator:".")).RAW_staticbuff_zeroed()")
 		}
 		buildDecls.append(
 			DeclSyntax("""
