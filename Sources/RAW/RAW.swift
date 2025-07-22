@@ -100,3 +100,33 @@ public func secureZeroBytes(_ buffer:UnsafeMutableBufferPointer<UInt8>) {
 		fatalError("memory assignment failure \(#file):\(#line)")
 	}
 }
+
+public struct RAW_staticbuff_iterator<S>:IteratorProtocol where S:RAW_staticbuff {
+	public typealias Element = UInt8
+	private var index:Int = 0
+	private let buffer:S
+	
+	public init(_ buffer:S) {
+		self.buffer = buffer
+	}
+	
+	public mutating func next() -> Element? {
+		guard index < MemoryLayout<S.RAW_staticbuff_storetype>.size else {
+			return nil
+		}
+		defer {
+			index += 1
+		}
+		return buffer.RAW_access { rawBuffer in
+			return rawBuffer[index]
+		}
+	}
+}
+
+extension RAW_staticbuff where Self:Sequence {
+	public func makeIterator() -> RAW_staticbuff_iterator<Self> {
+		return RAW_staticbuff_iterator(self)
+	}
+}
+
+extension RAW_byte:Sequence {}
