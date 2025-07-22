@@ -1,3 +1,7 @@
+### 17.0.2
+
+- Fixed bug where `generateSecureRandomBytes` function returned no/zeroed data instead of secure random bytes.
+
 ### 17.0.1
 
 - `RAW_staticbuff(concat:)` macro now supports types that are nested within other types (for example, `MyTypeA.SomeInnerType.self`)

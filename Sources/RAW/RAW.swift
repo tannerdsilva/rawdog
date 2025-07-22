@@ -69,11 +69,11 @@ public func generateSecureRandomBytes(count:size_t) throws -> [UInt8] {
 	guard count <= 256 else {
 		throw InvalidSecureRandomBytesLengthError()
 	}
-	return try [UInt8](unsafeUninitializedCapacity:Int(count), initializingWith: { buffer, count in
+	return try [UInt8](unsafeUninitializedCapacity:Int(count), initializingWith: { buffer, initializedCount in
 		guard __craw_get_entropy_bytes(buffer.baseAddress, count) == 0 else {
 			throw InvalidSecureRandomBytesLengthError()
 		}
-		count = Int(count)
+		initializedCount = Int(count)
 	})
 }
 
