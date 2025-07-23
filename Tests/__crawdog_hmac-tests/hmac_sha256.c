@@ -13,7 +13,7 @@ void hmac_sha256(const uint8_t* key, const uint32_t keysize, const uint8_t* msg,
 	const uint8_t* key_ptr = key;
 	uint32_t ks = keysize;
 
-	// ←–– Insert hashing of over-long keys here
+	// hashing over long keys
 	if (ks > __CRAWDOG_SHA256_BLOCK_SIZE) {
 		__crawdog_sha256_context keyctx;
 		__crawdog_sha256_init(&keyctx);
@@ -23,7 +23,7 @@ void hmac_sha256(const uint8_t* key, const uint32_t keysize, const uint8_t* msg,
 		ks = __CRAWDOG_SHA256_HASH_SIZE;
 	}
 
-	// Now safe to init contexts and proceed
+	// init contexts and proceed
 	__crawdog_sha256_init(&outer);
 	__crawdog_sha256_init(&inner);
 

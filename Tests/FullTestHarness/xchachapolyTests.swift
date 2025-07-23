@@ -55,8 +55,8 @@ final class xchachapolyTests: XCTestCase {
 				reverseText.deallocate()
 			}
 			try plaintext.RAW_access { ptPtr in
-				return try [UInt8]().RAW_access { adBuff in
-					return try context.decrypt(tag:tag, nonce:testNonce, associatedData:adBuff, inputData:UnsafeBufferPointer<UInt8>(byteBuffer), output:reverseText.baseAddress!)
+				try [UInt8]().RAW_access { adBuff in
+					try context.decrypt(tag:tag, nonce:testNonce, associatedData:adBuff, inputData:UnsafeBufferPointer<UInt8>(byteBuffer), output:reverseText.baseAddress!)
 				}
 			}
 			let reverseBytes = [UInt8](reverseText)
