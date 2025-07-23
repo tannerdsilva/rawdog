@@ -191,7 +191,7 @@ void __crawdog_sha512_update(
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void __crawdog_sha512_finish(
         __crawdog_sha512_context*      Context,        // [in out]
-        SHA512_HASH*        Digest          // [out]
+        __crawdog_sha512_output*        Digest          // [out]
     )
 {
     int i;
@@ -250,7 +250,7 @@ void
     (
         void  const*        Buffer,         // [in]
         uint32_t            BufferSize,     // [in]
-        SHA512_HASH*        Digest          // [in]
+        __crawdog_sha512_output*        Digest          // [in]
     )
 {
     __crawdog_sha512_context context;

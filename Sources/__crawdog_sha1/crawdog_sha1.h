@@ -17,7 +17,7 @@ typedef struct {
 
 typedef struct {
     uint8_t      bytes [__CRAWDOG_SHA1_HASH_SIZE];
-} SHA1_HASH;
+} __crawdog_sha1_output;
 
 // initialize the hasher
 void __crawdog_sha1_init(__crawdog_sha1_context* Context);
@@ -26,6 +26,6 @@ void __crawdog_sha1_init(__crawdog_sha1_context* Context);
 void __crawdog_sha1_update(__crawdog_sha1_context* Context, void const* Buffer, uint32_t BufferSize);
 
 // finish the hasher
-void __crawdog_sha1_finish(__crawdog_sha1_context* Context, SHA1_HASH* Digest);
+void __crawdog_sha1_finish(__crawdog_sha1_context* Context, __crawdog_sha1_output* Digest);
 
 #endif // __CRAWDOG_SHA1_H

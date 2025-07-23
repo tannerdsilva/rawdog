@@ -128,5 +128,3 @@ extension RAW_staticbuff where Self:Sequence {
 		return RAW_staticbuff_iterator(self)
 	}
 }
-
-extension RAW_byte:Sequence {}

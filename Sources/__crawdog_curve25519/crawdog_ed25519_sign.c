@@ -290,7 +290,7 @@ void *__crawdog_ed25519_blinding_init(
     __crawdog_sha512_init(&d.H);
     __crawdog_sha512_update(&d.H, edp_custom_blinding.zr, 32);
     __crawdog_sha512_update(&d.H, seed, size);
-    __crawdog_sha512_finish(&d.H, (SHA512_HASH*)&d.digest);
+    __crawdog_sha512_finish(&d.H, (__crawdog_sha512_output*)&d.digest);
 
     ecp_BytesToWords(ctx->zr, d.digest+32);
     ecp_BytesToWords(d.t, d.digest);
@@ -334,7 +334,7 @@ void __crawdog_ed25519_create_keypair(
     /* [a:b] = H(sk) */
     __crawdog_sha512_init(&H);
     __crawdog_sha512_update(&H, sk, 32);
-    __crawdog_sha512_finish(&H, (SHA512_HASH*)&md);
+    __crawdog_sha512_finish(&H, (__crawdog_sha512_output*)&md);
     ecp_TrimSecretKey(md);
 
     ecp_BytesToWords(t, md);
@@ -363,7 +363,7 @@ void __crawdog_ed25519_sign_message(
     /* [a:b] = H(sk) */
     __crawdog_sha512_init(&H);
     __crawdog_sha512_update(&H, privKey, 32);
-    __crawdog_sha512_finish(&H, (SHA512_HASH*)&md);
+    __crawdog_sha512_finish(&H, (__crawdog_sha512_output*)&md);
     ecp_TrimSecretKey(md);              /* a = first 32 bytes */
     ecp_BytesToWords(a, md);
 
@@ -371,7 +371,7 @@ void __crawdog_ed25519_sign_message(
     __crawdog_sha512_init(&H);
     __crawdog_sha512_update(&H, md+32, 32);
     __crawdog_sha512_update(&H, msg, msg_size);
-    __crawdog_sha512_finish(&H, (SHA512_HASH*)&md);
+    __crawdog_sha512_finish(&H, (__crawdog_sha512_output*)&md);
     eco_DigestToWords(r, md);
     eco_Mod(r);                         /* r mod BPO */
 
@@ -384,7 +384,7 @@ void __crawdog_ed25519_sign_message(
     __crawdog_sha512_update(&H, signature, 32);   /* encoded(R) */
     __crawdog_sha512_update(&H, privKey+32, 32);  /* pk */
     __crawdog_sha512_update(&H, msg, msg_size);   /* m */
-    __crawdog_sha512_finish(&H, (SHA512_HASH*)&md);
+    __crawdog_sha512_finish(&H, (__crawdog_sha512_output*)&md);
     eco_DigestToWords(t, md);
 
     eco_MulReduce(t, t, a);             /* h()*a */

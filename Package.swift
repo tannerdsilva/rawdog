@@ -202,7 +202,7 @@ let package = Package(
 		),
 		.target(
 			name:"__crawdog_hmac-tests",
-			dependencies:[],
+			dependencies:["__crawdog_sha1"],
 			path:"Tests/__crawdog_hmac-tests",
 			publicHeadersPath:"."
 		),

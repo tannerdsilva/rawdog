@@ -25,7 +25,7 @@ public struct Hasher<RAW_hasher_outputtype:RAW_staticbuff>:RAW_hasher where RAW_
 	public mutating func finish<S>(into output:inout Optional<S>) throws where S:RAW_staticbuff, S.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype {
 		output = S(RAW_staticbuff:S.RAW_staticbuff_zeroed())
 		output!.RAW_access_staticbuff_mutating {
-			__crawdog_md5_finish(&context, $0.assumingMemoryBound(to:MD5_HASH.self))
+			__crawdog_md5_finish(&context, $0.assumingMemoryBound(to:__crawdog_md5_output.self))
 		}
 	}
 }

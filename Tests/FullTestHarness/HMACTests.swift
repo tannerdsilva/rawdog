@@ -8,7 +8,7 @@ import RAW
 @RAW_staticbuff(bytes: 20)
 fileprivate struct SHA1Hash:Sendable {}
 
-class HMACSHA1Tests: XCTestCase {
+class HMACSHA1Tests:XCTestCase {
     
     func testHMACSHA1() throws {
         for _ in 0..<10 { // Run 10 tests
@@ -23,7 +23,6 @@ class HMACSHA1Tests: XCTestCase {
         let msg: [UInt8] = randomBytes(count: 20)
         let resultingOutput = String(RAW_hex.encode(try hmacSHA1(key: key, message: msg)))
         let referenceOutput = String(RAW_hex.encode(performHMACSHA1WithC(key: key, message: msg)))
-		
 		XCTAssertEqual(resultingOutput, referenceOutput)
     }
 
