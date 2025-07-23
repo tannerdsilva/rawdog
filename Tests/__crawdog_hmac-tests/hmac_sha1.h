@@ -5,8 +5,6 @@
 
 #include <stdint.h>
 
-#define HMAC_SHA1_HASH_SIZE 20
-
 /***********************************************************************'
  * HMAC(K,m)      : HMAC SHA1
  * @param key     : secret key

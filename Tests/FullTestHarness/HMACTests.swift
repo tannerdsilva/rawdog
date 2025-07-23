@@ -12,13 +12,11 @@ class HMACSHA1Tests:XCTestCase {
     
     func testHMACSHA1() throws {
         for _ in 0..<10 { // Run 10 tests
-            try runSingleTest()
+            try runSingleSHA1Test()
         }
     }
 
-    var failures = [(String, String, String)]()
-
-    func runSingleTest() throws {
+    func runSingleSHA1Test() throws {
         let key = randomBytes(count: 20)
         let msg: [UInt8] = randomBytes(count: 20)
         let resultingOutput = String(RAW_hex.encode(try hmacSHA1(key: key, message: msg)))
@@ -30,6 +28,10 @@ class HMACSHA1Tests:XCTestCase {
         var output = [UInt8](repeating: 0, count: 20) // SHA1 output is always 20 bytes
         hmac_sha1(key, UInt32(key.count), message, UInt32(message.count), &output)
         return output 
+    }
+    
+    fileprivate func hmacSHA256(key:[UInt8], message:[UInt8]) throws -> [UInt8] {
+    
     }
 
 	fileprivate func hmacSHA1(key: [UInt8], message: [UInt8]) throws -> [UInt8] {
