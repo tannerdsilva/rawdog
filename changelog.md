@@ -1,6 +1,6 @@
 ## 17.1.0
 
-- RAW_chachapoly and RAW_xchachapolly implementations can now use any type of nonce that is a `RAW_staticbuff` that specifies the correct length of `RAW_staticbuff_storetype`
+- Added some functions that allow `RAW_hasher` protocol to update with `UnsafePointer<RAW_accessible>` types.
 
 ### 17.0.2
 
