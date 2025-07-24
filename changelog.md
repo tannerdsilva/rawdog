@@ -1,3 +1,7 @@
+## 17.1.0
+
+- RAW_chachapoly and RAW_xchachapolly implementations can now use any type of nonce that is a `RAW_staticbuff` that specifies the correct length of `RAW_staticbuff_storetype`
+
 ### 17.0.2
 
 - Fixed bug where `generateSecureRandomBytes` function returned no/zeroed data instead of secure random bytes.
