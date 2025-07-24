@@ -74,6 +74,10 @@ public struct HMAC<H:RAW_hasher> {
 	public mutating func update<M>(message:borrowing M) throws where M:RAW_accessible {
 		try innerContext.update(message)
 	}
+	
+	public mutating func update<M>(message:UnsafePointer<M>) throws where M:RAW_accessible {
+		try innerContext.update(message)
+	}
 
 	public mutating func finish() throws -> H.RAW_hasher_outputtype {
 		var innerResult:H.RAW_hasher_outputtype? = nil

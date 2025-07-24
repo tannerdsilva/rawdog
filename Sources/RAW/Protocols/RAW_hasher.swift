@@ -25,6 +25,12 @@ extension RAW_hasher {
 			try update(buffer)
 		}
 	}
+	/// update the hasher with new data (unsafe pointer to accessible type)
+	public mutating func update<A>(_ data:UnsafePointer<A>) throws where A:RAW_accessible {
+		try data.pointee.RAW_access { buffer in
+			try update(buffer)
+		}
+	}
 	public static func hash<A>(_ data:A) throws -> RAW_hasher_outputtype where A:RAW_accessible {
 		var hasher = try Self()
 		try hasher.update(data)
