@@ -29,11 +29,16 @@ internal let mainLogger = Logger(label:"RAW")
 
 @RAW_staticbuff(bytes:1)
 @RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
-public struct RAW_byte:Sendable, Hashable, Comparable, Equatable, Codable {}
+public struct RAW_byte:Sendable, Hashable, Comparable, Equatable, Codable, CustomDebugStringConvertible {
+	public var debugDescription:String {
+		return "\(RAW_native())"
+	}
+}
 
 // MARK: Random Bytes
+/// the type of error that is thrown when random bytes could not be  
+public struct GenerateRandomBytesError:Swift.Error {}
 public func generateRandomBytes(count:Int) throws -> [UInt8] {
-	struct GenerateRandomBytesError:Swift.Error {}
 	return try [UInt8](unsafeUninitializedCapacity:count) { buffer, initializedCount in
 		buffer.initialize(repeating:0)
 		let fd = open("/dev/urandom", O_RDONLY)
