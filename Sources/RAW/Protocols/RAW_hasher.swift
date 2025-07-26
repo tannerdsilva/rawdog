@@ -5,17 +5,28 @@ public protocol RAW_hasher<RAW_hasher_outputtype> {
 
 	/// initialize a new instance of the hasher context
 	init() throws
-	/// update the hasher with new data
-	mutating func update(_ inputData:UnsafeRawBufferPointer) throws 
+	/// update the hasher with new data from an UnsafeRawBufferPointer
+	mutating func update(_ :UnsafeRawBufferPointer) throws
+	/// update the hasher with new data from an UnsafeBufferPointer<UInt8>
+	mutating func update(_ :UnsafeBufferPointer<UInt8>) throws
+	/// update the hasher with new data with the specified data and length arguments
+	mutating func update(_ :UnsafeRawPointer, count:size_t) throws
 	/// update the hasher with new data
 	mutating func finish<O>(into output:inout Optional<O>) throws where O:RAW_staticbuff, O.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype
 }
 
+// default implementations for RAW_hasher update variants
 extension RAW_hasher {
-	/// update the hasher with new data (raw buffer)
 	public mutating func update(_ inputData:UnsafeBufferPointer<UInt8>) throws {
 		try update(UnsafeRawBufferPointer(inputData))
 	}
+	
+	public mutating func update(_ ptr:UnsafeRawPointer, count:size_t) throws {
+		try update(UnsafeRawBufferPointer(start:ptr, count:count))
+	}
+}
+
+extension RAW_hasher {
 	public mutating func update(_ inputData:UnsafeMutableBufferPointer<UInt8>) throws {
 		try update(UnsafeRawBufferPointer(inputData))
 	}

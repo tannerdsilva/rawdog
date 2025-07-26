@@ -20,6 +20,14 @@ public struct Hasher<RAW_hasher_outputtype:RAW_staticbuff>:RAW_hasher where RAW_
 	public mutating func update(_ buffer:UnsafeRawBufferPointer) {
 		__crawdog_sha1_update(&context, buffer.baseAddress!, UInt32(buffer.count))
 	}
+	
+	public mutating func update(_ buffer:UnsafeBufferPointer<UInt8>) {
+		__crawdog_sha1_update(&context, buffer.baseAddress!, UInt32(buffer.count))
+	}
+		
+	public mutating func update(_ data:UnsafeRawPointer, count:size_t) {
+		__crawdog_sha1_update(&context, data, UInt32(count))
+	}
 
 	public mutating func finish<S>(into output:inout Optional<S>) throws where S:RAW_staticbuff, S.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype {
 		output = S(RAW_staticbuff:S.RAW_staticbuff_zeroed())

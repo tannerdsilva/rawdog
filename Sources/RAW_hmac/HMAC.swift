@@ -79,6 +79,7 @@ public struct HMAC<H:RAW_hasher> {
 		try innerContext.update(message)
 	}
 
+
 	public mutating func finish() throws -> H.RAW_hasher_outputtype {
 		var innerResult:H.RAW_hasher_outputtype? = nil
 		try innerContext.finish(into:&innerResult)
@@ -87,6 +88,21 @@ public struct HMAC<H:RAW_hasher> {
 		}
 		try outerContext.finish(into:&innerResult)
 		return innerResult!
+	}
+}
+
+// update with data pointers
+extension HMAC {
+	public mutating func update(_ inputData:UnsafeRawBufferPointer) throws {
+		try innerContext.update(inputData)
+	}
+	
+	public mutating func update(_ inputData:UnsafeBufferPointer<UInt8>) throws {
+		try innerContext.update(inputData)
+	}
+		
+	public mutating func update(_ data:UnsafeRawPointer, count:size_t) throws {
+		try innerContext.update(data, count:count)
 	}
 }
 

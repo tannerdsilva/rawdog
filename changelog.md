@@ -1,6 +1,10 @@
 ## 17.1.0
 
-- Added some functions that allow `RAW_hasher` protocol to update with `UnsafePointer<RAW_accessible>` types.
+- Added extension that allows `RAW_hasher` conformant types to update with `UnsafePointer<RAW_accessible>`.
+
+- Modified `RAW_hasher` protocol to offer more complete coverage of functions that update with unsafe pointers of various types.
+
+	- Default implementations provided for new function requirements such that this change does not warrant a major release tag.
 
 ### 17.0.2
 

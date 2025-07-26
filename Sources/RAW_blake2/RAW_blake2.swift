@@ -140,25 +140,31 @@ public struct Hasher<H:RAW_blake2_func_impl, RAW_blake2_out_type> {
 	/// internal state of the hasher
 	internal var state:H.RAW_blake2_statetype
 
-	/// update the hasher with the given byte buffer as input.
+	/// update the hasher with the given raw byte buffer as input.
 	public mutating func update(_ input:UnsafeRawBufferPointer) throws {
 		try RAW_blake2_func_type.update(state:&state, input_data_ptr:input.baseAddress!, input_data_size:input.count)
 	}
-	
+	/// update the hasher with the given byte buffer as input.
 	public mutating func update(_ input:UnsafeBufferPointer<UInt8>) throws {
 		try RAW_blake2_func_type.update(state:&state, input_data_ptr:input.baseAddress!, input_data_size:input.count)
+	}
+	/// update the hasher with explicit arguments for the raw data pointer and data size
+	public mutating func update(_ data:UnsafeRawPointer, count:size_t) throws {
+		try RAW_blake2_func_type.update(state:&state, input_data_ptr:data, input_data_size:count)
 	}
 }
 
 extension Hasher:RAW_hasher where RAW_blake2_out_type:RAW_staticbuff, RAW_blake2_out_type.RAW_staticbuff_storetype == RAW_blake2_func_type.RAW_blake2_func_impl_outtype.RAW_staticbuff_storetype {
-	public static var RAW_hasher_blocksize: size_t {
+	public static var RAW_hasher_blocksize:size_t {
 		size_t(H.RAW_blake2_func_impl_blocklen)
 	}
 
 	public typealias RAW_hasher_outputtype = RAW_blake2_out_type
 
 	public mutating func finish<O>(into output:inout Optional<O>) throws where O:RAW_staticbuff, O.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype {
-		output = O(RAW_staticbuff: O.RAW_staticbuff_zeroed())
+		if output == nil {
+			output = O(RAW_staticbuff: O.RAW_staticbuff_zeroed())
+		}
 		try output!.RAW_access_staticbuff_mutating { buffer in
 			try RAW_blake2_func_type.finalize(state: &state, output_data_ptr: buffer)
 		}
@@ -298,44 +304,6 @@ extension Hasher where RAW_blake2_out_type:RAW_staticbuff {
 		return RAW_blake2_out_type(RAW_decode:finalBytes)!
 	}
 }
-	
-// 	public typealias RAW_hasher_outputtype = RAW_blake2_out_type
-	
-// 	public static var RAW_hasher_blocksize:size_t { size_t(H.RAW_blake2_func_impl_blocklen) }
-
-// 	/// initialize the hasher, preparing it for use without a given key value.
-// 	public init(outputLength:consuming size_t) throws {
-// 		var newState = RAW_blake2_func_type.RAW_blake2_statetype()
-// 		try Self.RAW_blake2_func_type.create(state:&newState, output_length:outputLength)
-// 		self.state = newState
-// 	}
-
-// 	public init<A:RAW_accessible>(key:UnsafePointer<A>, outputLength:consuming size_t) throws {
-// 		state = RAW_blake2_func_type.RAW_blake2_statetype()
-// 		try key.pointee.RAW_access { keyPtr in
-// 			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
-// 		}
-// 	}
-	
-// 	public init<A:RAW_accessible>(key:borrowing A, outputLength:consuming size_t) throws {
-// 		state = RAW_blake2_func_type.RAW_blake2_statetype()
-// 		try key.RAW_access { keyPtr in
-// 			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
-// 		}
-// 	}
-
-// 	public init(key keyBuffer:UnsafeBufferPointer<UInt8>, outputLength:consuming size_t) throws {
-// 		state = RAW_blake2_func_type.RAW_blake2_statetype()
-// 		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:outputLength)
-// 	}
-
-	// public mutating func finish<K>(into destination:inout Optional<K>) throws where K:RAW_staticbuff, K.RAW_staticbuff_storetype == RAW_blake2_out_type.RAW_staticbuff_storetype {
-	// 	destination = K.RAW_staticbuff_zeroed()
-	// 	try destination!.RAW_access_staticbuff_mutating { buffer in
-	// 		try RAW_blake2_func_type.finalize(state:&state, output_data_ptr:buffer)
-	// 	}
-	// }
-// }
 
 extension Hasher where H:RAW_blake2_func_impl_initparam, RAW_blake2_out_type == [UInt8] {
 	public init(param:UnsafePointer<H.RAW_blake2_paramtype>) throws {
