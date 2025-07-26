@@ -93,15 +93,15 @@ public struct HMAC<H:RAW_hasher> {
 
 // update with data pointers
 extension HMAC {
-	public mutating func update(_ inputData:UnsafeRawBufferPointer) throws {
+	public mutating func update(message inputData:UnsafeRawBufferPointer) throws {
 		try innerContext.update(inputData)
 	}
 	
-	public mutating func update(_ inputData:UnsafeBufferPointer<UInt8>) throws {
+	public mutating func update(message inputData:UnsafeBufferPointer<UInt8>) throws {
 		try innerContext.update(inputData)
 	}
 		
-	public mutating func update(_ data:UnsafeRawPointer, count:size_t) throws {
+	public mutating func update(message data:UnsafeRawPointer, count:size_t) throws {
 		try innerContext.update(data, count:count)
 	}
 }
