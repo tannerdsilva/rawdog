@@ -130,12 +130,12 @@ extension RAW_blake2_func_impl {
 }
 
 /// main blake2 hasher
-public struct Hasher<H:RAW_blake2_func_impl, RAW_blake2_out_type> {
+public struct Hasher<H:RAW_blake2_func_impl, S> {
 	/// the hashing variant that this hasher has implemented.
 	public typealias RAW_blake2_func_type = H
 
 	/// the output type of the hashing variant that this hasher has implemented.
-	public typealias RAW_blake2_out_type = H.RAW_blake2_func_impl_outtype
+	public typealias RAW_blake2_out_type = S
 
 	/// internal state of the hasher
 	internal var state:H.RAW_blake2_statetype
