@@ -160,7 +160,9 @@ extension Hasher:RAW_hasher where RAW_blake2_out_type:RAW_staticbuff, RAW_blake2
 	}
 
 	public typealias RAW_hasher_outputtype = RAW_blake2_out_type
-
+	public mutating func finish(into output:UnsafeMutableRawPointer) throws  {
+		try RAW_blake2_func_type.finalize(state:&state, output_data_ptr:output)
+	}
 	public mutating func finish<O>(into output:inout Optional<O>) throws where O:RAW_staticbuff, O.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype {
 		if output == nil {
 			output = O(RAW_staticbuff: O.RAW_staticbuff_zeroed())

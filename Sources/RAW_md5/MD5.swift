@@ -6,10 +6,10 @@ import RAW
 public struct Hash:Sendable{}
 
 /// a MD5 hasher.
-public struct Hasher<RAW_hasher_outputtype:RAW_staticbuff>:RAW_hasher where RAW_hasher_outputtype.RAW_staticbuff_storetype == (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) {
+public struct Hasher<RAW_hasher_outputtype:RAW_staticbuff>:RAW_hasher where RAW_hasher_outputtype.RAW_staticbuff_storetype == Hash.RAW_staticbuff_storetype {
 	private var context:__crawdog_md5_context
 	
-	public static var RAW_hasher_blocksize:size_t { size_t(__CRAWDOG_MD5_BLOCK_SIZE) }
+	public static var RAW_hasher_blocksize:size_t { size_t(__CRAWDOG_MD5_BLOCK_SIZE * 4) }
 
 	public typealias RAW_hasher_outputtype = Hash
 
@@ -28,6 +28,10 @@ public struct Hasher<RAW_hasher_outputtype:RAW_staticbuff>:RAW_hasher where RAW_
 		
 	public mutating func update(_ data:UnsafeRawPointer, count:size_t) {
 		__crawdog_md5_update(&context, data, UInt32(count))
+	}
+	
+	public mutating func finish(into pointer:UnsafeMutableRawPointer) throws {
+		__crawdog_md5_finish(&context, pointer.assumingMemoryBound(to:__crawdog_md5_output.self))
 	}
 
 	public mutating func finish<S>(into output:inout Optional<S>) throws where S:RAW_staticbuff, S.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype {

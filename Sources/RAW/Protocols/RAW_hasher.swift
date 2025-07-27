@@ -11,8 +11,22 @@ public protocol RAW_hasher<RAW_hasher_outputtype> {
 	mutating func update(_ :UnsafeBufferPointer<UInt8>) throws
 	/// update the hasher with new data with the specified data and length arguments
 	mutating func update(_ :UnsafeRawPointer, count:size_t) throws
-	/// update the hasher with new data
-	mutating func finish<O>(into output:inout Optional<O>) throws where O:RAW_staticbuff, O.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype
+	/// finish a hasher by outputting to a pointer
+	mutating func finish(into _:UnsafeMutableRawPointer) throws
+	/// finish a hasher by outputting the result to a space in memory containing an Optional RAW_staticbuff type
+	mutating func finish<O>(into _:inout Optional<O>) throws where O:RAW_staticbuff, O.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype
+}
+
+extension RAW_hasher {
+	/// finish a hasher by outputting the result to a space in memory containing an Optional RAW_staticbuff type
+	public mutating func finish(into output:inout Optional<RAW_hasher_outputtype>) throws {
+		if output == nil {
+			output = RAW_hasher_outputtype(RAW_staticbuff:RAW_hasher_outputtype.RAW_staticbuff_zeroed())
+		}
+		try output!.RAW_access_mutating { outputPtr in
+			try finish(into:outputPtr.baseAddress!)
+		}
+	}
 }
 
 // default implementations for RAW_hasher update variants
