@@ -43,6 +43,11 @@ public struct HMAC<H:RAW_hasher> {
 		}
 		return Self(inner:innerContext, outer:outerContext)
 	}
+
+	public init(key:UnsafeRawPointer, count:size_t) throws {
+		self = try Self.initiate(key:key, count:count)
+	}
+	
 	public init<K>(key:borrowing K) throws where K:RAW_accessible {
 		self = try key.RAW_access { keyBuffer in
 			return try Self.initiate(key:keyBuffer.baseAddress!, count:keyBuffer.count)
