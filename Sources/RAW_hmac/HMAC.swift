@@ -60,6 +60,12 @@ public struct HMAC<H:RAW_hasher> {
 		}
 	}
 
+	public mutating func finish(into ptr:UnsafeMutableRawPointer) throws {
+		try innerContext.finish(into:ptr)
+		try outerContext.update(ptr, count:MemoryLayout<H.RAW_hasher_outputtype>.size)
+		try outerContext.finish(into:ptr)
+	}
+
 	public mutating func finish() throws -> H.RAW_hasher_outputtype {
 		var innerResult:H.RAW_hasher_outputtype? = nil
 		try innerContext.finish(into:&innerResult)

@@ -13,18 +13,15 @@ public protocol RAW_hasher<RAW_hasher_outputtype> {
 	mutating func update(_ :UnsafeRawPointer, count:size_t) throws
 	/// finish a hasher by outputting to a pointer
 	mutating func finish(into _:UnsafeMutableRawPointer) throws
-	/// finish a hasher by outputting the result to a space in memory containing an Optional RAW_staticbuff type
-	mutating func finish<O>(into _:inout Optional<O>) throws where O:RAW_staticbuff, O.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype
 }
 
 extension RAW_hasher {
-	/// finish a hasher by outputting the result to a space in memory containing an Optional RAW_staticbuff type
-	public mutating func finish(into output:inout Optional<RAW_hasher_outputtype>) throws {
-		if output == nil {
-			output = RAW_hasher_outputtype(RAW_staticbuff:RAW_hasher_outputtype.RAW_staticbuff_zeroed())
+	public mutating func finish(into obj:inout RAW_hasher_outputtype?) throws {
+		if obj == nil {
+			obj = RAW_hasher_outputtype(RAW_staticbuff:RAW_hasher_outputtype.RAW_staticbuff_zeroed())
 		}
-		try output!.RAW_access_mutating { outputPtr in
-			try finish(into:outputPtr.baseAddress!)
+		try obj!.RAW_access_staticbuff_mutating { outputPtr in
+			try finish(into:outputPtr)
 		}
 	}
 }
@@ -56,11 +53,17 @@ extension RAW_hasher {
 			try update(buffer)
 		}
 	}
+}
+
+extension RAW_hasher where RAW_hasher_outputtype:RAW_staticbuff {
+	/// hash a raw accessible type
 	public static func hash<A>(_ data:borrowing A) throws -> RAW_hasher_outputtype where A:RAW_accessible {
 		var hasher = try Self()
 		try hasher.update(data)
-		var output:RAW_hasher_outputtype? = nil
-		try hasher.finish(into:&output)
-		return output!
+		var output = RAW_hasher_outputtype(RAW_staticbuff:RAW_hasher_outputtype.RAW_staticbuff_zeroed())
+		try output.RAW_access_staticbuff_mutating {
+			try hasher.finish(into:$0)
+		}
+		return output
 	}
 }

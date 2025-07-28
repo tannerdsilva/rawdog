@@ -4,17 +4,19 @@ import RAW
 /// represents a public key in the curve25519 key exchange
 @RAW_staticbuff(bytes:32)
 public struct PublicKey:Sendable {
-	/// generates a public key from a private key
-	public init(_ privateKey:UnsafePointer<PrivateKey>) {
-		var newPublicKey = PublicKey(RAW_staticbuff:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+	public init(privateKey:UnsafeRawPointer) {
+		var newPublicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
 		newPublicKey.RAW_access_staticbuff_mutating({ publicKeyPtr in
 			__crawdog_curve25519_calculate_public_key(publicKeyPtr, privateKey)
 		})
-		defer {
-			newPublicKey.RAW_access_staticbuff_mutating { publicKeyPtr in
-				secureZeroBytes(publicKeyPtr, count:32)
-			}
-		}
+		self = newPublicKey
+	}
+	/// generates a public key from a private key
+	public init(privateKey:UnsafePointer<PrivateKey>) {
+		var newPublicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
+		newPublicKey.RAW_access_staticbuff_mutating({ publicKeyPtr in
+			__crawdog_curve25519_calculate_public_key(publicKeyPtr, privateKey)
+		})
 		self = newPublicKey
 	}
 }

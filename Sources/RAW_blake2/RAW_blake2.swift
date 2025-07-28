@@ -238,15 +238,15 @@ extension Hasher where RAW_blake2_out_type:RAW_decodable {
 extension Hasher where RAW_blake2_out_type == [UInt8] {
 
 	/// initialize the hasher, preparing it for use without a given key value.
-	public init(outputLength:consuming size_t) throws {
+	public init(outputCount:consuming size_t) throws {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
-		try Self.RAW_blake2_func_type.create(state:&state, output_length:outputLength)
+		try Self.RAW_blake2_func_type.create(state:&state, output_length:outputCount)
 	}
 	
-	public init<A:RAW_accessible>(key:borrowing A, outputLength:consuming size_t) throws {
+	public init<A:RAW_accessible>(key:borrowing A, outputCount:consuming size_t) throws {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
 		try key.RAW_access { keyPtr in
-			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputLength)
+			try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyPtr.baseAddress!, key_data_size:keyPtr.count, output_length:outputCount)
 		}
 	}
 

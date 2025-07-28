@@ -188,14 +188,14 @@ extension rawdog_tests {
 					case "blake2s":
 						switch scenario.key.count {
 							case 0:
-								var b2sHasher = try Hasher<S, [UInt8]>(outputLength:expectedBinaryOutput.count)
+								var b2sHasher = try Hasher<S, [UInt8]>(outputCount:expectedBinaryOutput.count)
 								try b2sHasher.update(expectedBinaryInput)
 								let b2sHash = try b2sHasher.finish()
 								#expect(b2sHash == expectedBinaryOutput)
 								let reenc_result = String(RAW_hex.encode(b2sHash))
 								#expect(reenc_result == scenario.output)
 							default:
-								var b2sHasher = try Hasher<S, [UInt8]>(key:keyData, outputLength:expectedBinaryOutput.count)
+								var b2sHasher = try Hasher<S, [UInt8]>(key:keyData, outputCount:expectedBinaryOutput.count)
 								try b2sHasher.update(expectedBinaryInput)
 								let b2sHash = try b2sHasher.finish()
 								#expect(b2sHash == expectedBinaryOutput)
@@ -205,14 +205,14 @@ extension rawdog_tests {
 					case "blake2b":
 						switch scenario.key.count {
 							case 0:
-								var b2bHasher = try Hasher<B, [UInt8]>(outputLength:expectedBinaryOutput.count)
+								var b2bHasher = try Hasher<B, [UInt8]>(outputCount:expectedBinaryOutput.count)
 								try b2bHasher.update(expectedBinaryInput)
 								let b2bHash = try b2bHasher.finish()
 								#expect(b2bHash == expectedBinaryOutput)
 								let reenc_result = String(RAW_hex.encode(b2bHash))
 								#expect(reenc_result == scenario.output)
 							default:
-								var b2bHasher = try Hasher<B, [UInt8]>(key:keyData, outputLength:expectedBinaryOutput.count)
+								var b2bHasher = try Hasher<B, [UInt8]>(key:keyData, outputCount:expectedBinaryOutput.count)
 								try b2bHasher.update(expectedBinaryInput)
 								let b2bHash = try b2bHasher.finish()
 								#expect(b2bHash == expectedBinaryOutput)
@@ -222,14 +222,14 @@ extension rawdog_tests {
 					case "blake2bp":
 						switch scenario.key.count {
 							case 0:
-								var b2bpHasher = try Hasher<BP, [UInt8]>(outputLength:expectedBinaryOutput.count)
+								var b2bpHasher = try Hasher<BP, [UInt8]>(outputCount:expectedBinaryOutput.count)
 								try b2bpHasher.update(expectedBinaryInput)
 								let b2bpHash = try b2bpHasher.finish()
 								#expect(b2bpHash == expectedBinaryOutput)
 								let reenc_result = String(RAW_hex.encode(b2bpHash))
 								#expect(reenc_result == scenario.output)
 							default:
-								var b2bpHasher = try Hasher<BP, [UInt8]>(key:keyData, outputLength:expectedBinaryOutput.count)
+								var b2bpHasher = try Hasher<BP, [UInt8]>(key:keyData, outputCount:expectedBinaryOutput.count)
 								try b2bpHasher.update(expectedBinaryInput)
 								let b2bpHash = try b2bpHasher.finish()
 								#expect(b2bpHash == expectedBinaryOutput)
@@ -239,14 +239,14 @@ extension rawdog_tests {
 					case "blake2sp":
 						switch scenario.key.count {
 							case 0:
-								var b2spHasher = try Hasher<SP, [UInt8]>(outputLength:expectedBinaryOutput.count)
+								var b2spHasher = try Hasher<SP, [UInt8]>(outputCount:expectedBinaryOutput.count)
 								try b2spHasher.update(expectedBinaryInput)
 								let b2spHash = try b2spHasher.finish()
 								#expect(b2spHash == expectedBinaryOutput)
 								let reenc_result = String(RAW_hex.encode(b2spHash))
 								#expect(reenc_result == scenario.output)
 							default:
-								var b2spHasher = try Hasher<SP, [UInt8]>(key:keyData, outputLength:expectedBinaryOutput.count)
+								var b2spHasher = try Hasher<SP, [UInt8]>(key:keyData, outputCount:expectedBinaryOutput.count)
 								try b2spHasher.update(expectedBinaryInput)
 								let b2spHash = try b2spHasher.finish()
 								#expect(b2spHash == expectedBinaryOutput)
