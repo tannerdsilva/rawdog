@@ -16,12 +16,15 @@ public protocol RAW_hasher<RAW_hasher_outputtype> {
 }
 
 extension RAW_hasher {
-	public mutating func finish(into obj:inout RAW_hasher_outputtype?) throws {
-		if obj == nil {
-			obj = RAW_hasher_outputtype(RAW_staticbuff:RAW_hasher_outputtype.RAW_staticbuff_zeroed())
-		}
-		try obj!.RAW_access_staticbuff_mutating { outputPtr in
-			try finish(into:outputPtr)
+	public mutating func finish(into obj:inout Optional<RAW_hasher_outputtype>) throws {
+		switch obj {
+			case nil:
+				obj = RAW_hasher_outputtype(RAW_staticbuff:RAW_hasher_outputtype.RAW_staticbuff_zeroed())
+				fallthrough
+			default:
+				try obj!.RAW_access_staticbuff_mutating { outputPtr in
+					try finish(into:outputPtr)
+				}
 		}
 	}
 }
