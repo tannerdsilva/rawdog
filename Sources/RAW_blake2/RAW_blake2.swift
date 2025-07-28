@@ -198,7 +198,12 @@ extension Hasher where RAW_blake2_out_type == UnsafeMutableRawPointer {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
 		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:outputLength)
 	}
-	
+
+	public init(key:UnsafeRawPointer, count:consuming size_t, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:key, key_data_size:count, output_length:outputLength)
+	}
+
 	/// finish the hashing process and return the result as a byte array.
 	public mutating func finish(into output:UnsafeMutableRawPointer) throws -> UnsafeMutableRawPointer {
 		try RAW_blake2_func_type.finalize(state:&state, output_data_ptr:output)
@@ -261,6 +266,11 @@ extension Hasher where RAW_blake2_out_type == [UInt8] {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
 		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:outputLength)
 	}
+
+	public init(key:UnsafeRawPointer, count:consuming size_t, outputLength:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:key, key_data_size:count, output_length:outputLength)
+	}
 	
 	/// finish the hashing process and return the result as a byte array.
 	public mutating func finish() throws -> Array<UInt8> {
@@ -293,6 +303,11 @@ extension Hasher where RAW_blake2_out_type:RAW_staticbuff {
 	public init(key keyBuffer:UnsafeBufferPointer<UInt8>) throws {
 		state = RAW_blake2_func_type.RAW_blake2_statetype()
 		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:keyBuffer.baseAddress!, key_data_size:keyBuffer.count, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
+	}
+
+	public init(key:UnsafeRawPointer, count:consuming size_t) throws {
+		state = RAW_blake2_func_type.RAW_blake2_statetype()
+		try Self.RAW_blake2_func_type.create(state:&state, key_data_ptr:key, key_data_size:count, output_length:MemoryLayout<RAW_blake2_out_type.RAW_staticbuff_storetype>.size)
 	}
 
 	/// finish the hashing process and return the result as a byte array.

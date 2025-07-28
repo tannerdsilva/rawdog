@@ -1,4 +1,4 @@
-public protocol RAW_hasher<RAW_hasher_outputtype> {
+public protocol RAW_hasher {
 	static var RAW_hasher_blocksize:size_t { get }
 
 	associatedtype RAW_hasher_outputtype:RAW_staticbuff
