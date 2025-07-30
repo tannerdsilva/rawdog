@@ -3,7 +3,7 @@ import RAW
 
 /// represents a public key in the curve25519 key exchange
 @RAW_staticbuff(bytes:32)
-public struct PublicKey:Sendable {
+public struct PublicKey:Sendable, Hashable, Comparable, Equatable {
 	/// generates a public key from a private key
 	public init(privateKey:UnsafePointer<PrivateKey>) {
 		var newPublicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
@@ -16,7 +16,7 @@ public struct PublicKey:Sendable {
 
 /// represents a private key in the curve25519 key exchange
 @RAW_staticbuff(bytes:32)
-public struct PrivateKey:Sendable {
+public struct PrivateKey:Sendable, Hashable, Comparable, Equatable {
 	/// generates a private key in a cryptographically secure manner
 	public init() throws {
 		var randomSource = try generateSecureRandomBytes(as:PrivateKey.self)
@@ -32,7 +32,7 @@ public struct PrivateKey:Sendable {
 
 /// represents a shared key in the curve25519 key exchange
 @RAW_staticbuff(bytes:32)
-public struct SharedKey:Sendable {
+public struct SharedKey:Sendable, Hashable, Comparable, Equatable {
 	public static func compute(privateKey:UnsafePointer<PrivateKey>, publicKey:UnsafePointer<PublicKey>) -> SharedKey {
 		var newSharedKey = Self(RAW_staticbuff:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 		__crawdog_curve25519_calculate_shared_key(&newSharedKey, publicKey, privateKey)
