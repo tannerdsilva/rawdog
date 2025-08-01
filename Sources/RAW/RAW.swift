@@ -29,11 +29,16 @@ internal let mainLogger = Logger(label:"RAW")
 
 @RAW_staticbuff(bytes:1)
 @RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
-public struct RAW_byte:Sendable, Hashable, Comparable, Equatable, Codable {}
+public struct RAW_byte:Sendable, Hashable, Comparable, Equatable, Codable, CustomDebugStringConvertible {
+	public var debugDescription:String {
+		return "\(RAW_native())"
+	}
+}
 
 // MARK: Random Bytes
+/// the type of error that is thrown when random bytes could not be  
+public struct GenerateRandomBytesError:Swift.Error {}
 public func generateRandomBytes(count:Int) throws -> [UInt8] {
-	struct GenerateRandomBytesError:Swift.Error {}
 	return try [UInt8](unsafeUninitializedCapacity:count) { buffer, initializedCount in
 		buffer.initialize(repeating:0)
 		let fd = open("/dev/urandom", O_RDONLY)
@@ -98,5 +103,33 @@ public func secureZeroBytes(_ buffer:UnsafeMutableBufferPointer<UInt8>) {
 	__craw_secure_zero_bytes(buffer.baseAddress, buffer.count)
 	guard __craw_assert_secure_zero_bytes(buffer.baseAddress, buffer.count) == 0 else {
 		fatalError("memory assignment failure \(#file):\(#line)")
+	}
+}
+
+public struct RAW_staticbuff_iterator<S>:IteratorProtocol where S:RAW_staticbuff {
+	public typealias Element = UInt8
+	private var index:Int = 0
+	private let buffer:S
+	
+	public init(_ buffer:S) {
+		self.buffer = buffer
+	}
+	
+	public mutating func next() -> Element? {
+		guard index < MemoryLayout<S.RAW_staticbuff_storetype>.size else {
+			return nil
+		}
+		defer {
+			index += 1
+		}
+		return buffer.RAW_access { rawBuffer in
+			return rawBuffer[index]
+		}
+	}
+}
+
+extension RAW_staticbuff where Self:Sequence {
+	public func makeIterator() -> RAW_staticbuff_iterator<Self> {
+		return RAW_staticbuff_iterator(self)
 	}
 }

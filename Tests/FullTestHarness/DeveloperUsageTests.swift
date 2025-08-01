@@ -1,6 +1,7 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
-import XCTest
+import Testing
+import Foundation
 import RAW_hex
 import RAW
 @testable import RAW_blake2
@@ -104,53 +105,50 @@ struct MyDually:Sendable {
 
 extension MyDually:Comparable, Equatable {}
 
-final class TestDeveloperUsage:XCTestCase {
-	func testConcatMemoryLayout() {
-		let _ = MyUInt64Equivalent(RAW_native:66)
-		var _:FixedBuff5 = FixedBuff5(RAW_staticbuff:[0, 1, 2, 3, 4]) 
-		let _:FixedBuff5 = [0, 1, 2, 3, 4]
-		// let it = myTest as! any RAW_staticbuff
-		// let thing = myTest as! any ExpressibleByArrayLiteral
-//		let thing2 = myTest as! any RAW_comparable_fixed
-		// let fooBar:FixedBuff5 = "StringfTHing"
-	}
+extension rawdog_tests {
+	@Suite("DeveloperUsageTests", .serialized)
+	struct TestDeveloperUsage {
+		@Test func testConcatMemoryLayout() {
+			let _ = MyUInt64Equivalent(RAW_native:66)
+			var _:FixedBuff5 = FixedBuff5(RAW_staticbuff:[0, 1, 2, 3, 4]) 
+			let _:FixedBuff5 = [0, 1, 2, 3, 4]
+		}
 
-	func testEntropyNoThrow() throws {
-		let _ = try generateSecureRandomBytes(as:MySpecialUIntType.self)
-	}
-	func testSortingByFirstVariable() {
+		@Test func testEntropyNoThrow() throws {
+			let _ = try generateSecureRandomBytes(as:MySpecialUIntType.self)
+		}
+		@Test func testSortingByFirstVariable() {
 
-		// XCTAssertTrue(EncodedUInt64.RAW_compare(lhs:5, rhs:10) < 0)
+			// XCTAssertTrue(EncodedUInt64.RAW_compare(lhs:5, rhs:10) < 0)
 
-		let dually1 = MyDually(first: 10, second: 20)
-		let dually2 = MyDually(first: 5, second: 30)
+			let dually1 = MyDually(first: 10, second: 20)
+			let dually2 = MyDually(first: 5, second: 30)
 
-		XCTAssertTrue(dually2 < dually1, "\(dually2) < \(dually1)")
+			#expect(dually2 < dually1, "\(dually2) < \(dually1)")
 
-		let dually3 = MyDually(first: 15, second: 40)
+			let dually3 = MyDually(first: 15, second: 40)
 
-		XCTAssertTrue(dually1 < dually3, "\(dually1) < \(dually3)")
-		
-		let sortedArray = [dually1, dually2, dually3].sorted()
-		
-		XCTAssertEqual(sortedArray, [dually2, dually1, dually3], "\(sortedArray)")
-	}
-	
-	func testComparingByFirstVariable() {
-		let dually1 = MyDually(first: 10, second: 20)
-		let dually2 = MyDually(first: 5, second: 30)
-		let dually3 = MyDually(first: 15, second: 40)
-		
-		XCTAssertTrue(dually1 > dually2, "\(dually1) < \(dually2)")
-		XCTAssertFalse(dually2 > dually1, "\(dually2) < \(dually1)")
-		XCTAssertTrue(dually1 < dually3, "\(dually1) < \(dually3)")
-		XCTAssertFalse(dually3 < dually1, "\(dually3) < \(dually1)")
-		XCTAssertTrue(dually2 < dually3, "\(dually2) < \(dually3)")
-		XCTAssertFalse(dually3 < dually2, "\(dually3) < \(dually2)")
-	}
+			#expect(dually1 < dually3, "\(dually1) < \(dually3)")
 
-	func testBlake2AndHexFunctionality() throws {
-		do {
+			let sortedArray = [dually1, dually2, dually3].sorted()
+
+			#expect(sortedArray == [dually2, dually1, dually3], "\(sortedArray)")
+		}
+
+		@Test func testComparingByFirstVariable() {
+			let dually1 = MyDually(first: 10, second: 20)
+			let dually2 = MyDually(first: 5, second: 30)
+			let dually3 = MyDually(first: 15, second: 40)
+
+			#expect(dually1 > dually2, "\(dually1) < \(dually2)")
+			#expect((dually2 > dually1) == false, "\(dually2) < \(dually1)")
+			#expect(dually1 < dually3, "\(dually1) < \(dually3)")
+			#expect((dually3 < dually1) == false, "\(dually3) < \(dually1)")
+			#expect(dually2 < dually3, "\(dually2) < \(dually3)")
+			#expect((dually3 < dually2) == false, "\(dually3) < \(dually2)")
+		}
+
+		@Test func testBlake2AndHexFunctionality() throws {
 			struct Blake2TestScenario:Codable {
 				enum CodingKeys:String, CodingKey {
 					case hash = "hash"
@@ -179,89 +177,84 @@ final class TestDeveloperUsage:XCTestCase {
 			}
 			let jsonTestContent = Bundle.module.resourceURL!.appendingPathComponent("blake2-kat.json")
 			let parsedJSON = try Data(contentsOf:jsonTestContent)
-			XCTAssertGreaterThan(parsedJSON.count, 0)
+			#expect(parsedJSON.count > 0)
 			let testScenarios = try! JSONDecoder().decode([Blake2TestScenario].self, from:parsedJSON)
-			XCTAssertGreaterThan(testScenarios.count, 512)
+			#expect(testScenarios.count > 512)
 			for scenario in testScenarios {
-				
-				do {
-					let keyData = try RAW_hex.decode(scenario.key)
-					let expectedBinaryOutput = try RAW_hex.decode(scenario.output)
-					let expectedBinaryInput = try RAW_hex.decode(scenario.input)
-					switch scenario.hash {
-						case "blake2s":
-							switch scenario.key.count {
-								case 0:
-									var b2sHasher = try Hasher<S, [UInt8]>(outputLength:expectedBinaryOutput.count)
-									try b2sHasher.update(expectedBinaryInput)
-									let b2sHash = try b2sHasher.finish()
-									XCTAssertEqual(b2sHash, expectedBinaryOutput)
-									let reenc_result = String(RAW_hex.encode(b2sHash))
-									XCTAssertEqual(reenc_result, scenario.output)
-								default:
-									var b2sHasher = try Hasher<S, [UInt8]>(key:keyData, outputLength:expectedBinaryOutput.count)
-									try b2sHasher.update(expectedBinaryInput)
-									let b2sHash = try b2sHasher.finish()
-									XCTAssertEqual(b2sHash, expectedBinaryOutput)
-									let reenc_result = String(RAW_hex.encode(b2sHash))
-									XCTAssertEqual(reenc_result, scenario.output)
-							}
-						case "blake2b":
-							switch scenario.key.count {
-								case 0:
-									var b2bHasher = try Hasher<B, [UInt8]>(outputLength:expectedBinaryOutput.count)
-									try b2bHasher.update(expectedBinaryInput)
-									let b2bHash = try b2bHasher.finish()
-									XCTAssertEqual(b2bHash, expectedBinaryOutput)
-									let reenc_result = String(RAW_hex.encode(b2bHash))
-									XCTAssertEqual(reenc_result, scenario.output)
-								default:
-									var b2bHasher = try Hasher<B, [UInt8]>(key:keyData, outputLength:expectedBinaryOutput.count)
-									try b2bHasher.update(expectedBinaryInput)
-									let b2bHash = try b2bHasher.finish()
-									XCTAssertEqual(b2bHash, expectedBinaryOutput)
-									let reenc_result = String(RAW_hex.encode(b2bHash))
-									XCTAssertEqual(reenc_result, scenario.output)
-							}
-						case "blake2bp":
-							switch scenario.key.count {
-								case 0:
-									var b2bpHasher = try Hasher<BP, [UInt8]>(outputLength:expectedBinaryOutput.count)
-									try b2bpHasher.update(expectedBinaryInput)
-									let b2bpHash = try b2bpHasher.finish()
-									XCTAssertEqual(b2bpHash, expectedBinaryOutput)
-									let reenc_result = String(RAW_hex.encode(b2bpHash))
-									XCTAssertEqual(reenc_result, scenario.output)
-								default:
-									var b2bpHasher = try Hasher<BP, [UInt8]>(key:keyData, outputLength:expectedBinaryOutput.count)
-									try b2bpHasher.update(expectedBinaryInput)
-									let b2bpHash = try b2bpHasher.finish()
-									XCTAssertEqual(b2bpHash, expectedBinaryOutput)
-									let reenc_result = String(RAW_hex.encode(b2bpHash))
-									XCTAssertEqual(reenc_result, scenario.output)
-							}
-						case "blake2sp":
-							switch scenario.key.count {
-								case 0:
-									var b2spHasher = try Hasher<SP, [UInt8]>(outputLength:expectedBinaryOutput.count)
-									try b2spHasher.update(expectedBinaryInput)
-									let b2spHash = try b2spHasher.finish()
-									XCTAssertEqual(b2spHash, expectedBinaryOutput)
-									let reenc_result = String(RAW_hex.encode(b2spHash))
-									XCTAssertEqual(reenc_result, scenario.output)
-								default:
-									var b2spHasher = try Hasher<SP, [UInt8]>(key:keyData, outputLength:expectedBinaryOutput.count)
-									try b2spHasher.update(expectedBinaryInput)
-									let b2spHash = try b2spHasher.finish()
-									XCTAssertEqual(b2spHash, expectedBinaryOutput)
-									let reenc_result = String(RAW_hex.encode(b2spHash))
-									XCTAssertEqual(reenc_result, scenario.output)
-							}
-						default:
-						break;
-					}
-				} catch let error {
-					XCTFail("error: \(error)")
+				let keyData = try RAW_hex.decode(scenario.key)
+				let expectedBinaryOutput = try RAW_hex.decode(scenario.output)
+				let expectedBinaryInput = try RAW_hex.decode(scenario.input)
+				switch scenario.hash {
+					case "blake2s":
+						switch scenario.key.count {
+							case 0:
+								var b2sHasher = try Hasher<S, [UInt8]>(outputCount:expectedBinaryOutput.count)
+								try b2sHasher.update(expectedBinaryInput)
+								let b2sHash = try b2sHasher.finish()
+								#expect(b2sHash == expectedBinaryOutput)
+								let reenc_result = String(RAW_hex.encode(b2sHash))
+								#expect(reenc_result == scenario.output)
+							default:
+								var b2sHasher = try Hasher<S, [UInt8]>(key:keyData, outputCount:expectedBinaryOutput.count)
+								try b2sHasher.update(expectedBinaryInput)
+								let b2sHash = try b2sHasher.finish()
+								#expect(b2sHash == expectedBinaryOutput)
+								let reenc_result = String(RAW_hex.encode(b2sHash))
+								#expect(reenc_result == scenario.output)
+						}
+					case "blake2b":
+						switch scenario.key.count {
+							case 0:
+								var b2bHasher = try Hasher<B, [UInt8]>(outputCount:expectedBinaryOutput.count)
+								try b2bHasher.update(expectedBinaryInput)
+								let b2bHash = try b2bHasher.finish()
+								#expect(b2bHash == expectedBinaryOutput)
+								let reenc_result = String(RAW_hex.encode(b2bHash))
+								#expect(reenc_result == scenario.output)
+							default:
+								var b2bHasher = try Hasher<B, [UInt8]>(key:keyData, outputCount:expectedBinaryOutput.count)
+								try b2bHasher.update(expectedBinaryInput)
+								let b2bHash = try b2bHasher.finish()
+								#expect(b2bHash == expectedBinaryOutput)
+								let reenc_result = String(RAW_hex.encode(b2bHash))
+								#expect(reenc_result == scenario.output)
+						}
+					case "blake2bp":
+						switch scenario.key.count {
+							case 0:
+								var b2bpHasher = try Hasher<BP, [UInt8]>(outputCount:expectedBinaryOutput.count)
+								try b2bpHasher.update(expectedBinaryInput)
+								let b2bpHash = try b2bpHasher.finish()
+								#expect(b2bpHash == expectedBinaryOutput)
+								let reenc_result = String(RAW_hex.encode(b2bpHash))
+								#expect(reenc_result == scenario.output)
+							default:
+								var b2bpHasher = try Hasher<BP, [UInt8]>(key:keyData, outputCount:expectedBinaryOutput.count)
+								try b2bpHasher.update(expectedBinaryInput)
+								let b2bpHash = try b2bpHasher.finish()
+								#expect(b2bpHash == expectedBinaryOutput)
+								let reenc_result = String(RAW_hex.encode(b2bpHash))
+								#expect(reenc_result == scenario.output)
+						}
+					case "blake2sp":
+						switch scenario.key.count {
+							case 0:
+								var b2spHasher = try Hasher<SP, [UInt8]>(outputCount:expectedBinaryOutput.count)
+								try b2spHasher.update(expectedBinaryInput)
+								let b2spHash = try b2spHasher.finish()
+								#expect(b2spHash == expectedBinaryOutput)
+								let reenc_result = String(RAW_hex.encode(b2spHash))
+								#expect(reenc_result == scenario.output)
+							default:
+								var b2spHasher = try Hasher<SP, [UInt8]>(key:keyData, outputCount:expectedBinaryOutput.count)
+								try b2spHasher.update(expectedBinaryInput)
+								let b2spHash = try b2spHasher.finish()
+								#expect(b2spHash == expectedBinaryOutput)
+								let reenc_result = String(RAW_hex.encode(b2spHash))
+								#expect(reenc_result == scenario.output)
+						}
+					default:
+					break;
 				}
 			}
 			var blake2sHasher = try Hasher<S, FixedBuff5>()
@@ -270,38 +263,40 @@ final class TestDeveloperUsage:XCTestCase {
 			var countout:size_t = 0
 			let blake2sHashBytes = [UInt8](RAW_encodable:&blake2sHash, byte_count_out:&countout)
 			let blake2sHashString = RAW_base64.encode(blake2sHashBytes)
-			XCTAssertEqual(blake2sHashString, "HfZQsfk=")
+			#expect(blake2sHashString == "HfZQsfk=")
 			let b64Encoded:RAW_base64.Encoded = "HfZQsfk="
 			let base64Decoded = b64Encoded.decoded_data
 			// let base64Decoded = try RAW_base64.decode("HfZQsfk=")
 			let asBuff = FixedBuff5(RAW_decode:base64Decoded)!
-			XCTAssertEqual(blake2sHash, asBuff)
-		} catch let error {
-			XCTFail("error: \(error)")
-		}
-	}
-// }
-
-	// verifies that the size of a tuple is equal to the sum of the sizes of its members.
-	func testLayeredSizingOfStaticStructs() {
-		guard MemoryLayout<(FixedBuff5, FixedBuff5)>.size == 10 else {
-			XCTFail("MemoryLayout<(FixedBuff5, FixedBuff5)>.size == \(MemoryLayout<(FixedBuff5, FixedBuff5)>.size)")
-			return
+			#expect(blake2sHash == asBuff)
 		}
 
-		guard MemoryLayout<MySpecialUIntType>.size == 14 else {
-			XCTFail("MemoryLayout<MySpecialUIntType>.size == \(MemoryLayout<MySpecialUIntType>.size)")
-			return
+		// verifies that the size of a tuple is equal to the sum of the sizes of its members.
+		@Test func testLayeredSizingOfStaticStructs() {
+			#expect(MemoryLayout<(FixedBuff5, FixedBuff5)>.size == 10)
+
+			#expect(MemoryLayout<MySpecialUIntType>.size == 14)
+
+			#expect(MemoryLayout<MySpecialUIntType>.stride == 14)
 		}
 
-		guard MemoryLayout<MySpecialUIntType>.stride == 14 else {
-			XCTFail("MemoryLayout<MySpecialUIntType>.stride == \(MemoryLayout<MySpecialUIntType>.stride)")
-			return
+		@Test func testExpectedLengths() {
+			#expect(__CRAWDOG_BLAKE2B_OUTBYTES.rawValue == 64)
+			#expect(__CRAWDOG_BLAKE2S_OUTBYTES.rawValue == 32)
 		}
-	}
-
-	func testExpectedLengths() {
-		XCTAssertEqual(__CRAWDOG_BLAKE2B_OUTBYTES.rawValue, 64)
-		XCTAssertEqual(__CRAWDOG_BLAKE2S_OUTBYTES.rawValue, 32)
+		
+		@RAW_staticbuff(bytes:64)
+		struct MyLongStruct:Sendable {}
+		
+		@Test func testPointerComparisons() {
+			let newStruct = MyLongStruct(RAW_staticbuff:MyLongStruct.RAW_staticbuff_zeroed())
+			let firstBaseAddress = newStruct.RAW_access { pointer in
+				return pointer.baseAddress!
+			}
+			let secondAddress = newStruct.RAW_access { pointer in
+				return pointer.baseAddress!
+			}
+			#expect(firstBaseAddress == secondAddress)
+		}
 	}
 }

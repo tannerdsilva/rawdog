@@ -19,7 +19,7 @@ typedef struct __crawdog_sha512_context {
 // structure representing a 64 byte hash.
 typedef struct {
 	uint8_t bytes[__CRAWDOG_SHA512_HASH_SIZE];
-} SHA512_HASH;
+} __crawdog_sha512_output;
 
 // init
 void __crawdog_sha512_init(__crawdog_sha512_context *Context);
@@ -28,6 +28,6 @@ void __crawdog_sha512_init(__crawdog_sha512_context *Context);
 void __crawdog_sha512_update(__crawdog_sha512_context* Context, void const* Buffer, uint32_t BufferSize);
 
 // finish
-void __crawdog_sha512_finish(__crawdog_sha512_context* Context, SHA512_HASH* Digest);
+void __crawdog_sha512_finish(__crawdog_sha512_context* Context, __crawdog_sha512_output* Digest);
 
 #endif // __CRAWDOG_SHA512_H

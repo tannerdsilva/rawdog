@@ -20,10 +20,10 @@ typedef struct
 {
     char            PlainText [MAX_PLAINTEXT_SIZE];
     uint32_t        PlainTextSize;                      // 0 to use (uint32_t)strlen
-    MD5_HASH        Md5Hash;
-    SHA1_HASH       Sha1Hash;
-    SHA256_HASH     Sha256Hash;
-    SHA512_HASH     Sha512Hash;
+    __crawdog_md5_output        Md5Hash;
+    __crawdog_sha1_output       Sha1Hash;
+    __crawdog_sha256_output     Sha256Hash;
+    __crawdog_sha512_output     Sha512Hash;
 } TestVector;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -176,7 +176,7 @@ bool
     uint32_t    k;
     uint32_t    len;
     __crawdog_md5_context  context;
-    MD5_HASH    hash;
+    __crawdog_md5_output    hash;
     bool        success = true;
 
     for( i=0; i<NUM_TEST_VECTORS; i++ )
@@ -238,7 +238,7 @@ bool
     uint32_t    k;
     uint32_t    len;
     __crawdog_sha1_context context;
-    SHA1_HASH   hash;
+    __crawdog_sha1_output   hash;
     bool        success = true;
 
     for( i=0; i<NUM_TEST_VECTORS; i++ )
@@ -300,7 +300,7 @@ bool
     uint32_t        k;
     uint32_t        len;
     __crawdog_sha256_context   context;
-    SHA256_HASH     hash;
+    __crawdog_sha256_output     hash;
     bool            success = true;
 
     for( i=0; i<NUM_TEST_VECTORS; i++ )
@@ -362,7 +362,7 @@ bool
     uint32_t        k;
     uint32_t        len;
     __crawdog_sha512_context   context;
-    SHA512_HASH     hash;
+    __crawdog_sha512_output     hash;
     bool            success = true;
 
     for( i=0; i<NUM_TEST_VECTORS; i++ )

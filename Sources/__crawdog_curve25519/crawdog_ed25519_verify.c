@@ -278,7 +278,7 @@ int __crawdog_ed25519_verify_check(
     __crawdog_sha512_update(&H, signature, 32);       /* enc(R) */
     __crawdog_sha512_update(&H, ((EDP_SIGV_CTX*)context)->pk, 32);
     __crawdog_sha512_update(&H, msg, msg_size);
-    __crawdog_sha512_finish(&H, (SHA512_HASH*)&md);
+    __crawdog_sha512_finish(&H, (__crawdog_sha512_output*)&md);
     eco_DigestToWords(h, md);
     eco_Mod(h);
 

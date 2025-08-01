@@ -19,11 +19,23 @@ public struct Hasher<RAW_hasher_outputtype:RAW_staticbuff>:RAW_hasher where RAW_
 	public mutating func update(_ buffer:UnsafeRawBufferPointer) {
 		__crawdog_sha512_update(&context, buffer.baseAddress!, UInt32(buffer.count))
 	}
+	
+	public mutating func update(_ buffer:UnsafeBufferPointer<UInt8>) {
+		__crawdog_sha512_update(&context, buffer.baseAddress!, UInt32(buffer.count))
+	}
+		
+	public mutating func update(_ data:UnsafeRawPointer, count:size_t) {
+		__crawdog_sha512_update(&context, data, UInt32(count))
+	}
+	
+	public mutating func finish(into pointer:UnsafeMutableRawPointer) throws {
+		__crawdog_sha512_finish(&context, pointer.assumingMemoryBound(to:__crawdog_sha512_output.self))
+	}
 
 	public mutating func finish<S>(into output:inout Optional<S>) throws where S:RAW_staticbuff, S.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype {
 		output = S(RAW_staticbuff:S.RAW_staticbuff_zeroed())
 		output!.RAW_access_staticbuff_mutating {
-			__crawdog_sha512_finish(&context, $0.assumingMemoryBound(to:SHA512_HASH.self))
+			__crawdog_sha512_finish(&context, $0.assumingMemoryBound(to:__crawdog_sha512_output.self))
 		}
 	}
 }

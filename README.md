@@ -31,7 +31,7 @@ rawdog cryptography is built on various open source contributions written in c. 
 
 - cryptographic sources modified and redistributed in June 2024
 
-	- blake2 hashing - [claimed from public domain](https://github.com/BLAKE2/BLAKE2/blob/ed1974ea83433eba7b2d95c5dcd9ac33cb847913/COPYING#L1) with test vectors referenced in Swift XCTest. Thank you Jean-Philippe Aumasson, Samuel Neves, Zooko Wilcox-O’Hearn, Christian Winnerlein.
+	- blake2 hashing - [claimed from public domain](https://github.com/BLAKE2/BLAKE2/blob/ed1974ea83433eba7b2d95c5dcd9ac33cb847913/COPYING#L1) with test vectors referenced in the test target. Thank you Jean-Philippe Aumasson, Samuel Neves, Zooko Wilcox-O’Hearn, Christian Winnerlein.
 
 	- curve25519 key pairs with ed25519 signatures - [claimed with MIT license](https://github.com/msotoodeh/curve25519/blob/23a656c5234758f50d0576b49e0e9eecff68063b/license.txt#L1) with unit tests maintained in modification. Thank you Mehdi Sotoodeh.
 

@@ -23,12 +23,12 @@ typedef struct {
 
 typedef struct {
     uint8_t      bytes [__CRAWDOG_MD5_HASH_SIZE];
-} MD5_HASH;
+} __crawdog_md5_output;
 
 void __crawdog_md5_init(__crawdog_md5_context* Context);
 
 void __crawdog_md5_update(__crawdog_md5_context* Context, void const* Buffer, uint32_t BufferSize);
 
-void __crawdog_md5_finish(__crawdog_md5_context* Context, MD5_HASH* Digest);
+void __crawdog_md5_finish(__crawdog_md5_context* Context, __crawdog_md5_output* Digest);
 
 #endif // __CRAWDOG_MD5_H

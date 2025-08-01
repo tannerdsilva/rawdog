@@ -1,3 +1,17 @@
+# 18.0.0
+
+- Added extension that allows `RAW_hasher` conformant types to update with `UnsafePointer<RAW_accessible>`.
+
+- Modified `RAW_hasher` protocol to offer more complete coverage of functions that update with unsafe pointers of various types.
+
+	- New required implementation: `RAW_hasher` requires `func finish(into _:UnsafeMutableRawPointer) throws`.
+
+		- The existing `finish<S>(into:inout Optional<S>) where ...` requirement exists but now comes with a default implementation when the new finish function is implemented.
+
+- Unit tests have been translated away from XCTest and now utilizes Swift's native `Testing` top-to-bottom.
+
+- Significantly re-engineered testing strategy for `RAW_hmac`.
+
 ### 17.0.2
 
 - Fixed bug where `generateSecureRandomBytes` function returned no/zeroed data instead of secure random bytes.

@@ -12,7 +12,7 @@ public protocol RAW_decodable {
 }
 
 /// a special decodable type that is capable of returning a decoded Self from an unbounded forward seeking buffer read.
-public protocol RAW_decodable_unbounded {
+public protocol RAW_decodable_unbounded: RAW_decodable {
 
 	/// initialize from the contents of a raw data buffer that has no known boundaries on the forward end.
 	/// - WARNING: this protocol is SUPER RIDICULOUSLY, IRRESPONSIBLY UNSAFE. Implement this ONLY if you know that you need it and why.

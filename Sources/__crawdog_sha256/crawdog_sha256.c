@@ -212,7 +212,7 @@ void
     __crawdog_sha256_finish
     (
         __crawdog_sha256_context*      Context,        // [in out]
-        SHA256_HASH*        Digest          // [out]
+        __crawdog_sha256_output*        Digest          // [out]
     )
 {
     int i;
@@ -269,7 +269,7 @@ void
     (
         void  const*        Buffer,         // [in]
         uint32_t            BufferSize,     // [in]
-        SHA256_HASH*        Digest          // [in]
+        __crawdog_sha256_output*        Digest          // [in]
     )
 {
     __crawdog_sha256_context context;

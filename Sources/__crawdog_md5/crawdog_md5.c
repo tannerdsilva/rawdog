@@ -251,7 +251,7 @@ void
     __crawdog_md5_finish
     (
         __crawdog_md5_context*         Context,        // [in out]
-        MD5_HASH*           Digest          // [in]
+        __crawdog_md5_output*           Digest          // [in]
     )
 {
     uint32_t    used;
