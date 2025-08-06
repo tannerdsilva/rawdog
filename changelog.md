@@ -1,3 +1,7 @@
+# 19.0.0
+
+- `public init(RAW_staticbuff_seeking storeVal:UnsafeMutablePointer<UnsafeRawPointer>)` replaces `public init(RAW_staticbuff_seeking storeVal:inout UnsafeRawPointer)`
+
 # 18.0.0
 
 - Added extension that allows `RAW_hasher` conformant types to update with `UnsafePointer<RAW_accessible>`.

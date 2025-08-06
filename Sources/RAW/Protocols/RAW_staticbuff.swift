@@ -72,13 +72,13 @@ extension RAW_staticbuff where Self:Comparable, Self:RAW_comparable_fixed {
 }
 
 extension RAW_staticbuff {	
-	public init(RAW_staticbuff_seeking storeVal:inout UnsafeRawPointer) {
+	public init(RAW_staticbuff_seeking storeVal:UnsafeMutablePointer<UnsafeRawPointer>) {
 		#if DEBUG
 		assert(MemoryLayout<RAW_staticbuff_storetype>.size == MemoryLayout<RAW_staticbuff_storetype>.stride, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		assert(MemoryLayout<RAW_staticbuff_storetype>.alignment == 1, "please make sure you are using only Int8 or UInt8 based tuples for RAW_staticbuff storage types.")
 		#endif
 		defer {
-			storeVal = storeVal.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
+			storeVal.pointee = storeVal.pointee.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
 		}
 		self = Self.init(RAW_staticbuff:storeVal)
 	}
