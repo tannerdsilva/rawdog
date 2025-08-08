@@ -1,3 +1,7 @@
+### 19.0.1
+
+- `RAW_byte` is now `ExpressibleByIntegerLiteral`.
+
 # 19.0.0
 
 - `public init(RAW_staticbuff_seeking storeVal:UnsafeMutablePointer<UnsafeRawPointer>)` replaces `public init(RAW_staticbuff_seeking storeVal:inout UnsafeRawPointer)`
