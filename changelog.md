@@ -1,3 +1,7 @@
+### 19.0.2
+
+- Bugfix for `RAW_staticbuff_seeking` initializer.
+
 ### 19.0.1
 
 - `RAW_byte` is now `ExpressibleByIntegerLiteral`.

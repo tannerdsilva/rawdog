@@ -80,7 +80,7 @@ extension RAW_staticbuff {
 		defer {
 			storeVal.pointee = storeVal.pointee.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
 		}
-		self = Self.init(RAW_staticbuff:storeVal)
+		self = Self.init(RAW_staticbuff:storeVal.pointee)
 	}
 
 	// extend a default implementation of the RAW_decodable initializer
