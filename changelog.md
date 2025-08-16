@@ -1,3 +1,9 @@
+# 20.0.0
+
+- Introduction of a new reference type `MemoryGuarded<GuardedStaticbuffType> where GuardedStaticbuffType:RAW_staticbuff`
+
+	- Used to store secure secrets. Implements memory page locking and zeroing to ensure the enclosed secrets are copied as few times as possible.
+
 ### 19.0.2
 
 - Bugfix for `RAW_staticbuff_seeking` initializer.

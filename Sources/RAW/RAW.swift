@@ -13,6 +13,11 @@ import CRAW
 public let RAW_memset = CRAW.memset
 public let RAW_memcmp = CRAW.memcmp
 public let RAW_memcpy = CRAW.memcpy
+public let RAW_mlock = CRAW.mlock
+public let RAW_munlock = CRAW.munlock
+public let RAW_malloc = CRAW.malloc
+public let RAW_free = CRAW.free
+public let RAW_sysconf = CRAW.sysconf
 public func RAW_strlen(_ str:UnsafeRawPointer) -> size_t {
 	return CRAW.strlen(str)
 }
@@ -36,8 +41,12 @@ public struct RAW_byte:Sendable, ExpressibleByIntegerLiteral, Hashable, Comparab
 }
 
 // MARK: Random Bytes
-/// the type of error that is thrown when random bytes could not be  
+/// the type of error that is thrown when random bytes could not be generated
 public struct GenerateRandomBytesError:Swift.Error {}
+
+/// the type of error that is thrown when a memory page could not be zeroed
+public struct ByteZeroFailure:Swift.Error {}
+
 public func generateRandomBytes(count:Int) throws -> [UInt8] {
 	return try [UInt8](unsafeUninitializedCapacity:count) { buffer, initializedCount in
 		buffer.initialize(repeating:0)
@@ -75,34 +84,45 @@ public func generateSecureRandomBytes(count:size_t) throws -> [UInt8] {
 		throw InvalidSecureRandomBytesLengthError()
 	}
 	return try [UInt8](unsafeUninitializedCapacity:Int(count), initializingWith: { buffer, initializedCount in
-		guard __craw_get_entropy_bytes(buffer.baseAddress, count) == 0 else {
+		guard __craw_get_entropy_bytes(buffer.baseAddress!, count) == 0 else {
 			throw InvalidSecureRandomBytesLengthError()
 		}
 		initializedCount = Int(count)
 	})
 }
 
+public func generateSecureRandomBytes<StaticbuffType>(into memoryGuardedStaticbuff:MemoryGuarded<StaticbuffType>) throws where StaticbuffType:RAW_staticbuff {
+	guard MemoryLayout<StaticbuffType.RAW_staticbuff_storetype>.size <= 256 else {
+		throw InvalidSecureRandomBytesLengthError()
+	}
+	try memoryGuardedStaticbuff.RAW_access_mutating { buffer in
+		guard __craw_get_entropy_bytes(buffer.baseAddress!, MemoryLayout<StaticbuffType.RAW_staticbuff_storetype>.size) == 0 else {
+			throw InvalidSecureRandomBytesLengthError()
+		}
+	}
+}
+
 /// applies zeros to the specified memory region. after writing the zeros, the process will read the bytes back to ensure they were zeroed as expected.
-public func secureZeroBytes(_ bytes:UnsafeMutableRawPointer, count:size_t) {
+public func secureZeroBytes(_ bytes:UnsafeMutableRawPointer, count:size_t) throws {
 	__craw_secure_zero_bytes(bytes, count)
 	guard __craw_assert_secure_zero_bytes(bytes, count) == 0 else {
-		fatalError("memory assignment failure \(#file):\(#line)")
+		throw ByteZeroFailure()
 	}
 }
 
 /// applies zeros to the specified memory region. after writing the zeros, the process will read the bytes back to ensure they were zeroed as expected.
-public func secureZeroBytes(_ buffer:UnsafeMutableRawBufferPointer) {
-	__craw_secure_zero_bytes(buffer.baseAddress, buffer.count)
-	guard __craw_assert_secure_zero_bytes(buffer.baseAddress, buffer.count) == 0 else {
-		fatalError("memory assignment failure \(#file):\(#line)")
+public func secureZeroBytes(_ buffer:UnsafeMutableRawBufferPointer) throws {
+	__craw_secure_zero_bytes(buffer.baseAddress!, buffer.count)
+	guard __craw_assert_secure_zero_bytes(buffer.baseAddress!, buffer.count) == 0 else {
+		throw ByteZeroFailure()
 	}
 }
 
 /// applies zeros to the specified memory region. after writing the zeros, the process will read the bytes back to ensure they were zeroed as expected.
-public func secureZeroBytes(_ buffer:UnsafeMutableBufferPointer<UInt8>) {
-	__craw_secure_zero_bytes(buffer.baseAddress, buffer.count)
-	guard __craw_assert_secure_zero_bytes(buffer.baseAddress, buffer.count) == 0 else {
-		fatalError("memory assignment failure \(#file):\(#line)")
+public func secureZeroBytes(_ buffer:UnsafeMutableBufferPointer<UInt8>) throws {
+	__craw_secure_zero_bytes(buffer.baseAddress!, buffer.count)
+	guard __craw_assert_secure_zero_bytes(buffer.baseAddress!, buffer.count) == 0 else {
+		throw ByteZeroFailure()
 	}
 }
 
