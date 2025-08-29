@@ -30,14 +30,16 @@ public struct Context {
 	private var ctx:__crawdog_chachapoly_ctx
 
 	public init?(key:UnsafeRawBufferPointer) {
+		var newContext = __crawdog_chachapoly_ctx()
 		switch key.count {
 			case MemoryLayout<Key16>.size:
-				self.init(key:key.baseAddress!.load(as: Key16.self))
+				fallthrough
 			case MemoryLayout<Key32>.size:
-				self.init(key:key.baseAddress!.load(as: Key32.self))
+				_ = __crawdog_chachapoly_init(&newContext, key.baseAddress!, Int32(key.count))
 			default:
 				return nil
 		}
+		self.ctx = newContext
 	}
 	
 	public init?(key:UnsafeBufferPointer<UInt8>) {
@@ -46,7 +48,7 @@ public struct Context {
 			case MemoryLayout<Key16>.size:
 				fallthrough
 			case MemoryLayout<Key32>.size:
-				_ = __crawdog_chachapoly_init(&newContext, key.baseAddress!, key.count)
+				_ = __crawdog_chachapoly_init(&newContext, key.baseAddress!, Int32(key.count))
 			default:
 				return nil
 		}
