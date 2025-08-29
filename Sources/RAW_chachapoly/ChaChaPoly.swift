@@ -77,6 +77,16 @@ public struct Context {
 		}
 		self.ctx = newContext
 	}
+	
+	// 32 byte key
+	public init<K32>(key:borrowing K32) where K32:RAW_staticbuff, K32.RAW_staticbuff_storetype == Key32.RAW_staticbuff_storetype {
+		var newContext = __crawdog_chachapoly_ctx()
+		key.RAW_access_staticbuff {
+			_ = __crawdog_chachapoly_init(&newContext, $0, Int32(MemoryLayout<K32>.size))
+		}
+		self.ctx = newContext
+	}
+
 
 	/// execute authenticated encryption with associated data.
 	/// - parameters:
