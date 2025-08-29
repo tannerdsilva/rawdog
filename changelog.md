@@ -4,6 +4,10 @@
 
 	- Used to store secure secrets. Implements memory page locking and zeroing to ensure the enclosed secrets are copied as few times as possible.
 
+- `RAW_dh25519` target refactored to implement `MemoryGuarded` storage.
+
+- Added initializer variant to `RAW_chachapoly.Context`: `public init?(key:UnsafeBufferPointer<UInt8>)`
+
 ### 19.0.2
 
 - Bugfix for `RAW_staticbuff_seeking` initializer.

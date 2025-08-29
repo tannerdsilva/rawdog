@@ -13,13 +13,12 @@ public struct PublicKey:Sendable, Hashable, Comparable, Equatable {
 		self = newPublicKey
 	}
 	public init(privateKey:MemoryGuarded<PrivateKey>) {
-		self = privateKey.RAW_access { pkBuff in
-			var newPublicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
-			newPublicKey.RAW_access_staticbuff_mutating({ publicKeyPtr in
+		self = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
+		RAW_access_staticbuff_mutating({ publicKeyPtr in
+			privateKey.RAW_access { pkBuff in
 				__crawdog_curve25519_calculate_public_key(publicKeyPtr, pkBuff.baseAddress)
-			})
-			return newPublicKey
-		}
+			}
+		})
 	}
 }
 
