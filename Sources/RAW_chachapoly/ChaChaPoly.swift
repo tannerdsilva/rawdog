@@ -111,6 +111,18 @@ public struct Context {
 		}
 	}
 
+	public mutating func encrypt(nonce noncePtr:UnsafeRawPointer, associatedData:UnsafeRawBufferPointer, inputData:UnsafeRawBufferPointer, output:UnsafeMutableRawPointer, tag tagBuff:UnsafeMutableRawPointer) throws {
+		switch __crawdog_chachapoly_crypt(&ctx, noncePtr, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagBuff, Int32(MemoryLayout<Tag>.size), 1) {
+			case 0:
+				return
+			case __CRAWDOG_CHACHAPOLY_INVALID_MAC:
+				throw InvalidMACError()
+			default:
+				fatalError("unknown error thrown from rawdog chachapoly impl")
+		}
+	}
+
+
 	/// execute authenticated decryption with associated data.
 	/// - parameters:
 	///		- tag: the tag to authenticate the decryption
@@ -122,6 +134,17 @@ public struct Context {
 				__crawdog_chachapoly_crypt(&ctx, noncePtr, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr, Int32(MemoryLayout<Tag>.size), 0)
 			}
 		}) {
+			case 0:
+				return
+			case __CRAWDOG_CHACHAPOLY_INVALID_MAC:
+				throw InvalidMACError()
+			default:
+				fatalError("unknown error thrown from rawdog chachapoly impl")
+		}
+	}
+
+	public mutating func decrypt(tag:UnsafeMutableRawPointer, nonce:UnsafeRawPointer, associatedData:UnsafeRawBufferPointer, inputData:UnsafeRawBufferPointer, output:UnsafeMutableRawPointer) throws {
+		switch __crawdog_chachapoly_crypt(&ctx, nonce, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tag, Int32(MemoryLayout<Tag>.size), 0) {
 			case 0:
 				return
 			case __CRAWDOG_CHACHAPOLY_INVALID_MAC:
