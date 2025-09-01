@@ -143,8 +143,8 @@ public struct Context {
 		}
 	}
 
-	public mutating func decrypt(tag:UnsafeMutableRawPointer, nonce:UnsafeRawPointer, associatedData:UnsafeRawBufferPointer, inputData:UnsafeRawBufferPointer, output:UnsafeMutableRawPointer) throws {
-		switch __crawdog_chachapoly_crypt(&ctx, nonce, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tag, Int32(MemoryLayout<Tag>.size), 0) {
+	public mutating func decrypt(tag:UnsafeRawPointer, nonce:UnsafeRawPointer, associatedData:UnsafeRawBufferPointer, inputData:UnsafeRawBufferPointer, output:UnsafeMutableRawPointer) throws {
+		switch __crawdog_chachapoly_crypt(&ctx, nonce, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, UnsafeMutableRawPointer(mutating:tag), Int32(MemoryLayout<Tag>.size), 0) {
 			case 0:
 				return
 			case __CRAWDOG_CHACHAPOLY_INVALID_MAC:
