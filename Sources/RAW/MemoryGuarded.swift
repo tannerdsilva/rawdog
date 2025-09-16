@@ -5,9 +5,17 @@ public final class MemoryGuarded<GuardedStaticbuffType>:@unchecked Sendable, RAW
 
 	private static func memoryPrepare() throws -> UnsafeMutableRawPointer {
 		var storePtr:UnsafeMutableRawPointer? = nil
+		
+		#if os(Linux)
+		guard posix_memalign(&storePtr, RAW_sysconf(Int32(_SC_PAGESIZE)), MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size) == 0 else {
+			throw MemoryPageLockFailure()
+		}
+		#else
 		guard posix_memalign(&storePtr, RAW_sysconf(_SC_PAGESIZE), MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size) == 0 else {
 			throw MemoryPageLockFailure()
 		}
+		#endif
+
 		guard RAW_mlock(storePtr, MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size) == 0 else {
 			throw MemoryPageLockFailure()
 		}

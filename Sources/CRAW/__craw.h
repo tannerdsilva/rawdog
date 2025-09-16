@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include "time.h"
+#include <sys/mman.h>
 
 /// @brief a function that returns the current system errno for the process.
 /// @return the system errno
