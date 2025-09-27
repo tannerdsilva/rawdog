@@ -12,35 +12,47 @@ public struct PublicKey:Sendable, Hashable, Comparable, Equatable {
 		})
 		self = newPublicKey
 	}
+	public init(privateKey:MemoryGuarded<PrivateKey>) {
+		self = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
+		RAW_access_staticbuff_mutating({ publicKeyPtr in
+			privateKey.RAW_access { pkBuff in
+				__crawdog_curve25519_calculate_public_key(publicKeyPtr, pkBuff.baseAddress)
+			}
+		})
+	}
 }
 
 /// represents a private key in the curve25519 key exchange
 @RAW_staticbuff(bytes:32)
-public struct PrivateKey:Sendable, Hashable, Comparable, Equatable {
+public struct PrivateKey:Sendable, Hashable, Comparable, Equatable {}
+
+extension MemoryGuarded where GuardedStaticbuffType == PrivateKey {
 	/// generates a private key in a cryptographically secure manner
-	public init() throws {
-		var randomSource = try generateSecureRandomBytes(as:PrivateKey.self)
-		__crawdog_curve25519_forge_private_key(&randomSource)
-		defer {
-			randomSource.RAW_access_staticbuff_mutating { privateKeyPtr in
-				secureZeroBytes(privateKeyPtr, count:32)
-			}
+	public static func new() throws -> MemoryGuarded<PrivateKey> {
+		let newBuff = try MemoryGuarded<PrivateKey>.blank()
+		try generateSecureRandomBytes(into:newBuff)
+		newBuff.RAW_access_mutating { privateKeyPtr in
+			__crawdog_curve25519_forge_private_key(privateKeyPtr.baseAddress!)
 		}
-		self = randomSource
+		return newBuff
 	}
 }
 
 /// represents a shared key in the curve25519 key exchange
 @RAW_staticbuff(bytes:32)
-public struct SharedKey:Sendable, Hashable, Comparable, Equatable {
-	public static func compute(privateKey:UnsafePointer<PrivateKey>, publicKey:UnsafePointer<PublicKey>) -> SharedKey {
-		var newSharedKey = Self(RAW_staticbuff:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-		__crawdog_curve25519_calculate_shared_key(&newSharedKey, publicKey, privateKey)
-		defer {
-			newSharedKey.RAW_access_staticbuff_mutating { sharedKeyPtr in
-				secureZeroBytes(sharedKeyPtr, count:32)
+public struct SharedKey:Sendable, Hashable, Comparable, Equatable {}
+
+extension MemoryGuarded where GuardedStaticbuffType == SharedKey {
+	/// computes a shared key from a private key and a public key
+	public static func compute(privateKey:MemoryGuarded<PrivateKey>, publicKey:PublicKey) throws -> MemoryGuarded<SharedKey> {
+		try publicKey.RAW_access { pubBuff in
+			try privateKey.RAW_access { pkBuff in
+				let newBuff = try MemoryGuarded<SharedKey>.blank()
+				newBuff.RAW_access_mutating { sharedKeyPtr in
+					__crawdog_curve25519_calculate_shared_key(sharedKeyPtr.baseAddress!, pubBuff.baseAddress, pkBuff.baseAddress)
+				}
+				return newBuff
 			}
 		}
-		return newSharedKey
 	}
 }
