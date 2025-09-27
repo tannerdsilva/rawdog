@@ -8,6 +8,8 @@
 
 - Added initializer variant to `RAW_chachapoly.Context`: `public init?(key:UnsafeBufferPointer<UInt8>)`
 
+- Now requires Swift 6.2
+
 ### 19.0.2
 
 - Bugfix for `RAW_staticbuff_seeking` initializer.

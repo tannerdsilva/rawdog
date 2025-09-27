@@ -32,7 +32,7 @@ internal struct RAW_staticbuff_floatingpoint_type_macro:MemberMacro, ExtensionMa
 		}
 	}
 
-	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, conformingTo protocols:[TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
 		let nodeParser = RAW_staticbuff.SyntaxFinder(viewMode: .sourceAccurate)
 		nodeParser.walk(declaration)
 		guard let mode = nodeParser.usageMode, case .bytes(_) = mode else {

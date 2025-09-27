@@ -271,7 +271,7 @@ internal struct RAW_convertible_string_type_macro_v2:MemberMacro, ExtensionMacro
 		return (attached:asStruct, encoding:encodingType.foundUnicodeType!, backingType:foundBackingType)
 	}
 
-	static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+	static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, conformingTo protocols:[TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
 		guard let (structDecl, unicodeType, backingType) = Self.validate(declaration:declaration, node:node, context:context, addDiagnostics:true) else {
 			// unable to validate the attached member. return nil.
 			return []

@@ -168,7 +168,7 @@ internal struct RAW_convertible_string_type_macro_depricated:MemberMacro {
 	// 		return .skipChildren
 	// 	}
 	// }
-	static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+	static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, conformingTo protocols:[TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
 		let idlister = IdTypeFinderFirstName(viewMode:.sourceAccurate)
 		idlister.walk(node.attributeName)
 		guard idlister.foundIdentifierTypeName != nil else {
@@ -196,7 +196,7 @@ internal struct RAW_convertible_string_type_macro_depricated:MemberMacro {
 		unicodeType.trailingTrivia = ""
 		let unicodeTypeText = unicodeType.baseName.text
 		// translate the unicode type into its new syntax form
-		let newGenericArgumentList = GenericArgumentSyntax(argument:IdentifierTypeSyntax(name:"\(raw:unicodeTypeText)"))
+		let newGenericArgumentList = GenericArgumentSyntax(argument:GenericArgumentSyntax.Argument(IdentifierTypeSyntax(name:"\(raw:unicodeTypeText)")))
 
 		// isolate the syntax that defines the backing type and strip it of all trivia.
 		var backingType:IdentifierTypeSyntax = genericIdlister.foundIdentifierTypeFirstGenericArgument!

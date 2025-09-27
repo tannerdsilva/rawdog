@@ -49,7 +49,7 @@ internal struct RAW_staticbuff_fixedwidthinteger_type_macro:ExtensionMacro, Memb
 		}
 	}
 
-	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+	public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, conformingTo protocols:[TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
 		let rsbNodeParser = RAW_staticbuff.SyntaxFinder(viewMode: .sourceAccurate)
 		rsbNodeParser.walk(declaration)
 		guard let foundStaticBuffMacro = rsbNodeParser.found else {

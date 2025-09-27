@@ -501,7 +501,7 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 		""")]
 	}
 
-	public static func expansion(of node:SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+	public static func expansion(of node:SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, conformingTo protocols:[TypeSyntax],  in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
 		guard let (asStruct, _, byteCount) = Self.determineIfUsageCompliant(declaration:declaration, node:node, context:context, addDiagnostics:true) else {
 			return []
 		}
