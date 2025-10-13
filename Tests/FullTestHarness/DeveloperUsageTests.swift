@@ -298,5 +298,10 @@ extension rawdog_tests {
 			}
 			#expect(firstBaseAddress == secondAddress)
 		}
+
+		@Test func testInvertedBits() {
+			let my5 = ~FixedBuff5(RAW_staticbuff:FixedBuff5.RAW_staticbuff_zeroed())
+			#expect(my5 == FixedBuff5(RAW_staticbuff:(255, 255, 255, 255, 255)))
+		}
 	}
 }

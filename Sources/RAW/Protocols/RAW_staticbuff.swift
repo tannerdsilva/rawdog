@@ -99,3 +99,17 @@ extension RAW_staticbuff {
 		}
 	}
 }
+
+extension RAW_staticbuff {
+	public static prefix func ~ (value:Self) -> Self {
+		return value.RAW_access { valuePtr in
+			var returnValue = Self(RAW_staticbuff:Self.RAW_staticbuff_zeroed())
+			returnValue.RAW_access_mutating { returnValuePtr in
+				for i in 0..<returnValuePtr.count {
+					returnValuePtr[i] = ~valuePtr[i]
+				}
+			}
+			return returnValue
+		}
+	}
+}

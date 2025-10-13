@@ -1,3 +1,7 @@
+## 20.1.0
+
+- Added the ability to invert `RAW_staticbuff` values using native Swift syntax `~`
+
 # 20.0.0
 
 - Introduction of a new reference type `MemoryGuarded<GuardedStaticbuffType> where GuardedStaticbuffType:RAW_staticbuff`
