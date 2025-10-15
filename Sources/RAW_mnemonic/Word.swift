@@ -1,2058 +1,2063 @@
-public enum Word:UInt16 {
-	case _0 = 0
-	case _1 = 1
-	case _2 = 2
-	case _3 = 3
-	case _4 = 4
-	case _5 = 5
-	case _6 = 6
-	case _7 = 7
-	case _8 = 8
-	case _9 = 9
-	case _10 = 10
-	case _11 = 11
-	case _12 = 12
-	case _13 = 13
-	case _14 = 14
-	case _15 = 15
-	case _16 = 16
-	case _17 = 17
-	case _18 = 18
-	case _19 = 19
-	case _20 = 20
-	case _21 = 21
-	case _22 = 22
-	case _23 = 23
-	case _24 = 24
-	case _25 = 25
-	case _26 = 26
-	case _27 = 27
-	case _28 = 28
-	case _29 = 29
-	case _30 = 30
-	case _31 = 31
-	case _32 = 32
-	case _33 = 33
-	case _34 = 34
-	case _35 = 35
-	case _36 = 36
-	case _37 = 37
-	case _38 = 38
-	case _39 = 39
-	case _40 = 40
-	case _41 = 41
-	case _42 = 42
-	case _43 = 43
-	case _44 = 44
-	case _45 = 45
-	case _46 = 46
-	case _47 = 47
-	case _48 = 48
-	case _49 = 49
-	case _50 = 50
-	case _51 = 51
-	case _52 = 52
-	case _53 = 53
-	case _54 = 54
-	case _55 = 55
-	case _56 = 56
-	case _57 = 57
-	case _58 = 58
-	case _59 = 59
-	case _60 = 60
-	case _61 = 61
-	case _62 = 62
-	case _63 = 63
-	case _64 = 64
-	case _65 = 65
-	case _66 = 66
-	case _67 = 67
-	case _68 = 68
-	case _69 = 69
-	case _70 = 70
-	case _71 = 71
-	case _72 = 72
-	case _73 = 73
-	case _74 = 74
-	case _75 = 75
-	case _76 = 76
-	case _77 = 77
-	case _78 = 78
-	case _79 = 79
-	case _80 = 80
-	case _81 = 81
-	case _82 = 82
-	case _83 = 83
-	case _84 = 84
-	case _85 = 85
-	case _86 = 86
-	case _87 = 87
-	case _88 = 88
-	case _89 = 89
-	case _90 = 90
-	case _91 = 91
-	case _92 = 92
-	case _93 = 93
-	case _94 = 94
-	case _95 = 95
-	case _96 = 96
-	case _97 = 97
-	case _98 = 98
-	case _99 = 99
-	case _100 = 100
-	case _101 = 101
-	case _102 = 102
-	case _103 = 103
-	case _104 = 104
-	case _105 = 105
-	case _106 = 106
-	case _107 = 107
-	case _108 = 108
-	case _109 = 109
-	case _110 = 110
-	case _111 = 111
-	case _112 = 112
-	case _113 = 113
-	case _114 = 114
-	case _115 = 115
-	case _116 = 116
-	case _117 = 117
-	case _118 = 118
-	case _119 = 119
-	case _120 = 120
-	case _121 = 121
-	case _122 = 122
-	case _123 = 123
-	case _124 = 124
-	case _125 = 125
-	case _126 = 126
-	case _127 = 127
-	case _128 = 128
-	case _129 = 129
-	case _130 = 130
-	case _131 = 131
-	case _132 = 132
-	case _133 = 133
-	case _134 = 134
-	case _135 = 135
-	case _136 = 136
-	case _137 = 137
-	case _138 = 138
-	case _139 = 139
-	case _140 = 140
-	case _141 = 141
-	case _142 = 142
-	case _143 = 143
-	case _144 = 144
-	case _145 = 145
-	case _146 = 146
-	case _147 = 147
-	case _148 = 148
-	case _149 = 149
-	case _150 = 150
-	case _151 = 151
-	case _152 = 152
-	case _153 = 153
-	case _154 = 154
-	case _155 = 155
-	case _156 = 156
-	case _157 = 157
-	case _158 = 158
-	case _159 = 159
-	case _160 = 160
-	case _161 = 161
-	case _162 = 162
-	case _163 = 163
-	case _164 = 164
-	case _165 = 165
-	case _166 = 166
-	case _167 = 167
-	case _168 = 168
-	case _169 = 169
-	case _170 = 170
-	case _171 = 171
-	case _172 = 172
-	case _173 = 173
-	case _174 = 174
-	case _175 = 175
-	case _176 = 176
-	case _177 = 177
-	case _178 = 178
-	case _179 = 179
-	case _180 = 180
-	case _181 = 181
-	case _182 = 182
-	case _183 = 183
-	case _184 = 184
-	case _185 = 185
-	case _186 = 186
-	case _187 = 187
-	case _188 = 188
-	case _189 = 189
-	case _190 = 190
-	case _191 = 191
-	case _192 = 192
-	case _193 = 193
-	case _194 = 194
-	case _195 = 195
-	case _196 = 196
-	case _197 = 197
-	case _198 = 198
-	case _199 = 199
-	case _200 = 200
-	case _201 = 201
-	case _202 = 202
-	case _203 = 203
-	case _204 = 204
-	case _205 = 205
-	case _206 = 206
-	case _207 = 207
-	case _208 = 208
-	case _209 = 209
-	case _210 = 210
-	case _211 = 211
-	case _212 = 212
-	case _213 = 213
-	case _214 = 214
-	case _215 = 215
-	case _216 = 216
-	case _217 = 217
-	case _218 = 218
-	case _219 = 219
-	case _220 = 220
-	case _221 = 221
-	case _222 = 222
-	case _223 = 223
-	case _224 = 224
-	case _225 = 225
-	case _226 = 226
-	case _227 = 227
-	case _228 = 228
-	case _229 = 229
-	case _230 = 230
-	case _231 = 231
-	case _232 = 232
-	case _233 = 233
-	case _234 = 234
-	case _235 = 235
-	case _236 = 236
-	case _237 = 237
-	case _238 = 238
-	case _239 = 239
-	case _240 = 240
-	case _241 = 241
-	case _242 = 242
-	case _243 = 243
-	case _244 = 244
-	case _245 = 245
-	case _246 = 246
-	case _247 = 247
-	case _248 = 248
-	case _249 = 249
-	case _250 = 250
-	case _251 = 251
-	case _252 = 252
-	case _253 = 253
-	case _254 = 254
-	case _255 = 255
-	case _256 = 256
-	case _257 = 257
-	case _258 = 258
-	case _259 = 259
-	case _260 = 260
-	case _261 = 261
-	case _262 = 262
-	case _263 = 263
-	case _264 = 264
-	case _265 = 265
-	case _266 = 266
-	case _267 = 267
-	case _268 = 268
-	case _269 = 269
-	case _270 = 270
-	case _271 = 271
-	case _272 = 272
-	case _273 = 273
-	case _274 = 274
-	case _275 = 275
-	case _276 = 276
-	case _277 = 277
-	case _278 = 278
-	case _279 = 279
-	case _280 = 280
-	case _281 = 281
-	case _282 = 282
-	case _283 = 283
-	case _284 = 284
-	case _285 = 285
-	case _286 = 286
-	case _287 = 287
-	case _288 = 288
-	case _289 = 289
-	case _290 = 290
-	case _291 = 291
-	case _292 = 292
-	case _293 = 293
-	case _294 = 294
-	case _295 = 295
-	case _296 = 296
-	case _297 = 297
-	case _298 = 298
-	case _299 = 299
-	case _300 = 300
-	case _301 = 301
-	case _302 = 302
-	case _303 = 303
-	case _304 = 304
-	case _305 = 305
-	case _306 = 306
-	case _307 = 307
-	case _308 = 308
-	case _309 = 309
-	case _310 = 310
-	case _311 = 311
-	case _312 = 312
-	case _313 = 313
-	case _314 = 314
-	case _315 = 315
-	case _316 = 316
-	case _317 = 317
-	case _318 = 318
-	case _319 = 319
-	case _320 = 320
-	case _321 = 321
-	case _322 = 322
-	case _323 = 323
-	case _324 = 324
-	case _325 = 325
-	case _326 = 326
-	case _327 = 327
-	case _328 = 328
-	case _329 = 329
-	case _330 = 330
-	case _331 = 331
-	case _332 = 332
-	case _333 = 333
-	case _334 = 334
-	case _335 = 335
-	case _336 = 336
-	case _337 = 337
-	case _338 = 338
-	case _339 = 339
-	case _340 = 340
-	case _341 = 341
-	case _342 = 342
-	case _343 = 343
-	case _344 = 344
-	case _345 = 345
-	case _346 = 346
-	case _347 = 347
-	case _348 = 348
-	case _349 = 349
-	case _350 = 350
-	case _351 = 351
-	case _352 = 352
-	case _353 = 353
-	case _354 = 354
-	case _355 = 355
-	case _356 = 356
-	case _357 = 357
-	case _358 = 358
-	case _359 = 359
-	case _360 = 360
-	case _361 = 361
-	case _362 = 362
-	case _363 = 363
-	case _364 = 364
-	case _365 = 365
-	case _366 = 366
-	case _367 = 367
-	case _368 = 368
-	case _369 = 369
-	case _370 = 370
-	case _371 = 371
-	case _372 = 372
-	case _373 = 373
-	case _374 = 374
-	case _375 = 375
-	case _376 = 376
-	case _377 = 377
-	case _378 = 378
-	case _379 = 379
-	case _380 = 380
-	case _381 = 381
-	case _382 = 382
-	case _383 = 383
-	case _384 = 384
-	case _385 = 385
-	case _386 = 386
-	case _387 = 387
-	case _388 = 388
-	case _389 = 389
-	case _390 = 390
-	case _391 = 391
-	case _392 = 392
-	case _393 = 393
-	case _394 = 394
-	case _395 = 395
-	case _396 = 396
-	case _397 = 397
-	case _398 = 398
-	case _399 = 399
-	case _400 = 400
-	case _401 = 401
-	case _402 = 402
-	case _403 = 403
-	case _404 = 404
-	case _405 = 405
-	case _406 = 406
-	case _407 = 407
-	case _408 = 408
-	case _409 = 409
-	case _410 = 410
-	case _411 = 411
-	case _412 = 412
-	case _413 = 413
-	case _414 = 414
-	case _415 = 415
-	case _416 = 416
-	case _417 = 417
-	case _418 = 418
-	case _419 = 419
-	case _420 = 420
-	case _421 = 421
-	case _422 = 422
-	case _423 = 423
-	case _424 = 424
-	case _425 = 425
-	case _426 = 426
-	case _427 = 427
-	case _428 = 428
-	case _429 = 429
-	case _430 = 430
-	case _431 = 431
-	case _432 = 432
-	case _433 = 433
-	case _434 = 434
-	case _435 = 435
-	case _436 = 436
-	case _437 = 437
-	case _438 = 438
-	case _439 = 439
-	case _440 = 440
-	case _441 = 441
-	case _442 = 442
-	case _443 = 443
-	case _444 = 444
-	case _445 = 445
-	case _446 = 446
-	case _447 = 447
-	case _448 = 448
-	case _449 = 449
-	case _450 = 450
-	case _451 = 451
-	case _452 = 452
-	case _453 = 453
-	case _454 = 454
-	case _455 = 455
-	case _456 = 456
-	case _457 = 457
-	case _458 = 458
-	case _459 = 459
-	case _460 = 460
-	case _461 = 461
-	case _462 = 462
-	case _463 = 463
-	case _464 = 464
-	case _465 = 465
-	case _466 = 466
-	case _467 = 467
-	case _468 = 468
-	case _469 = 469
-	case _470 = 470
-	case _471 = 471
-	case _472 = 472
-	case _473 = 473
-	case _474 = 474
-	case _475 = 475
-	case _476 = 476
-	case _477 = 477
-	case _478 = 478
-	case _479 = 479
-	case _480 = 480
-	case _481 = 481
-	case _482 = 482
-	case _483 = 483
-	case _484 = 484
-	case _485 = 485
-	case _486 = 486
-	case _487 = 487
-	case _488 = 488
-	case _489 = 489
-	case _490 = 490
-	case _491 = 491
-	case _492 = 492
-	case _493 = 493
-	case _494 = 494
-	case _495 = 495
-	case _496 = 496
-	case _497 = 497
-	case _498 = 498
-	case _499 = 499
-	case _500 = 500
-	case _501 = 501
-	case _502 = 502
-	case _503 = 503
-	case _504 = 504
-	case _505 = 505
-	case _506 = 506
-	case _507 = 507
-	case _508 = 508
-	case _509 = 509
-	case _510 = 510
-	case _511 = 511
-	case _512 = 512
-	case _513 = 513
-	case _514 = 514
-	case _515 = 515
-	case _516 = 516
-	case _517 = 517
-	case _518 = 518
-	case _519 = 519
-	case _520 = 520
-	case _521 = 521
-	case _522 = 522
-	case _523 = 523
-	case _524 = 524
-	case _525 = 525
-	case _526 = 526
-	case _527 = 527
-	case _528 = 528
-	case _529 = 529
-	case _530 = 530
-	case _531 = 531
-	case _532 = 532
-	case _533 = 533
-	case _534 = 534
-	case _535 = 535
-	case _536 = 536
-	case _537 = 537
-	case _538 = 538
-	case _539 = 539
-	case _540 = 540
-	case _541 = 541
-	case _542 = 542
-	case _543 = 543
-	case _544 = 544
-	case _545 = 545
-	case _546 = 546
-	case _547 = 547
-	case _548 = 548
-	case _549 = 549
-	case _550 = 550
-	case _551 = 551
-	case _552 = 552
-	case _553 = 553
-	case _554 = 554
-	case _555 = 555
-	case _556 = 556
-	case _557 = 557
-	case _558 = 558
-	case _559 = 559
-	case _560 = 560
-	case _561 = 561
-	case _562 = 562
-	case _563 = 563
-	case _564 = 564
-	case _565 = 565
-	case _566 = 566
-	case _567 = 567
-	case _568 = 568
-	case _569 = 569
-	case _570 = 570
-	case _571 = 571
-	case _572 = 572
-	case _573 = 573
-	case _574 = 574
-	case _575 = 575
-	case _576 = 576
-	case _577 = 577
-	case _578 = 578
-	case _579 = 579
-	case _580 = 580
-	case _581 = 581
-	case _582 = 582
-	case _583 = 583
-	case _584 = 584
-	case _585 = 585
-	case _586 = 586
-	case _587 = 587
-	case _588 = 588
-	case _589 = 589
-	case _590 = 590
-	case _591 = 591
-	case _592 = 592
-	case _593 = 593
-	case _594 = 594
-	case _595 = 595
-	case _596 = 596
-	case _597 = 597
-	case _598 = 598
-	case _599 = 599
-	case _600 = 600
-	case _601 = 601
-	case _602 = 602
-	case _603 = 603
-	case _604 = 604
-	case _605 = 605
-	case _606 = 606
-	case _607 = 607
-	case _608 = 608
-	case _609 = 609
-	case _610 = 610
-	case _611 = 611
-	case _612 = 612
-	case _613 = 613
-	case _614 = 614
-	case _615 = 615
-	case _616 = 616
-	case _617 = 617
-	case _618 = 618
-	case _619 = 619
-	case _620 = 620
-	case _621 = 621
-	case _622 = 622
-	case _623 = 623
-	case _624 = 624
-	case _625 = 625
-	case _626 = 626
-	case _627 = 627
-	case _628 = 628
-	case _629 = 629
-	case _630 = 630
-	case _631 = 631
-	case _632 = 632
-	case _633 = 633
-	case _634 = 634
-	case _635 = 635
-	case _636 = 636
-	case _637 = 637
-	case _638 = 638
-	case _639 = 639
-	case _640 = 640
-	case _641 = 641
-	case _642 = 642
-	case _643 = 643
-	case _644 = 644
-	case _645 = 645
-	case _646 = 646
-	case _647 = 647
-	case _648 = 648
-	case _649 = 649
-	case _650 = 650
-	case _651 = 651
-	case _652 = 652
-	case _653 = 653
-	case _654 = 654
-	case _655 = 655
-	case _656 = 656
-	case _657 = 657
-	case _658 = 658
-	case _659 = 659
-	case _660 = 660
-	case _661 = 661
-	case _662 = 662
-	case _663 = 663
-	case _664 = 664
-	case _665 = 665
-	case _666 = 666
-	case _667 = 667
-	case _668 = 668
-	case _669 = 669
-	case _670 = 670
-	case _671 = 671
-	case _672 = 672
-	case _673 = 673
-	case _674 = 674
-	case _675 = 675
-	case _676 = 676
-	case _677 = 677
-	case _678 = 678
-	case _679 = 679
-	case _680 = 680
-	case _681 = 681
-	case _682 = 682
-	case _683 = 683
-	case _684 = 684
-	case _685 = 685
-	case _686 = 686
-	case _687 = 687
-	case _688 = 688
-	case _689 = 689
-	case _690 = 690
-	case _691 = 691
-	case _692 = 692
-	case _693 = 693
-	case _694 = 694
-	case _695 = 695
-	case _696 = 696
-	case _697 = 697
-	case _698 = 698
-	case _699 = 699
-	case _700 = 700
-	case _701 = 701
-	case _702 = 702
-	case _703 = 703
-	case _704 = 704
-	case _705 = 705
-	case _706 = 706
-	case _707 = 707
-	case _708 = 708
-	case _709 = 709
-	case _710 = 710
-	case _711 = 711
-	case _712 = 712
-	case _713 = 713
-	case _714 = 714
-	case _715 = 715
-	case _716 = 716
-	case _717 = 717
-	case _718 = 718
-	case _719 = 719
-	case _720 = 720
-	case _721 = 721
-	case _722 = 722
-	case _723 = 723
-	case _724 = 724
-	case _725 = 725
-	case _726 = 726
-	case _727 = 727
-	case _728 = 728
-	case _729 = 729
-	case _730 = 730
-	case _731 = 731
-	case _732 = 732
-	case _733 = 733
-	case _734 = 734
-	case _735 = 735
-	case _736 = 736
-	case _737 = 737
-	case _738 = 738
-	case _739 = 739
-	case _740 = 740
-	case _741 = 741
-	case _742 = 742
-	case _743 = 743
-	case _744 = 744
-	case _745 = 745
-	case _746 = 746
-	case _747 = 747
-	case _748 = 748
-	case _749 = 749
-	case _750 = 750
-	case _751 = 751
-	case _752 = 752
-	case _753 = 753
-	case _754 = 754
-	case _755 = 755
-	case _756 = 756
-	case _757 = 757
-	case _758 = 758
-	case _759 = 759
-	case _760 = 760
-	case _761 = 761
-	case _762 = 762
-	case _763 = 763
-	case _764 = 764
-	case _765 = 765
-	case _766 = 766
-	case _767 = 767
-	case _768 = 768
-	case _769 = 769
-	case _770 = 770
-	case _771 = 771
-	case _772 = 772
-	case _773 = 773
-	case _774 = 774
-	case _775 = 775
-	case _776 = 776
-	case _777 = 777
-	case _778 = 778
-	case _779 = 779
-	case _780 = 780
-	case _781 = 781
-	case _782 = 782
-	case _783 = 783
-	case _784 = 784
-	case _785 = 785
-	case _786 = 786
-	case _787 = 787
-	case _788 = 788
-	case _789 = 789
-	case _790 = 790
-	case _791 = 791
-	case _792 = 792
-	case _793 = 793
-	case _794 = 794
-	case _795 = 795
-	case _796 = 796
-	case _797 = 797
-	case _798 = 798
-	case _799 = 799
-	case _800 = 800
-	case _801 = 801
-	case _802 = 802
-	case _803 = 803
-	case _804 = 804
-	case _805 = 805
-	case _806 = 806
-	case _807 = 807
-	case _808 = 808
-	case _809 = 809
-	case _810 = 810
-	case _811 = 811
-	case _812 = 812
-	case _813 = 813
-	case _814 = 814
-	case _815 = 815
-	case _816 = 816
-	case _817 = 817
-	case _818 = 818
-	case _819 = 819
-	case _820 = 820
-	case _821 = 821
-	case _822 = 822
-	case _823 = 823
-	case _824 = 824
-	case _825 = 825
-	case _826 = 826
-	case _827 = 827
-	case _828 = 828
-	case _829 = 829
-	case _830 = 830
-	case _831 = 831
-	case _832 = 832
-	case _833 = 833
-	case _834 = 834
-	case _835 = 835
-	case _836 = 836
-	case _837 = 837
-	case _838 = 838
-	case _839 = 839
-	case _840 = 840
-	case _841 = 841
-	case _842 = 842
-	case _843 = 843
-	case _844 = 844
-	case _845 = 845
-	case _846 = 846
-	case _847 = 847
-	case _848 = 848
-	case _849 = 849
-	case _850 = 850
-	case _851 = 851
-	case _852 = 852
-	case _853 = 853
-	case _854 = 854
-	case _855 = 855
-	case _856 = 856
-	case _857 = 857
-	case _858 = 858
-	case _859 = 859
-	case _860 = 860
-	case _861 = 861
-	case _862 = 862
-	case _863 = 863
-	case _864 = 864
-	case _865 = 865
-	case _866 = 866
-	case _867 = 867
-	case _868 = 868
-	case _869 = 869
-	case _870 = 870
-	case _871 = 871
-	case _872 = 872
-	case _873 = 873
-	case _874 = 874
-	case _875 = 875
-	case _876 = 876
-	case _877 = 877
-	case _878 = 878
-	case _879 = 879
-	case _880 = 880
-	case _881 = 881
-	case _882 = 882
-	case _883 = 883
-	case _884 = 884
-	case _885 = 885
-	case _886 = 886
-	case _887 = 887
-	case _888 = 888
-	case _889 = 889
-	case _890 = 890
-	case _891 = 891
-	case _892 = 892
-	case _893 = 893
-	case _894 = 894
-	case _895 = 895
-	case _896 = 896
-	case _897 = 897
-	case _898 = 898
-	case _899 = 899
-	case _900 = 900
-	case _901 = 901
-	case _902 = 902
-	case _903 = 903
-	case _904 = 904
-	case _905 = 905
-	case _906 = 906
-	case _907 = 907
-	case _908 = 908
-	case _909 = 909
-	case _910 = 910
-	case _911 = 911
-	case _912 = 912
-	case _913 = 913
-	case _914 = 914
-	case _915 = 915
-	case _916 = 916
-	case _917 = 917
-	case _918 = 918
-	case _919 = 919
-	case _920 = 920
-	case _921 = 921
-	case _922 = 922
-	case _923 = 923
-	case _924 = 924
-	case _925 = 925
-	case _926 = 926
-	case _927 = 927
-	case _928 = 928
-	case _929 = 929
-	case _930 = 930
-	case _931 = 931
-	case _932 = 932
-	case _933 = 933
-	case _934 = 934
-	case _935 = 935
-	case _936 = 936
-	case _937 = 937
-	case _938 = 938
-	case _939 = 939
-	case _940 = 940
-	case _941 = 941
-	case _942 = 942
-	case _943 = 943
-	case _944 = 944
-	case _945 = 945
-	case _946 = 946
-	case _947 = 947
-	case _948 = 948
-	case _949 = 949
-	case _950 = 950
-	case _951 = 951
-	case _952 = 952
-	case _953 = 953
-	case _954 = 954
-	case _955 = 955
-	case _956 = 956
-	case _957 = 957
-	case _958 = 958
-	case _959 = 959
-	case _960 = 960
-	case _961 = 961
-	case _962 = 962
-	case _963 = 963
-	case _964 = 964
-	case _965 = 965
-	case _966 = 966
-	case _967 = 967
-	case _968 = 968
-	case _969 = 969
-	case _970 = 970
-	case _971 = 971
-	case _972 = 972
-	case _973 = 973
-	case _974 = 974
-	case _975 = 975
-	case _976 = 976
-	case _977 = 977
-	case _978 = 978
-	case _979 = 979
-	case _980 = 980
-	case _981 = 981
-	case _982 = 982
-	case _983 = 983
-	case _984 = 984
-	case _985 = 985
-	case _986 = 986
-	case _987 = 987
-	case _988 = 988
-	case _989 = 989
-	case _990 = 990
-	case _991 = 991
-	case _992 = 992
-	case _993 = 993
-	case _994 = 994
-	case _995 = 995
-	case _996 = 996
-	case _997 = 997
-	case _998 = 998
-	case _999 = 999
-	case _1000 = 1000
-	case _1001 = 1001
-	case _1002 = 1002
-	case _1003 = 1003
-	case _1004 = 1004
-	case _1005 = 1005
-	case _1006 = 1006
-	case _1007 = 1007
-	case _1008 = 1008
-	case _1009 = 1009
-	case _1010 = 1010
-	case _1011 = 1011
-	case _1012 = 1012
-	case _1013 = 1013
-	case _1014 = 1014
-	case _1015 = 1015
-	case _1016 = 1016
-	case _1017 = 1017
-	case _1018 = 1018
-	case _1019 = 1019
-	case _1020 = 1020
-	case _1021 = 1021
-	case _1022 = 1022
-	case _1023 = 1023
-	case _1024 = 1024
-	case _1025 = 1025
-	case _1026 = 1026
-	case _1027 = 1027
-	case _1028 = 1028
-	case _1029 = 1029
-	case _1030 = 1030
-	case _1031 = 1031
-	case _1032 = 1032
-	case _1033 = 1033
-	case _1034 = 1034
-	case _1035 = 1035
-	case _1036 = 1036
-	case _1037 = 1037
-	case _1038 = 1038
-	case _1039 = 1039
-	case _1040 = 1040
-	case _1041 = 1041
-	case _1042 = 1042
-	case _1043 = 1043
-	case _1044 = 1044
-	case _1045 = 1045
-	case _1046 = 1046
-	case _1047 = 1047
-	case _1048 = 1048
-	case _1049 = 1049
-	case _1050 = 1050
-	case _1051 = 1051
-	case _1052 = 1052
-	case _1053 = 1053
-	case _1054 = 1054
-	case _1055 = 1055
-	case _1056 = 1056
-	case _1057 = 1057
-	case _1058 = 1058
-	case _1059 = 1059
-	case _1060 = 1060
-	case _1061 = 1061
-	case _1062 = 1062
-	case _1063 = 1063
-	case _1064 = 1064
-	case _1065 = 1065
-	case _1066 = 1066
-	case _1067 = 1067
-	case _1068 = 1068
-	case _1069 = 1069
-	case _1070 = 1070
-	case _1071 = 1071
-	case _1072 = 1072
-	case _1073 = 1073
-	case _1074 = 1074
-	case _1075 = 1075
-	case _1076 = 1076
-	case _1077 = 1077
-	case _1078 = 1078
-	case _1079 = 1079
-	case _1080 = 1080
-	case _1081 = 1081
-	case _1082 = 1082
-	case _1083 = 1083
-	case _1084 = 1084
-	case _1085 = 1085
-	case _1086 = 1086
-	case _1087 = 1087
-	case _1088 = 1088
-	case _1089 = 1089
-	case _1090 = 1090
-	case _1091 = 1091
-	case _1092 = 1092
-	case _1093 = 1093
-	case _1094 = 1094
-	case _1095 = 1095
-	case _1096 = 1096
-	case _1097 = 1097
-	case _1098 = 1098
-	case _1099 = 1099
-	case _1100 = 1100
-	case _1101 = 1101
-	case _1102 = 1102
-	case _1103 = 1103
-	case _1104 = 1104
-	case _1105 = 1105
-	case _1106 = 1106
-	case _1107 = 1107
-	case _1108 = 1108
-	case _1109 = 1109
-	case _1110 = 1110
-	case _1111 = 1111
-	case _1112 = 1112
-	case _1113 = 1113
-	case _1114 = 1114
-	case _1115 = 1115
-	case _1116 = 1116
-	case _1117 = 1117
-	case _1118 = 1118
-	case _1119 = 1119
-	case _1120 = 1120
-	case _1121 = 1121
-	case _1122 = 1122
-	case _1123 = 1123
-	case _1124 = 1124
-	case _1125 = 1125
-	case _1126 = 1126
-	case _1127 = 1127
-	case _1128 = 1128
-	case _1129 = 1129
-	case _1130 = 1130
-	case _1131 = 1131
-	case _1132 = 1132
-	case _1133 = 1133
-	case _1134 = 1134
-	case _1135 = 1135
-	case _1136 = 1136
-	case _1137 = 1137
-	case _1138 = 1138
-	case _1139 = 1139
-	case _1140 = 1140
-	case _1141 = 1141
-	case _1142 = 1142
-	case _1143 = 1143
-	case _1144 = 1144
-	case _1145 = 1145
-	case _1146 = 1146
-	case _1147 = 1147
-	case _1148 = 1148
-	case _1149 = 1149
-	case _1150 = 1150
-	case _1151 = 1151
-	case _1152 = 1152
-	case _1153 = 1153
-	case _1154 = 1154
-	case _1155 = 1155
-	case _1156 = 1156
-	case _1157 = 1157
-	case _1158 = 1158
-	case _1159 = 1159
-	case _1160 = 1160
-	case _1161 = 1161
-	case _1162 = 1162
-	case _1163 = 1163
-	case _1164 = 1164
-	case _1165 = 1165
-	case _1166 = 1166
-	case _1167 = 1167
-	case _1168 = 1168
-	case _1169 = 1169
-	case _1170 = 1170
-	case _1171 = 1171
-	case _1172 = 1172
-	case _1173 = 1173
-	case _1174 = 1174
-	case _1175 = 1175
-	case _1176 = 1176
-	case _1177 = 1177
-	case _1178 = 1178
-	case _1179 = 1179
-	case _1180 = 1180
-	case _1181 = 1181
-	case _1182 = 1182
-	case _1183 = 1183
-	case _1184 = 1184
-	case _1185 = 1185
-	case _1186 = 1186
-	case _1187 = 1187
-	case _1188 = 1188
-	case _1189 = 1189
-	case _1190 = 1190
-	case _1191 = 1191
-	case _1192 = 1192
-	case _1193 = 1193
-	case _1194 = 1194
-	case _1195 = 1195
-	case _1196 = 1196
-	case _1197 = 1197
-	case _1198 = 1198
-	case _1199 = 1199
-	case _1200 = 1200
-	case _1201 = 1201
-	case _1202 = 1202
-	case _1203 = 1203
-	case _1204 = 1204
-	case _1205 = 1205
-	case _1206 = 1206
-	case _1207 = 1207
-	case _1208 = 1208
-	case _1209 = 1209
-	case _1210 = 1210
-	case _1211 = 1211
-	case _1212 = 1212
-	case _1213 = 1213
-	case _1214 = 1214
-	case _1215 = 1215
-	case _1216 = 1216
-	case _1217 = 1217
-	case _1218 = 1218
-	case _1219 = 1219
-	case _1220 = 1220
-	case _1221 = 1221
-	case _1222 = 1222
-	case _1223 = 1223
-	case _1224 = 1224
-	case _1225 = 1225
-	case _1226 = 1226
-	case _1227 = 1227
-	case _1228 = 1228
-	case _1229 = 1229
-	case _1230 = 1230
-	case _1231 = 1231
-	case _1232 = 1232
-	case _1233 = 1233
-	case _1234 = 1234
-	case _1235 = 1235
-	case _1236 = 1236
-	case _1237 = 1237
-	case _1238 = 1238
-	case _1239 = 1239
-	case _1240 = 1240
-	case _1241 = 1241
-	case _1242 = 1242
-	case _1243 = 1243
-	case _1244 = 1244
-	case _1245 = 1245
-	case _1246 = 1246
-	case _1247 = 1247
-	case _1248 = 1248
-	case _1249 = 1249
-	case _1250 = 1250
-	case _1251 = 1251
-	case _1252 = 1252
-	case _1253 = 1253
-	case _1254 = 1254
-	case _1255 = 1255
-	case _1256 = 1256
-	case _1257 = 1257
-	case _1258 = 1258
-	case _1259 = 1259
-	case _1260 = 1260
-	case _1261 = 1261
-	case _1262 = 1262
-	case _1263 = 1263
-	case _1264 = 1264
-	case _1265 = 1265
-	case _1266 = 1266
-	case _1267 = 1267
-	case _1268 = 1268
-	case _1269 = 1269
-	case _1270 = 1270
-	case _1271 = 1271
-	case _1272 = 1272
-	case _1273 = 1273
-	case _1274 = 1274
-	case _1275 = 1275
-	case _1276 = 1276
-	case _1277 = 1277
-	case _1278 = 1278
-	case _1279 = 1279
-	case _1280 = 1280
-	case _1281 = 1281
-	case _1282 = 1282
-	case _1283 = 1283
-	case _1284 = 1284
-	case _1285 = 1285
-	case _1286 = 1286
-	case _1287 = 1287
-	case _1288 = 1288
-	case _1289 = 1289
-	case _1290 = 1290
-	case _1291 = 1291
-	case _1292 = 1292
-	case _1293 = 1293
-	case _1294 = 1294
-	case _1295 = 1295
-	case _1296 = 1296
-	case _1297 = 1297
-	case _1298 = 1298
-	case _1299 = 1299
-	case _1300 = 1300
-	case _1301 = 1301
-	case _1302 = 1302
-	case _1303 = 1303
-	case _1304 = 1304
-	case _1305 = 1305
-	case _1306 = 1306
-	case _1307 = 1307
-	case _1308 = 1308
-	case _1309 = 1309
-	case _1310 = 1310
-	case _1311 = 1311
-	case _1312 = 1312
-	case _1313 = 1313
-	case _1314 = 1314
-	case _1315 = 1315
-	case _1316 = 1316
-	case _1317 = 1317
-	case _1318 = 1318
-	case _1319 = 1319
-	case _1320 = 1320
-	case _1321 = 1321
-	case _1322 = 1322
-	case _1323 = 1323
-	case _1324 = 1324
-	case _1325 = 1325
-	case _1326 = 1326
-	case _1327 = 1327
-	case _1328 = 1328
-	case _1329 = 1329
-	case _1330 = 1330
-	case _1331 = 1331
-	case _1332 = 1332
-	case _1333 = 1333
-	case _1334 = 1334
-	case _1335 = 1335
-	case _1336 = 1336
-	case _1337 = 1337
-	case _1338 = 1338
-	case _1339 = 1339
-	case _1340 = 1340
-	case _1341 = 1341
-	case _1342 = 1342
-	case _1343 = 1343
-	case _1344 = 1344
-	case _1345 = 1345
-	case _1346 = 1346
-	case _1347 = 1347
-	case _1348 = 1348
-	case _1349 = 1349
-	case _1350 = 1350
-	case _1351 = 1351
-	case _1352 = 1352
-	case _1353 = 1353
-	case _1354 = 1354
-	case _1355 = 1355
-	case _1356 = 1356
-	case _1357 = 1357
-	case _1358 = 1358
-	case _1359 = 1359
-	case _1360 = 1360
-	case _1361 = 1361
-	case _1362 = 1362
-	case _1363 = 1363
-	case _1364 = 1364
-	case _1365 = 1365
-	case _1366 = 1366
-	case _1367 = 1367
-	case _1368 = 1368
-	case _1369 = 1369
-	case _1370 = 1370
-	case _1371 = 1371
-	case _1372 = 1372
-	case _1373 = 1373
-	case _1374 = 1374
-	case _1375 = 1375
-	case _1376 = 1376
-	case _1377 = 1377
-	case _1378 = 1378
-	case _1379 = 1379
-	case _1380 = 1380
-	case _1381 = 1381
-	case _1382 = 1382
-	case _1383 = 1383
-	case _1384 = 1384
-	case _1385 = 1385
-	case _1386 = 1386
-	case _1387 = 1387
-	case _1388 = 1388
-	case _1389 = 1389
-	case _1390 = 1390
-	case _1391 = 1391
-	case _1392 = 1392
-	case _1393 = 1393
-	case _1394 = 1394
-	case _1395 = 1395
-	case _1396 = 1396
-	case _1397 = 1397
-	case _1398 = 1398
-	case _1399 = 1399
-	case _1400 = 1400
-	case _1401 = 1401
-	case _1402 = 1402
-	case _1403 = 1403
-	case _1404 = 1404
-	case _1405 = 1405
-	case _1406 = 1406
-	case _1407 = 1407
-	case _1408 = 1408
-	case _1409 = 1409
-	case _1410 = 1410
-	case _1411 = 1411
-	case _1412 = 1412
-	case _1413 = 1413
-	case _1414 = 1414
-	case _1415 = 1415
-	case _1416 = 1416
-	case _1417 = 1417
-	case _1418 = 1418
-	case _1419 = 1419
-	case _1420 = 1420
-	case _1421 = 1421
-	case _1422 = 1422
-	case _1423 = 1423
-	case _1424 = 1424
-	case _1425 = 1425
-	case _1426 = 1426
-	case _1427 = 1427
-	case _1428 = 1428
-	case _1429 = 1429
-	case _1430 = 1430
-	case _1431 = 1431
-	case _1432 = 1432
-	case _1433 = 1433
-	case _1434 = 1434
-	case _1435 = 1435
-	case _1436 = 1436
-	case _1437 = 1437
-	case _1438 = 1438
-	case _1439 = 1439
-	case _1440 = 1440
-	case _1441 = 1441
-	case _1442 = 1442
-	case _1443 = 1443
-	case _1444 = 1444
-	case _1445 = 1445
-	case _1446 = 1446
-	case _1447 = 1447
-	case _1448 = 1448
-	case _1449 = 1449
-	case _1450 = 1450
-	case _1451 = 1451
-	case _1452 = 1452
-	case _1453 = 1453
-	case _1454 = 1454
-	case _1455 = 1455
-	case _1456 = 1456
-	case _1457 = 1457
-	case _1458 = 1458
-	case _1459 = 1459
-	case _1460 = 1460
-	case _1461 = 1461
-	case _1462 = 1462
-	case _1463 = 1463
-	case _1464 = 1464
-	case _1465 = 1465
-	case _1466 = 1466
-	case _1467 = 1467
-	case _1468 = 1468
-	case _1469 = 1469
-	case _1470 = 1470
-	case _1471 = 1471
-	case _1472 = 1472
-	case _1473 = 1473
-	case _1474 = 1474
-	case _1475 = 1475
-	case _1476 = 1476
-	case _1477 = 1477
-	case _1478 = 1478
-	case _1479 = 1479
-	case _1480 = 1480
-	case _1481 = 1481
-	case _1482 = 1482
-	case _1483 = 1483
-	case _1484 = 1484
-	case _1485 = 1485
-	case _1486 = 1486
-	case _1487 = 1487
-	case _1488 = 1488
-	case _1489 = 1489
-	case _1490 = 1490
-	case _1491 = 1491
-	case _1492 = 1492
-	case _1493 = 1493
-	case _1494 = 1494
-	case _1495 = 1495
-	case _1496 = 1496
-	case _1497 = 1497
-	case _1498 = 1498
-	case _1499 = 1499
-	case _1500 = 1500
-	case _1501 = 1501
-	case _1502 = 1502
-	case _1503 = 1503
-	case _1504 = 1504
-	case _1505 = 1505
-	case _1506 = 1506
-	case _1507 = 1507
-	case _1508 = 1508
-	case _1509 = 1509
-	case _1510 = 1510
-	case _1511 = 1511
-	case _1512 = 1512
-	case _1513 = 1513
-	case _1514 = 1514
-	case _1515 = 1515
-	case _1516 = 1516
-	case _1517 = 1517
-	case _1518 = 1518
-	case _1519 = 1519
-	case _1520 = 1520
-	case _1521 = 1521
-	case _1522 = 1522
-	case _1523 = 1523
-	case _1524 = 1524
-	case _1525 = 1525
-	case _1526 = 1526
-	case _1527 = 1527
-	case _1528 = 1528
-	case _1529 = 1529
-	case _1530 = 1530
-	case _1531 = 1531
-	case _1532 = 1532
-	case _1533 = 1533
-	case _1534 = 1534
-	case _1535 = 1535
-	case _1536 = 1536
-	case _1537 = 1537
-	case _1538 = 1538
-	case _1539 = 1539
-	case _1540 = 1540
-	case _1541 = 1541
-	case _1542 = 1542
-	case _1543 = 1543
-	case _1544 = 1544
-	case _1545 = 1545
-	case _1546 = 1546
-	case _1547 = 1547
-	case _1548 = 1548
-	case _1549 = 1549
-	case _1550 = 1550
-	case _1551 = 1551
-	case _1552 = 1552
-	case _1553 = 1553
-	case _1554 = 1554
-	case _1555 = 1555
-	case _1556 = 1556
-	case _1557 = 1557
-	case _1558 = 1558
-	case _1559 = 1559
-	case _1560 = 1560
-	case _1561 = 1561
-	case _1562 = 1562
-	case _1563 = 1563
-	case _1564 = 1564
-	case _1565 = 1565
-	case _1566 = 1566
-	case _1567 = 1567
-	case _1568 = 1568
-	case _1569 = 1569
-	case _1570 = 1570
-	case _1571 = 1571
-	case _1572 = 1572
-	case _1573 = 1573
-	case _1574 = 1574
-	case _1575 = 1575
-	case _1576 = 1576
-	case _1577 = 1577
-	case _1578 = 1578
-	case _1579 = 1579
-	case _1580 = 1580
-	case _1581 = 1581
-	case _1582 = 1582
-	case _1583 = 1583
-	case _1584 = 1584
-	case _1585 = 1585
-	case _1586 = 1586
-	case _1587 = 1587
-	case _1588 = 1588
-	case _1589 = 1589
-	case _1590 = 1590
-	case _1591 = 1591
-	case _1592 = 1592
-	case _1593 = 1593
-	case _1594 = 1594
-	case _1595 = 1595
-	case _1596 = 1596
-	case _1597 = 1597
-	case _1598 = 1598
-	case _1599 = 1599
-	case _1600 = 1600
-	case _1601 = 1601
-	case _1602 = 1602
-	case _1603 = 1603
-	case _1604 = 1604
-	case _1605 = 1605
-	case _1606 = 1606
-	case _1607 = 1607
-	case _1608 = 1608
-	case _1609 = 1609
-	case _1610 = 1610
-	case _1611 = 1611
-	case _1612 = 1612
-	case _1613 = 1613
-	case _1614 = 1614
-	case _1615 = 1615
-	case _1616 = 1616
-	case _1617 = 1617
-	case _1618 = 1618
-	case _1619 = 1619
-	case _1620 = 1620
-	case _1621 = 1621
-	case _1622 = 1622
-	case _1623 = 1623
-	case _1624 = 1624
-	case _1625 = 1625
-	case _1626 = 1626
-	case _1627 = 1627
-	case _1628 = 1628
-	case _1629 = 1629
-	case _1630 = 1630
-	case _1631 = 1631
-	case _1632 = 1632
-	case _1633 = 1633
-	case _1634 = 1634
-	case _1635 = 1635
-	case _1636 = 1636
-	case _1637 = 1637
-	case _1638 = 1638
-	case _1639 = 1639
-	case _1640 = 1640
-	case _1641 = 1641
-	case _1642 = 1642
-	case _1643 = 1643
-	case _1644 = 1644
-	case _1645 = 1645
-	case _1646 = 1646
-	case _1647 = 1647
-	case _1648 = 1648
-	case _1649 = 1649
-	case _1650 = 1650
-	case _1651 = 1651
-	case _1652 = 1652
-	case _1653 = 1653
-	case _1654 = 1654
-	case _1655 = 1655
-	case _1656 = 1656
-	case _1657 = 1657
-	case _1658 = 1658
-	case _1659 = 1659
-	case _1660 = 1660
-	case _1661 = 1661
-	case _1662 = 1662
-	case _1663 = 1663
-	case _1664 = 1664
-	case _1665 = 1665
-	case _1666 = 1666
-	case _1667 = 1667
-	case _1668 = 1668
-	case _1669 = 1669
-	case _1670 = 1670
-	case _1671 = 1671
-	case _1672 = 1672
-	case _1673 = 1673
-	case _1674 = 1674
-	case _1675 = 1675
-	case _1676 = 1676
-	case _1677 = 1677
-	case _1678 = 1678
-	case _1679 = 1679
-	case _1680 = 1680
-	case _1681 = 1681
-	case _1682 = 1682
-	case _1683 = 1683
-	case _1684 = 1684
-	case _1685 = 1685
-	case _1686 = 1686
-	case _1687 = 1687
-	case _1688 = 1688
-	case _1689 = 1689
-	case _1690 = 1690
-	case _1691 = 1691
-	case _1692 = 1692
-	case _1693 = 1693
-	case _1694 = 1694
-	case _1695 = 1695
-	case _1696 = 1696
-	case _1697 = 1697
-	case _1698 = 1698
-	case _1699 = 1699
-	case _1700 = 1700
-	case _1701 = 1701
-	case _1702 = 1702
-	case _1703 = 1703
-	case _1704 = 1704
-	case _1705 = 1705
-	case _1706 = 1706
-	case _1707 = 1707
-	case _1708 = 1708
-	case _1709 = 1709
-	case _1710 = 1710
-	case _1711 = 1711
-	case _1712 = 1712
-	case _1713 = 1713
-	case _1714 = 1714
-	case _1715 = 1715
-	case _1716 = 1716
-	case _1717 = 1717
-	case _1718 = 1718
-	case _1719 = 1719
-	case _1720 = 1720
-	case _1721 = 1721
-	case _1722 = 1722
-	case _1723 = 1723
-	case _1724 = 1724
-	case _1725 = 1725
-	case _1726 = 1726
-	case _1727 = 1727
-	case _1728 = 1728
-	case _1729 = 1729
-	case _1730 = 1730
-	case _1731 = 1731
-	case _1732 = 1732
-	case _1733 = 1733
-	case _1734 = 1734
-	case _1735 = 1735
-	case _1736 = 1736
-	case _1737 = 1737
-	case _1738 = 1738
-	case _1739 = 1739
-	case _1740 = 1740
-	case _1741 = 1741
-	case _1742 = 1742
-	case _1743 = 1743
-	case _1744 = 1744
-	case _1745 = 1745
-	case _1746 = 1746
-	case _1747 = 1747
-	case _1748 = 1748
-	case _1749 = 1749
-	case _1750 = 1750
-	case _1751 = 1751
-	case _1752 = 1752
-	case _1753 = 1753
-	case _1754 = 1754
-	case _1755 = 1755
-	case _1756 = 1756
-	case _1757 = 1757
-	case _1758 = 1758
-	case _1759 = 1759
-	case _1760 = 1760
-	case _1761 = 1761
-	case _1762 = 1762
-	case _1763 = 1763
-	case _1764 = 1764
-	case _1765 = 1765
-	case _1766 = 1766
-	case _1767 = 1767
-	case _1768 = 1768
-	case _1769 = 1769
-	case _1770 = 1770
-	case _1771 = 1771
-	case _1772 = 1772
-	case _1773 = 1773
-	case _1774 = 1774
-	case _1775 = 1775
-	case _1776 = 1776
-	case _1777 = 1777
-	case _1778 = 1778
-	case _1779 = 1779
-	case _1780 = 1780
-	case _1781 = 1781
-	case _1782 = 1782
-	case _1783 = 1783
-	case _1784 = 1784
-	case _1785 = 1785
-	case _1786 = 1786
-	case _1787 = 1787
-	case _1788 = 1788
-	case _1789 = 1789
-	case _1790 = 1790
-	case _1791 = 1791
-	case _1792 = 1792
-	case _1793 = 1793
-	case _1794 = 1794
-	case _1795 = 1795
-	case _1796 = 1796
-	case _1797 = 1797
-	case _1798 = 1798
-	case _1799 = 1799
-	case _1800 = 1800
-	case _1801 = 1801
-	case _1802 = 1802
-	case _1803 = 1803
-	case _1804 = 1804
-	case _1805 = 1805
-	case _1806 = 1806
-	case _1807 = 1807
-	case _1808 = 1808
-	case _1809 = 1809
-	case _1810 = 1810
-	case _1811 = 1811
-	case _1812 = 1812
-	case _1813 = 1813
-	case _1814 = 1814
-	case _1815 = 1815
-	case _1816 = 1816
-	case _1817 = 1817
-	case _1818 = 1818
-	case _1819 = 1819
-	case _1820 = 1820
-	case _1821 = 1821
-	case _1822 = 1822
-	case _1823 = 1823
-	case _1824 = 1824
-	case _1825 = 1825
-	case _1826 = 1826
-	case _1827 = 1827
-	case _1828 = 1828
-	case _1829 = 1829
-	case _1830 = 1830
-	case _1831 = 1831
-	case _1832 = 1832
-	case _1833 = 1833
-	case _1834 = 1834
-	case _1835 = 1835
-	case _1836 = 1836
-	case _1837 = 1837
-	case _1838 = 1838
-	case _1839 = 1839
-	case _1840 = 1840
-	case _1841 = 1841
-	case _1842 = 1842
-	case _1843 = 1843
-	case _1844 = 1844
-	case _1845 = 1845
-	case _1846 = 1846
-	case _1847 = 1847
-	case _1848 = 1848
-	case _1849 = 1849
-	case _1850 = 1850
-	case _1851 = 1851
-	case _1852 = 1852
-	case _1853 = 1853
-	case _1854 = 1854
-	case _1855 = 1855
-	case _1856 = 1856
-	case _1857 = 1857
-	case _1858 = 1858
-	case _1859 = 1859
-	case _1860 = 1860
-	case _1861 = 1861
-	case _1862 = 1862
-	case _1863 = 1863
-	case _1864 = 1864
-	case _1865 = 1865
-	case _1866 = 1866
-	case _1867 = 1867
-	case _1868 = 1868
-	case _1869 = 1869
-	case _1870 = 1870
-	case _1871 = 1871
-	case _1872 = 1872
-	case _1873 = 1873
-	case _1874 = 1874
-	case _1875 = 1875
-	case _1876 = 1876
-	case _1877 = 1877
-	case _1878 = 1878
-	case _1879 = 1879
-	case _1880 = 1880
-	case _1881 = 1881
-	case _1882 = 1882
-	case _1883 = 1883
-	case _1884 = 1884
-	case _1885 = 1885
-	case _1886 = 1886
-	case _1887 = 1887
-	case _1888 = 1888
-	case _1889 = 1889
-	case _1890 = 1890
-	case _1891 = 1891
-	case _1892 = 1892
-	case _1893 = 1893
-	case _1894 = 1894
-	case _1895 = 1895
-	case _1896 = 1896
-	case _1897 = 1897
-	case _1898 = 1898
-	case _1899 = 1899
-	case _1900 = 1900
-	case _1901 = 1901
-	case _1902 = 1902
-	case _1903 = 1903
-	case _1904 = 1904
-	case _1905 = 1905
-	case _1906 = 1906
-	case _1907 = 1907
-	case _1908 = 1908
-	case _1909 = 1909
-	case _1910 = 1910
-	case _1911 = 1911
-	case _1912 = 1912
-	case _1913 = 1913
-	case _1914 = 1914
-	case _1915 = 1915
-	case _1916 = 1916
-	case _1917 = 1917
-	case _1918 = 1918
-	case _1919 = 1919
-	case _1920 = 1920
-	case _1921 = 1921
-	case _1922 = 1922
-	case _1923 = 1923
-	case _1924 = 1924
-	case _1925 = 1925
-	case _1926 = 1926
-	case _1927 = 1927
-	case _1928 = 1928
-	case _1929 = 1929
-	case _1930 = 1930
-	case _1931 = 1931
-	case _1932 = 1932
-	case _1933 = 1933
-	case _1934 = 1934
-	case _1935 = 1935
-	case _1936 = 1936
-	case _1937 = 1937
-	case _1938 = 1938
-	case _1939 = 1939
-	case _1940 = 1940
-	case _1941 = 1941
-	case _1942 = 1942
-	case _1943 = 1943
-	case _1944 = 1944
-	case _1945 = 1945
-	case _1946 = 1946
-	case _1947 = 1947
-	case _1948 = 1948
-	case _1949 = 1949
-	case _1950 = 1950
-	case _1951 = 1951
-	case _1952 = 1952
-	case _1953 = 1953
-	case _1954 = 1954
-	case _1955 = 1955
-	case _1956 = 1956
-	case _1957 = 1957
-	case _1958 = 1958
-	case _1959 = 1959
-	case _1960 = 1960
-	case _1961 = 1961
-	case _1962 = 1962
-	case _1963 = 1963
-	case _1964 = 1964
-	case _1965 = 1965
-	case _1966 = 1966
-	case _1967 = 1967
-	case _1968 = 1968
-	case _1969 = 1969
-	case _1970 = 1970
-	case _1971 = 1971
-	case _1972 = 1972
-	case _1973 = 1973
-	case _1974 = 1974
-	case _1975 = 1975
-	case _1976 = 1976
-	case _1977 = 1977
-	case _1978 = 1978
-	case _1979 = 1979
-	case _1980 = 1980
-	case _1981 = 1981
-	case _1982 = 1982
-	case _1983 = 1983
-	case _1984 = 1984
-	case _1985 = 1985
-	case _1986 = 1986
-	case _1987 = 1987
-	case _1988 = 1988
-	case _1989 = 1989
-	case _1990 = 1990
-	case _1991 = 1991
-	case _1992 = 1992
-	case _1993 = 1993
-	case _1994 = 1994
-	case _1995 = 1995
-	case _1996 = 1996
-	case _1997 = 1997
-	case _1998 = 1998
-	case _1999 = 1999
-	case _2000 = 2000
-	case _2001 = 2001
-	case _2002 = 2002
-	case _2003 = 2003
-	case _2004 = 2004
-	case _2005 = 2005
-	case _2006 = 2006
-	case _2007 = 2007
-	case _2008 = 2008
-	case _2009 = 2009
-	case _2010 = 2010
-	case _2011 = 2011
-	case _2012 = 2012
-	case _2013 = 2013
-	case _2014 = 2014
-	case _2015 = 2015
-	case _2016 = 2016
-	case _2017 = 2017
-	case _2018 = 2018
-	case _2019 = 2019
-	case _2020 = 2020
-	case _2021 = 2021
-	case _2022 = 2022
-	case _2023 = 2023
-	case _2024 = 2024
-	case _2025 = 2025
-	case _2026 = 2026
-	case _2027 = 2027
-	case _2028 = 2028
-	case _2029 = 2029
-	case _2030 = 2030
-	case _2031 = 2031
-	case _2032 = 2032
-	case _2033 = 2033
-	case _2034 = 2034
-	case _2035 = 2035
-	case _2036 = 2036
-	case _2037 = 2037
-	case _2038 = 2038
-	case _2039 = 2039
-	case _2040 = 2040
-	case _2041 = 2041
-	case _2042 = 2042
-	case _2043 = 2043
-	case _2044 = 2044
-	case _2045 = 2045
-	case _2046 = 2046
-	case _2047 = 2047
+public struct WordList {
+	static let english: [String] = {
+		let words =
+		"""
+			abandon
+			ability
+			able
+			about
+			above
+			absent
+			absorb
+			abstract
+			absurd
+			abuse
+			access
+			accident
+			account
+			accuse
+			achieve
+			acid
+			acoustic
+			acquire
+			across
+			act
+			action
+			actor
+			actress
+			actual
+			adapt
+			add
+			addict
+			address
+			adjust
+			admit
+			adult
+			advance
+			advice
+			aerobic
+			affair
+			afford
+			afraid
+			again
+			age
+			agent
+			agree
+			ahead
+			aim
+			air
+			airport
+			aisle
+			alarm
+			album
+			alcohol
+			alert
+			alien
+			all
+			alley
+			allow
+			almost
+			alone
+			alpha
+			already
+			also
+			alter
+			always
+			amateur
+			amazing
+			among
+			amount
+			amused
+			analyst
+			anchor
+			ancient
+			anger
+			angle
+			angry
+			animal
+			ankle
+			announce
+			annual
+			another
+			answer
+			antenna
+			antique
+			anxiety
+			any
+			apart
+			apology
+			appear
+			apple
+			approve
+			april
+			arch
+			arctic
+			area
+			arena
+			argue
+			arm
+			armed
+			armor
+			army
+			around
+			arrange
+			arrest
+			arrive
+			arrow
+			art
+			artefact
+			artist
+			artwork
+			ask
+			aspect
+			assault
+			asset
+			assist
+			assume
+			asthma
+			athlete
+			atom
+			attack
+			attend
+			attitude
+			attract
+			auction
+			audit
+			august
+			aunt
+			author
+			auto
+			autumn
+			average
+			avocado
+			avoid
+			awake
+			aware
+			away
+			awesome
+			awful
+			awkward
+			axis
+			baby
+			bachelor
+			bacon
+			badge
+			bag
+			balance
+			balcony
+			ball
+			bamboo
+			banana
+			banner
+			bar
+			barely
+			bargain
+			barrel
+			base
+			basic
+			basket
+			battle
+			beach
+			bean
+			beauty
+			because
+			become
+			beef
+			before
+			begin
+			behave
+			behind
+			believe
+			below
+			belt
+			bench
+			benefit
+			best
+			betray
+			better
+			between
+			beyond
+			bicycle
+			bid
+			bike
+			bind
+			biology
+			bird
+			birth
+			bitter
+			black
+			blade
+			blame
+			blanket
+			blast
+			bleak
+			bless
+			blind
+			blood
+			blossom
+			blouse
+			blue
+			blur
+			blush
+			board
+			boat
+			body
+			boil
+			bomb
+			bone
+			bonus
+			book
+			boost
+			border
+			boring
+			borrow
+			boss
+			bottom
+			bounce
+			box
+			boy
+			bracket
+			brain
+			brand
+			brass
+			brave
+			bread
+			breeze
+			brick
+			bridge
+			brief
+			bright
+			bring
+			brisk
+			broccoli
+			broken
+			bronze
+			broom
+			brother
+			brown
+			brush
+			bubble
+			buddy
+			budget
+			buffalo
+			build
+			bulb
+			bulk
+			bullet
+			bundle
+			bunker
+			burden
+			burger
+			burst
+			bus
+			business
+			busy
+			butter
+			buyer
+			buzz
+			cabbage
+			cabin
+			cable
+			cactus
+			cage
+			cake
+			call
+			calm
+			camera
+			camp
+			can
+			canal
+			cancel
+			candy
+			cannon
+			canoe
+			canvas
+			canyon
+			capable
+			capital
+			captain
+			car
+			carbon
+			card
+			cargo
+			carpet
+			carry
+			cart
+			case
+			cash
+			casino
+			castle
+			casual
+			cat
+			catalog
+			catch
+			category
+			cattle
+			caught
+			cause
+			caution
+			cave
+			ceiling
+			celery
+			cement
+			census
+			century
+			cereal
+			certain
+			chair
+			chalk
+			champion
+			change
+			chaos
+			chapter
+			charge
+			chase
+			chat
+			cheap
+			check
+			cheese
+			chef
+			cherry
+			chest
+			chicken
+			chief
+			child
+			chimney
+			choice
+			choose
+			chronic
+			chuckle
+			chunk
+			churn
+			cigar
+			cinnamon
+			circle
+			citizen
+			city
+			civil
+			claim
+			clap
+			clarify
+			claw
+			clay
+			clean
+			clerk
+			clever
+			click
+			client
+			cliff
+			climb
+			clinic
+			clip
+			clock
+			clog
+			close
+			cloth
+			cloud
+			clown
+			club
+			clump
+			cluster
+			clutch
+			coach
+			coast
+			coconut
+			code
+			coffee
+			coil
+			coin
+			collect
+			color
+			column
+			combine
+			come
+			comfort
+			comic
+			common
+			company
+			concert
+			conduct
+			confirm
+			congress
+			connect
+			consider
+			control
+			convince
+			cook
+			cool
+			copper
+			copy
+			coral
+			core
+			corn
+			correct
+			cost
+			cotton
+			couch
+			country
+			couple
+			course
+			cousin
+			cover
+			coyote
+			crack
+			cradle
+			craft
+			cram
+			crane
+			crash
+			crater
+			crawl
+			crazy
+			cream
+			credit
+			creek
+			crew
+			cricket
+			crime
+			crisp
+			critic
+			crop
+			cross
+			crouch
+			crowd
+			crucial
+			cruel
+			cruise
+			crumble
+			crunch
+			crush
+			cry
+			crystal
+			cube
+			culture
+			cup
+			cupboard
+			curious
+			current
+			curtain
+			curve
+			cushion
+			custom
+			cute
+			cycle
+			dad
+			damage
+			damp
+			dance
+			danger
+			daring
+			dash
+			daughter
+			dawn
+			day
+			deal
+			debate
+			debris
+			decade
+			december
+			decide
+			decline
+			decorate
+			decrease
+			deer
+			defense
+			define
+			defy
+			degree
+			delay
+			deliver
+			demand
+			demise
+			denial
+			dentist
+			deny
+			depart
+			depend
+			deposit
+			depth
+			deputy
+			derive
+			describe
+			desert
+			design
+			desk
+			despair
+			destroy
+			detail
+			detect
+			develop
+			device
+			devote
+			diagram
+			dial
+			diamond
+			diary
+			dice
+			diesel
+			diet
+			differ
+			digital
+			dignity
+			dilemma
+			dinner
+			dinosaur
+			direct
+			dirt
+			disagree
+			discover
+			disease
+			dish
+			dismiss
+			disorder
+			display
+			distance
+			divert
+			divide
+			divorce
+			dizzy
+			doctor
+			document
+			dog
+			doll
+			dolphin
+			domain
+			donate
+			donkey
+			donor
+			door
+			dose
+			double
+			dove
+			draft
+			dragon
+			drama
+			drastic
+			draw
+			dream
+			dress
+			drift
+			drill
+			drink
+			drip
+			drive
+			drop
+			drum
+			dry
+			duck
+			dumb
+			dune
+			during
+			dust
+			dutch
+			duty
+			dwarf
+			dynamic
+			eager
+			eagle
+			early
+			earn
+			earth
+			easily
+			east
+			easy
+			echo
+			ecology
+			economy
+			edge
+			edit
+			educate
+			effort
+			egg
+			eight
+			either
+			elbow
+			elder
+			electric
+			elegant
+			element
+			elephant
+			elevator
+			elite
+			else
+			embark
+			embody
+			embrace
+			emerge
+			emotion
+			employ
+			empower
+			empty
+			enable
+			enact
+			end
+			endless
+			endorse
+			enemy
+			energy
+			enforce
+			engage
+			engine
+			enhance
+			enjoy
+			enlist
+			enough
+			enrich
+			enroll
+			ensure
+			enter
+			entire
+			entry
+			envelope
+			episode
+			equal
+			equip
+			era
+			erase
+			erode
+			erosion
+			error
+			erupt
+			escape
+			essay
+			essence
+			estate
+			eternal
+			ethics
+			evidence
+			evil
+			evoke
+			evolve
+			exact
+			example
+			excess
+			exchange
+			excite
+			exclude
+			excuse
+			execute
+			exercise
+			exhaust
+			exhibit
+			exile
+			exist
+			exit
+			exotic
+			expand
+			expect
+			expire
+			explain
+			expose
+			express
+			extend
+			extra
+			eye
+			eyebrow
+			fabric
+			face
+			faculty
+			fade
+			faint
+			faith
+			fall
+			false
+			fame
+			family
+			famous
+			fan
+			fancy
+			fantasy
+			farm
+			fashion
+			fat
+			fatal
+			father
+			fatigue
+			fault
+			favorite
+			feature
+			february
+			federal
+			fee
+			feed
+			feel
+			female
+			fence
+			festival
+			fetch
+			fever
+			few
+			fiber
+			fiction
+			field
+			figure
+			file
+			film
+			filter
+			final
+			find
+			fine
+			finger
+			finish
+			fire
+			firm
+			first
+			fiscal
+			fish
+			fit
+			fitness
+			fix
+			flag
+			flame
+			flash
+			flat
+			flavor
+			flee
+			flight
+			flip
+			float
+			flock
+			floor
+			flower
+			fluid
+			flush
+			fly
+			foam
+			focus
+			fog
+			foil
+			fold
+			follow
+			food
+			foot
+			force
+			forest
+			forget
+			fork
+			fortune
+			forum
+			forward
+			fossil
+			foster
+			found
+			fox
+			fragile
+			frame
+			frequent
+			fresh
+			friend
+			fringe
+			frog
+			front
+			frost
+			frown
+			frozen
+			fruit
+			fuel
+			fun
+			funny
+			furnace
+			fury
+			future
+			gadget
+			gain
+			galaxy
+			gallery
+			game
+			gap
+			garage
+			garbage
+			garden
+			garlic
+			garment
+			gas
+			gasp
+			gate
+			gather
+			gauge
+			gaze
+			general
+			genius
+			genre
+			gentle
+			genuine
+			gesture
+			ghost
+			giant
+			gift
+			giggle
+			ginger
+			giraffe
+			girl
+			give
+			glad
+			glance
+			glare
+			glass
+			glide
+			glimpse
+			globe
+			gloom
+			glory
+			glove
+			glow
+			glue
+			goat
+			goddess
+			gold
+			good
+			goose
+			gorilla
+			gospel
+			gossip
+			govern
+			gown
+			grab
+			grace
+			grain
+			grant
+			grape
+			grass
+			gravity
+			great
+			green
+			grid
+			grief
+			grit
+			grocery
+			group
+			grow
+			grunt
+			guard
+			guess
+			guide
+			guilt
+			guitar
+			gun
+			gym
+			habit
+			hair
+			half
+			hammer
+			hamster
+			hand
+			happy
+			harbor
+			hard
+			harsh
+			harvest
+			hat
+			have
+			hawk
+			hazard
+			head
+			health
+			heart
+			heavy
+			hedgehog
+			height
+			hello
+			helmet
+			help
+			hen
+			hero
+			hidden
+			high
+			hill
+			hint
+			hip
+			hire
+			history
+			hobby
+			hockey
+			hold
+			hole
+			holiday
+			hollow
+			home
+			honey
+			hood
+			hope
+			horn
+			horror
+			horse
+			hospital
+			host
+			hotel
+			hour
+			hover
+			hub
+			huge
+			human
+			humble
+			humor
+			hundred
+			hungry
+			hunt
+			hurdle
+			hurry
+			hurt
+			husband
+			hybrid
+			ice
+			icon
+			idea
+			identify
+			idle
+			ignore
+			ill
+			illegal
+			illness
+			image
+			imitate
+			immense
+			immune
+			impact
+			impose
+			improve
+			impulse
+			inch
+			include
+			income
+			increase
+			index
+			indicate
+			indoor
+			industry
+			infant
+			inflict
+			inform
+			inhale
+			inherit
+			initial
+			inject
+			injury
+			inmate
+			inner
+			innocent
+			input
+			inquiry
+			insane
+			insect
+			inside
+			inspire
+			install
+			intact
+			interest
+			into
+			invest
+			invite
+			involve
+			iron
+			island
+			isolate
+			issue
+			item
+			ivory
+			jacket
+			jaguar
+			jar
+			jazz
+			jealous
+			jeans
+			jelly
+			jewel
+			job
+			join
+			joke
+			journey
+			joy
+			judge
+			juice
+			jump
+			jungle
+			junior
+			junk
+			just
+			kangaroo
+			keen
+			keep
+			ketchup
+			key
+			kick
+			kid
+			kidney
+			kind
+			kingdom
+			kiss
+			kit
+			kitchen
+			kite
+			kitten
+			kiwi
+			knee
+			knife
+			knock
+			know
+			lab
+			label
+			labor
+			ladder
+			lady
+			lake
+			lamp
+			language
+			laptop
+			large
+			later
+			latin
+			laugh
+			laundry
+			lava
+			law
+			lawn
+			lawsuit
+			layer
+			lazy
+			leader
+			leaf
+			learn
+			leave
+			lecture
+			left
+			leg
+			legal
+			legend
+			leisure
+			lemon
+			lend
+			length
+			lens
+			leopard
+			lesson
+			letter
+			level
+			liar
+			liberty
+			library
+			license
+			life
+			lift
+			light
+			like
+			limb
+			limit
+			link
+			lion
+			liquid
+			list
+			little
+			live
+			lizard
+			load
+			loan
+			lobster
+			local
+			lock
+			logic
+			lonely
+			long
+			loop
+			lottery
+			loud
+			lounge
+			love
+			loyal
+			lucky
+			luggage
+			lumber
+			lunar
+			lunch
+			luxury
+			lyrics
+			machine
+			mad
+			magic
+			magnet
+			maid
+			mail
+			main
+			major
+			make
+			mammal
+			man
+			manage
+			mandate
+			mango
+			mansion
+			manual
+			maple
+			marble
+			march
+			margin
+			marine
+			market
+			marriage
+			mask
+			mass
+			master
+			match
+			material
+			math
+			matrix
+			matter
+			maximum
+			maze
+			meadow
+			mean
+			measure
+			meat
+			mechanic
+			medal
+			media
+			melody
+			melt
+			member
+			memory
+			mention
+			menu
+			mercy
+			merge
+			merit
+			merry
+			mesh
+			message
+			metal
+			method
+			middle
+			midnight
+			milk
+			million
+			mimic
+			mind
+			minimum
+			minor
+			minute
+			miracle
+			mirror
+			misery
+			miss
+			mistake
+			mix
+			mixed
+			mixture
+			mobile
+			model
+			modify
+			mom
+			moment
+			monitor
+			monkey
+			monster
+			month
+			moon
+			moral
+			more
+			morning
+			mosquito
+			mother
+			motion
+			motor
+			mountain
+			mouse
+			move
+			movie
+			much
+			muffin
+			mule
+			multiply
+			muscle
+			museum
+			mushroom
+			music
+			must
+			mutual
+			myself
+			mystery
+			myth
+			naive
+			name
+			napkin
+			narrow
+			nasty
+			nation
+			nature
+			near
+			neck
+			need
+			negative
+			neglect
+			neither
+			nephew
+			nerve
+			nest
+			net
+			network
+			neutral
+			never
+			news
+			next
+			nice
+			night
+			noble
+			noise
+			nominee
+			noodle
+			normal
+			north
+			nose
+			notable
+			note
+			nothing
+			notice
+			novel
+			now
+			nuclear
+			number
+			nurse
+			nut
+			oak
+			obey
+			object
+			oblige
+			obscure
+			observe
+			obtain
+			obvious
+			occur
+			ocean
+			october
+			odor
+			off
+			offer
+			office
+			often
+			oil
+			okay
+			old
+			olive
+			olympic
+			omit
+			once
+			one
+			onion
+			online
+			only
+			open
+			opera
+			opinion
+			oppose
+			option
+			orange
+			orbit
+			orchard
+			order
+			ordinary
+			organ
+			orient
+			original
+			orphan
+			ostrich
+			other
+			outdoor
+			outer
+			output
+			outside
+			oval
+			oven
+			over
+			own
+			owner
+			oxygen
+			oyster
+			ozone
+			pact
+			paddle
+			page
+			pair
+			palace
+			palm
+			panda
+			panel
+			panic
+			panther
+			paper
+			parade
+			parent
+			park
+			parrot
+			party
+			pass
+			patch
+			path
+			patient
+			patrol
+			pattern
+			pause
+			pave
+			payment
+			peace
+			peanut
+			pear
+			peasant
+			pelican
+			pen
+			penalty
+			pencil
+			people
+			pepper
+			perfect
+			permit
+			person
+			pet
+			phone
+			photo
+			phrase
+			physical
+			piano
+			picnic
+			picture
+			piece
+			pig
+			pigeon
+			pill
+			pilot
+			pink
+			pioneer
+			pipe
+			pistol
+			pitch
+			pizza
+			place
+			planet
+			plastic
+			plate
+			play
+			please
+			pledge
+			pluck
+			plug
+			plunge
+			poem
+			poet
+			point
+			polar
+			pole
+			police
+			pond
+			pony
+			pool
+			popular
+			portion
+			position
+			possible
+			post
+			potato
+			pottery
+			poverty
+			powder
+			power
+			practice
+			praise
+			predict
+			prefer
+			prepare
+			present
+			pretty
+			prevent
+			price
+			pride
+			primary
+			print
+			priority
+			prison
+			private
+			prize
+			problem
+			process
+			produce
+			profit
+			program
+			project
+			promote
+			proof
+			property
+			prosper
+			protect
+			proud
+			provide
+			public
+			pudding
+			pull
+			pulp
+			pulse
+			pumpkin
+			punch
+			pupil
+			puppy
+			purchase
+			purity
+			purpose
+			purse
+			push
+			put
+			puzzle
+			pyramid
+			quality
+			quantum
+			quarter
+			question
+			quick
+			quit
+			quiz
+			quote
+			rabbit
+			raccoon
+			race
+			rack
+			radar
+			radio
+			rail
+			rain
+			raise
+			rally
+			ramp
+			ranch
+			random
+			range
+			rapid
+			rare
+			rate
+			rather
+			raven
+			raw
+			razor
+			ready
+			real
+			reason
+			rebel
+			rebuild
+			recall
+			receive
+			recipe
+			record
+			recycle
+			reduce
+			reflect
+			reform
+			refuse
+			region
+			regret
+			regular
+			reject
+			relax
+			release
+			relief
+			rely
+			remain
+			remember
+			remind
+			remove
+			render
+			renew
+			rent
+			reopen
+			repair
+			repeat
+			replace
+			report
+			require
+			rescue
+			resemble
+			resist
+			resource
+			response
+			result
+			retire
+			retreat
+			return
+			reunion
+			reveal
+			review
+			reward
+			rhythm
+			rib
+			ribbon
+			rice
+			rich
+			ride
+			ridge
+			rifle
+			right
+			rigid
+			ring
+			riot
+			ripple
+			risk
+			ritual
+			rival
+			river
+			road
+			roast
+			robot
+			robust
+			rocket
+			romance
+			roof
+			rookie
+			room
+			rose
+			rotate
+			rough
+			round
+			route
+			royal
+			rubber
+			rude
+			rug
+			rule
+			run
+			runway
+			rural
+			sad
+			saddle
+			sadness
+			safe
+			sail
+			salad
+			salmon
+			salon
+			salt
+			salute
+			same
+			sample
+			sand
+			satisfy
+			satoshi
+			sauce
+			sausage
+			save
+			say
+			scale
+			scan
+			scare
+			scatter
+			scene
+			scheme
+			school
+			science
+			scissors
+			scorpion
+			scout
+			scrap
+			screen
+			script
+			scrub
+			sea
+			search
+			season
+			seat
+			second
+			secret
+			section
+			security
+			seed
+			seek
+			segment
+			select
+			sell
+			seminar
+			senior
+			sense
+			sentence
+			series
+			service
+			session
+			settle
+			setup
+			seven
+			shadow
+			shaft
+			shallow
+			share
+			shed
+			shell
+			sheriff
+			shield
+			shift
+			shine
+			ship
+			shiver
+			shock
+			shoe
+			shoot
+			shop
+			short
+			shoulder
+			shove
+			shrimp
+			shrug
+			shuffle
+			shy
+			sibling
+			sick
+			side
+			siege
+			sight
+			sign
+			silent
+			silk
+			silly
+			silver
+			similar
+			simple
+			since
+			sing
+			siren
+			sister
+			situate
+			six
+			size
+			skate
+			sketch
+			ski
+			skill
+			skin
+			skirt
+			skull
+			slab
+			slam
+			sleep
+			slender
+			slice
+			slide
+			slight
+			slim
+			slogan
+			slot
+			slow
+			slush
+			small
+			smart
+			smile
+			smoke
+			smooth
+			snack
+			snake
+			snap
+			sniff
+			snow
+			soap
+			soccer
+			social
+			sock
+			soda
+			soft
+			solar
+			soldier
+			solid
+			solution
+			solve
+			someone
+			song
+			soon
+			sorry
+			sort
+			soul
+			sound
+			soup
+			source
+			south
+			space
+			spare
+			spatial
+			spawn
+			speak
+			special
+			speed
+			spell
+			spend
+			sphere
+			spice
+			spider
+			spike
+			spin
+			spirit
+			split
+			spoil
+			sponsor
+			spoon
+			sport
+			spot
+			spray
+			spread
+			spring
+			spy
+			square
+			squeeze
+			squirrel
+			stable
+			stadium
+			staff
+			stage
+			stairs
+			stamp
+			stand
+			start
+			state
+			stay
+			steak
+			steel
+			stem
+			step
+			stereo
+			stick
+			still
+			sting
+			stock
+			stomach
+			stone
+			stool
+			story
+			stove
+			strategy
+			street
+			strike
+			strong
+			struggle
+			student
+			stuff
+			stumble
+			style
+			subject
+			submit
+			subway
+			success
+			such
+			sudden
+			suffer
+			sugar
+			suggest
+			suit
+			summer
+			sun
+			sunny
+			sunset
+			super
+			supply
+			supreme
+			sure
+			surface
+			surge
+			surprise
+			surround
+			survey
+			suspect
+			sustain
+			swallow
+			swamp
+			swap
+			swarm
+			swear
+			sweet
+			swift
+			swim
+			swing
+			switch
+			sword
+			symbol
+			symptom
+			syrup
+			system
+			table
+			tackle
+			tag
+			tail
+			talent
+			talk
+			tank
+			tape
+			target
+			task
+			taste
+			tattoo
+			taxi
+			teach
+			team
+			tell
+			ten
+			tenant
+			tennis
+			tent
+			term
+			test
+			text
+			thank
+			that
+			theme
+			then
+			theory
+			there
+			they
+			thing
+			this
+			thought
+			three
+			thrive
+			throw
+			thumb
+			thunder
+			ticket
+			tide
+			tiger
+			tilt
+			timber
+			time
+			tiny
+			tip
+			tired
+			tissue
+			title
+			toast
+			tobacco
+			today
+			toddler
+			toe
+			together
+			toilet
+			token
+			tomato
+			tomorrow
+			tone
+			tongue
+			tonight
+			tool
+			tooth
+			top
+			topic
+			topple
+			torch
+			tornado
+			tortoise
+			toss
+			total
+			tourist
+			toward
+			tower
+			town
+			toy
+			track
+			trade
+			traffic
+			tragic
+			train
+			transfer
+			trap
+			trash
+			travel
+			tray
+			treat
+			tree
+			trend
+			trial
+			tribe
+			trick
+			trigger
+			trim
+			trip
+			trophy
+			trouble
+			truck
+			true
+			truly
+			trumpet
+			trust
+			truth
+			try
+			tube
+			tuition
+			tumble
+			tuna
+			tunnel
+			turkey
+			turn
+			turtle
+			twelve
+			twenty
+			twice
+			twin
+			twist
+			two
+			type
+			typical
+			ugly
+			umbrella
+			unable
+			unaware
+			uncle
+			uncover
+			under
+			undo
+			unfair
+			unfold
+			unhappy
+			uniform
+			unique
+			unit
+			universe
+			unknown
+			unlock
+			until
+			unusual
+			unveil
+			update
+			upgrade
+			uphold
+			upon
+			upper
+			upset
+			urban
+			urge
+			usage
+			use
+			used
+			useful
+			useless
+			usual
+			utility
+			vacant
+			vacuum
+			vague
+			valid
+			valley
+			valve
+			van
+			vanish
+			vapor
+			various
+			vast
+			vault
+			vehicle
+			velvet
+			vendor
+			venture
+			venue
+			verb
+			verify
+			version
+			very
+			vessel
+			veteran
+			viable
+			vibrant
+			vicious
+			victory
+			video
+			view
+			village
+			vintage
+			violin
+			virtual
+			virus
+			visa
+			visit
+			visual
+			vital
+			vivid
+			vocal
+			voice
+			void
+			volcano
+			volume
+			vote
+			voyage
+			wage
+			wagon
+			wait
+			walk
+			wall
+			walnut
+			want
+			warfare
+			warm
+			warrior
+			wash
+			wasp
+			waste
+			water
+			wave
+			way
+			wealth
+			weapon
+			wear
+			weasel
+			weather
+			web
+			wedding
+			weekend
+			weird
+			welcome
+			west
+			wet
+			whale
+			what
+			wheat
+			wheel
+			when
+			where
+			whip
+			whisper
+			wide
+			width
+			wife
+			wild
+			will
+			win
+			window
+			wine
+			wing
+			wink
+			winner
+			winter
+			wire
+			wisdom
+			wise
+			wish
+			witness
+			wolf
+			woman
+			wonder
+			wood
+			wool
+			word
+			work
+			world
+			worry
+			worth
+			wrap
+			wreck
+			wrestle
+			wrist
+			write
+			wrong
+			yard
+			year
+			yellow
+			you
+			young
+			youth
+			zebra
+			zero
+			zone
+			zoo
+			"""
 
-	public var max: Int {
-		return 2047
-	}
-
-	public static func |= (lhs: inout Self, rhs: Self) {
-		lhs = Self(rawValue: lhs.rawValue | rhs.rawValue)!
-	}
+		return words.split(separator: "\n").map { String($0) }
+	}()
+	
+	static let englishIndex: [String: Int] = {
+		var map = [String: Int]()
+		for (i, w) in english.enumerated() { map[w] = i }
+		return map
+	}()
 }
