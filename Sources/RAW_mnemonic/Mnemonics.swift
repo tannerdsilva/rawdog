@@ -41,12 +41,10 @@ public struct Mnemonic {
 			throw Error.unsupportedDataByteCount(data.count)
 		}
 	
-		//var shaHash = UnsafeMutableRawPointer.allocate(byteCount: 32, alignment: MemoryLayout<UInt8>.alignment)
 		var hashBytes = [UInt8](repeating: 0, count: 32)
 		var hasher = Hasher<Hash>()
 		hasher.update(data)
 		try hasher.finish(into: &hashBytes)
-//		let hashBytes = UnsafeMutableRawPointer(shaHash).assumingMemoryBound(to: UInt8.self)
 
 		let checksumBits:Int = checksumBitCount(bytes: data.count)
 		
@@ -70,7 +68,6 @@ public struct Mnemonic {
 			}
 		}
 
-		// Loop through data
 		for byte in data {
 			for i in (0..<8).reversed() {
 				let bit = (byte >> i) & 0x01
@@ -78,7 +75,6 @@ public struct Mnemonic {
 			}
 		}
 		
-		// Loop through checksum bits
 		for i in 0..<checksumBits {
 			let byteIndex = i / 8
 			let bitIndex  = 7 - (i % 8)
@@ -110,7 +106,6 @@ public struct Mnemonic {
 			indices.append(UInt16(idx))
 		}
 		
-		// build bit stream
 		var acc: UInt16 = 0
 		var accBits = 0
 		
@@ -120,31 +115,17 @@ public struct Mnemonic {
 		
 		var entropy = [UInt8](repeating: 0, count: entropyBytes)
 		var byteIdx = 0
-		
-		// Helper that pulls a single bit out of the *top* of the stream.
-		@inline(__always) func popBit() -> UInt8 {
-			let bit = UInt8((acc >> (accBits - 1)) & 1)
-			acc <<= 1
-			accBits -= 1
-			return bit
-		}
 
 		for idx in indices {
-			// put the 11‑bit index into the accumulator, MSB first
 			for i in (0..<11).reversed() {
 				let bit = UInt16((idx >> i) & 1)
 				acc = (acc << 1) | UInt16(bit)
 				accBits += 1
 
-				// Emit a word when we have 11 or more bits
 				if accBits == 8  && byteIdx < entropyBytes {
-					// Read bytes
-					var byte: UInt8 = 0
-					for _ in 0..<8 {
-						let bit = popBit()
-						byte = (byte << 1) | bit
-					}
-					entropy[byteIdx] = byte
+					entropy[byteIdx] = UInt8(acc)
+					acc = 0
+					accBits = 0
 					byteIdx += 1
 				}
 			}
@@ -167,17 +148,7 @@ public struct Mnemonic {
 			csBits += 1
 		}
 
-		var mnemonicCS: UInt16 = 0
-		
-		// need to be acc not stream
-		var stream: UInt32 = 0
-		var streamBits = 0
-		for idx in indices {
-			stream = (stream << 11) | UInt32(idx)
-			streamBits += 11
-		}
-		// Keep the low‑order bits that belong to the checksum.
-		mnemonicCS = UInt16((stream & ((1 << checksumBits) - 1)))
+		let mnemonicCS = UInt16(acc & ((1 << checksumBits) - 1))
 
 		if mnemonicCS != trueCS {
 			throw Error.checksumMismatch

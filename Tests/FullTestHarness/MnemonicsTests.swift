@@ -1,7 +1,7 @@
 import Testing
 @testable import RAW_mnemonic
 
-func hexToBytes(_ hex: String) -> [UInt8] {
+fileprivate func hexToBytes(_ hex: String) -> [UInt8] {
 	var bytes = [UInt8]()
 	var startIndex = hex.startIndex
 
@@ -32,7 +32,18 @@ struct RAW_mnemonicTests {
 				#expect(mnemonic == expectedMnemonic)
 			}
 		}
-		
+		@Test func testEncode192bit() throws {
+			let entropyBytes: [UInt8] = hexToBytes("7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f")
+			
+			try entropyBytes.withUnsafeBufferPointer { entropyBuffer in
+				let mnemonic = try Mnemonic.encode(entropyBuffer)
+				let mnemonicString = "legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal will"
+
+				let expectedMnemonic: [String] = mnemonicString.split(separator: " ").map { String($0) }
+				
+				#expect(mnemonic == expectedMnemonic)
+			}
+		}
 		@Test func testEncode256bit() throws {
 			let entropyBytes: [UInt8] = hexToBytes("8080808080808080808080808080808080808080808080808080808080808080")
 			
@@ -59,6 +70,17 @@ struct RAW_mnemonicTests {
 				try Mnemonic.decode(mnemonic, into: ptr.baseAddress!)
 			}
 			#expect(bytes == hexToBytes("00000000000000000000000000000000"))
+		}
+		@Test func testDecode192bit() throws {
+			let mnemonicString = "legal winner thank year wave sausage worth useful legal winner thank year wave sausage worth useful legal will"
+
+			let mnemonic: [String] = mnemonicString.split(separator: " ").map { String($0) }
+			
+			var bytes = [UInt8](repeating: 0, count: 24) // example size
+			try bytes.withUnsafeMutableBufferPointer { ptr in
+				try Mnemonic.decode(mnemonic, into: ptr.baseAddress!)
+			}
+			#expect(bytes == hexToBytes("7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f"))
 		}
 		@Test func testDecode256bit() throws {
 			let mnemonicString = "letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic bless"
@@ -87,7 +109,42 @@ struct RAW_mnemonicTests {
 			}
 			#expect(bytes == entropyBytes)
 		}
-		
+		@Test func testRoundTrip160bit() throws {
+			let entropyBytes: [UInt8] = hexToBytes("7d8a3c6bfa1e42cf9b5d84e6a7c0912fbb64e9ac")
+			
+			let mnemonic = try entropyBytes.withUnsafeBufferPointer { entropyBuffer in
+				return try Mnemonic.encode(entropyBuffer)
+			}
+			var bytes = [UInt8](repeating: 0, count: 20) // example size
+			try bytes.withUnsafeMutableBufferPointer { ptr in
+				try Mnemonic.decode(mnemonic, into: ptr.baseAddress!)
+			}
+			#expect(bytes == entropyBytes)
+		}
+		@Test func testRoundTrip192bit() throws {
+			let entropyBytes: [UInt8] = hexToBytes("7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f")
+			
+			let mnemonic = try entropyBytes.withUnsafeBufferPointer { entropyBuffer in
+				return try Mnemonic.encode(entropyBuffer)
+			}
+			var bytes = [UInt8](repeating: 0, count: 24) // example size
+			try bytes.withUnsafeMutableBufferPointer { ptr in
+				try Mnemonic.decode(mnemonic, into: ptr.baseAddress!)
+			}
+			#expect(bytes == entropyBytes)
+		}
+		@Test func testRoundTrip224bit() throws {
+			let entropyBytes: [UInt8] = hexToBytes("a1d3c47b2e98f0d4b76c5a31e9b2d84fa63c97be1f0a2c56d9b4e831")
+			
+			let mnemonic = try entropyBytes.withUnsafeBufferPointer { entropyBuffer in
+				return try Mnemonic.encode(entropyBuffer)
+			}
+			var bytes = [UInt8](repeating: 0, count: 28) // example size
+			try bytes.withUnsafeMutableBufferPointer { ptr in
+				try Mnemonic.decode(mnemonic, into: ptr.baseAddress!)
+			}
+			#expect(bytes == entropyBytes)
+		}
 		@Test func testRoundTrip256bit() throws {
 			let entropyBytes: [UInt8] = hexToBytes("8080808080808080808080808080808080808080808080808080808080808080")
 			
