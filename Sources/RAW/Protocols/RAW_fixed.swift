@@ -25,8 +25,21 @@ extension RAW_convertible_fixed {
 
 /// a type that can be compared with another instance of the same type.
 public protocol RAW_comparable_fixed:RAW_comparable, RAW_fixed {
+	/// the theoretical maximum value of this type.
+	static func RAW_comparable_fixed_theoretical_max() -> Self
+	/// the theoretical minimum value of this type.
+	static func RAW_comparable_fixed_theoretical_min() -> Self
 	/// compare two instances of the same type.
 	static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32
+}
+
+extension RAW_comparable_fixed where Self:RAW_staticbuff {
+	public static func RAW_comparable_fixed_theoretical_max() -> Self {
+		return ~Self(RAW_staticbuff:Self.RAW_staticbuff_zeroed())
+	}
+	public static func RAW_comparable_fixed_theoretical_min() -> Self {
+		return Self(RAW_staticbuff:Self.RAW_staticbuff_zeroed())
+	}
 }
 
 extension RAW_comparable_fixed {
