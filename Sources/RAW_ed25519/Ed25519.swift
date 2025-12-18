@@ -12,14 +12,12 @@ public struct Ed25519 {
 	@RAW_staticbuff(bytes:32)
 	fileprivate struct SecretKey:Sendable, Hashable, Comparable, Equatable {}
 	
-	public static func generateKeys() throws -> (PublicKey, MemoryGuarded<Ed25519.PrivateKey>) {
+	public static func generateKeys(secretKey:MemoryGuarded<RAW_dh25519.PrivateKey>) throws -> (PublicKey, MemoryGuarded<Ed25519.PrivateKey>) {
 		var publicKey = PublicKey(RAW_staticbuff: PublicKey.RAW_staticbuff_zeroed())
-		var privateKey = try MemoryGuarded<Ed25519.PrivateKey>.blank()
-		let sk = try generateSecureRandomBytes(as: Ed25519.SecretKey.self)
+		let privateKey = try MemoryGuarded<Ed25519.PrivateKey>.blank()
 		publicKey.RAW_access_mutating { publicKeyPtr in
 			privateKey.RAW_access_mutating { privateKeyPtr in
-				sk.RAW_access { skPtr in
-					
+				secretKey.RAW_access { skPtr in
 					__crawdog_ed25519_create_keypair(publicKeyPtr.baseAddress!, privateKeyPtr.baseAddress!, nil, skPtr.baseAddress!)
 				}
 			}
