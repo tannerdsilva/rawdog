@@ -1,18 +1,28 @@
+## 20.2.0
+
+- Expanded public API surface of `curve25519` to support `ed25519` signatures.
+
+	- Instances of blinding contexts are supported natively in Swift through non-copyable structures.
+	
+- Ergonomic improvements to `RAW_base64`.
+
+	- `Value` is now `CustomDebugStringConvertible`
+
 ## 20.1.0
 
-- Added the ability to invert `RAW_staticbuff` values using native Swift syntax `~`
+- Added the ability to invert `RAW_staticbuff` values using native Swift syntax `~`.
 
 # 20.0.0
 
-- Introduction of a new reference type `MemoryGuarded<GuardedStaticbuffType> where GuardedStaticbuffType:RAW_staticbuff`
+- Introduction of a new reference type `MemoryGuarded<GuardedStaticbuffType> where GuardedStaticbuffType:RAW_staticbuff`.
 
 	- Used to store secure secrets. Implements memory page locking and zeroing to ensure the enclosed secrets are copied as few times as possible.
 
 - `RAW_dh25519` target refactored to implement `MemoryGuarded` storage.
 
-- Added initializer variant to `RAW_chachapoly.Context`: `public init?(key:UnsafeBufferPointer<UInt8>)`
+- Added initializer variant to `RAW_chachapoly.Context`: `public init?(key:UnsafeBufferPointer<UInt8>)`.
 
-- Now requires Swift 6.2
+- Now requires Swift 6.2.
 
 ### 19.0.2
 

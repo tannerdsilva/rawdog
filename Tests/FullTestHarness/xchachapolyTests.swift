@@ -13,7 +13,7 @@ extension rawdog_tests {
 	@Suite("__crawdog_xchachapoly_tests")
 	struct xchachapolyTests {
 		@Test func testVectorXChaChaPoly() throws {
-			var plaintextData = try RAW_hex.decode("4c616469657320616e642047656e746c656d656e206f662074686520636c617373206f66202739393a204966204920636f756c64206f6666657220796f75206f6e6c79206f6e652074697020666f7220746865206675747572652c2073756e73637265656e20776f756c642062652069742e")
+			let plaintextData = try RAW_hex.decode("4c616469657320616e642047656e746c656d656e206f662074686520636c617373206f66202739393a204966204920636f756c64206f6666657220796f75206f6e6c79206f6e652074697020666f7220746865206675747572652c2073756e73637265656e20776f756c642062652069742e")
 			let key = Key(RAW_staticbuff:try RAW_hex.decode("808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f"))
 			let nonce = RAW_xchachapoly.Nonce(RAW_staticbuff:try RAW_hex.decode("404142434445464748494a4b4c4d4e4f5051525354555657"))
 			let aad = try RAW_hex.decode("50515253c0c1c2c3c4c5c6c7")
@@ -35,7 +35,7 @@ extension rawdog_tests {
 			#expect(outputCipher == expectedCiphertext)
 		}
 		@Test func testXChachaPolyEncryptDecryptRandomData() throws {
-			for i in 0..<64 {
+			for _ in 0..<64 {
 				var testKey = try generateSecureRandomBytes(as:Key32.self)
 				var testNonce = try generateSecureRandomBytes(as:RAW_xchachapoly.Nonce.self)
 

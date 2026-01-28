@@ -83,6 +83,7 @@ extension Value {
 }
 
 extension Value {
+	/// converts an interpreted base64 value into its linear index value `0`-`63`
 	internal func indexValue() -> UInt8 {
 		switch self {
 			// uppercase letters
@@ -159,6 +160,7 @@ extension Value {
 		}
 	}
 
+	/// initialize a base64 value from its linear index value `0`-`63`
 	internal init(indexValue index:UInt8) {
 		switch index {
 			// uppercase letters
@@ -239,6 +241,7 @@ extension Value {
 }
 
 extension Value {
+	
 	public init(validate characterValue:Character) throws {
 		switch characterValue {
 			// uc
@@ -702,8 +705,15 @@ extension Value:Equatable, Hashable {
 }
 
 extension Value:CustomStringConvertible {
-	/// get the string representation of this base64 value.
+	/// the string representation of this base64 value.
 	public var description:String {
+		return "\(String(characterValue()))"
+	}
+}
+
+extension Value:CustomDebugStringConvertible {
+	/// the debug string representation of this base64 value.
+	public var debugDescription:String {
 		return "\(String(characterValue()))"
 	}
 }

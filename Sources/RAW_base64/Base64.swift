@@ -2,28 +2,6 @@
 // copyright (c) tanner silva 2024. all rights reserved.
 import RAW
 
-#if RAWDOG_BASE64_LOG
-import Logging
-internal func makeDefaultLogger() -> Logger {
-	var logger = Logger(label:"RAW_base64")
-	logger.logLevel = .trace
-	return logger
-}
-internal var logger = makeDefaultLogger()
-#endif
-
-/// error thrown by Base64 encoding/decoding functions
-public enum Error:Swift.Error {
-	/// thrown when the padding length is not valid for the given Base64 encoding.
-	case invalidPaddingLength
-	
-	/// the provided string could not be decoded.
-	case invalidEncodingLength(size_t)
-
-	/// thrown when 
-	case invalidBase64EncodingCharacter(Character)
-}
-
 // encode functions
 /// encode a byte array to a base64 encoded string.
 public func encode<A:RAW_accessible>(_ accessible:borrowing A) -> Encoded {
