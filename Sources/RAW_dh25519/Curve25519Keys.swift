@@ -4,7 +4,9 @@ import RAW
 /// represents a public key in the curve25519 key exchange
 @RAW_staticbuff(bytes:32)
 public struct PublicKey:Sendable, Hashable, Comparable, Equatable {
+
 	/// generates a public key from a private key
+	@available(*, deprecated, message: "please migrate to init(privateKey:MemoryGuarded<PrivateKey>)")
 	public init(privateKey:UnsafePointer<PrivateKey>) {
 		var newPublicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
 		newPublicKey.RAW_access_staticbuff_mutating({ publicKeyPtr in
@@ -12,6 +14,8 @@ public struct PublicKey:Sendable, Hashable, Comparable, Equatable {
 		})
 		self = newPublicKey
 	}
+
+	/// derive a `Curve25519` public key  key from 
 	public init(privateKey:MemoryGuarded<PrivateKey>) {
 		self = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
 		RAW_access_staticbuff_mutating({ publicKeyPtr in

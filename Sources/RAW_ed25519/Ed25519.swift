@@ -11,6 +11,11 @@ public struct BlindingContext:~Copyable {
 	/// the pointer that will be used to reference the blinding context for the cryptographic functions.
 	private var storage:UnsafeMutableRawPointer? = nil
 	
+	/// initialize a new blinding context for ed25519 operations.
+	public init() {
+		
+	}
+	
 	/// access the blinding context that is being contained within the structure instance.
 	///	- parameters:
 	///		- accessor: the accessor function that will be called and passed with the current memory position of the blinding context.
