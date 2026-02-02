@@ -8,20 +8,28 @@ public struct PrivateKey:Sendable, Hashable, Comparable, Equatable {}
 
 /// a blinding context that can be used to harden ed25519 signature operations.
 public struct BlindingContext:~Copyable {
-	/// the pointer that will be used to reference the blinding context for the cryptographic functions.
-	private var storage:UnsafeMutableRawPointer? = nil
 	
-	/// initialize a new blinding context for ed25519 operations.
-	public init() {
-		
+	/// the pointer that will be used to reference the blinding context for the cryptographic functions.
+	internal var storage:UnsafeMutableRawPointer
+	
+	/// initialize a new blinding context for ed25519 operations from a specified source of entropy data.
+	/// - parameters:
+	///		- randomSource: 
+	public init(randomSource:UnsafeBufferPointer<UInt8>) {
+		storage = __crawdog_ed25519_blinding_init(nil, randomSource.baseAddress!, randomSource.count)
 	}
 	
 	/// access the blinding context that is being contained within the structure instance.
 	///	- parameters:
 	///		- accessor: the accessor function that will be called and passed with the current memory position of the blinding context.
 	///	- NOTE: values returned or thrown by the accessor function will be transparently returned (or re-thrown) through this function.
-	public mutating func accessBlindingContext<R, E>(_ accessor:(inout UnsafeMutableRawPointer?) throws (E) -> R) throws(E) -> R {
+	public mutating func accessBlindingContext<R, E>(_ accessor:(inout UnsafeMutableRawPointer) throws(E) -> R) throws(E) -> R {
 		return try accessor(&storage)
+	}
+	
+	/// deinitialize the blinding context memory when this struct is dereferenced
+	deinit {
+		__crawdog_ed25519_blinding_finish(storage)
 	}
 }
 
