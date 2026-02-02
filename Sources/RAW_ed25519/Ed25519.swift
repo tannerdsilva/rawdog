@@ -33,6 +33,33 @@ public struct BlindingContext:~Copyable {
 	}
 }
 
+/// a reusable context that can be used to efficiently verify large quantities of messages.
+public struct VerificationContext:~Copyable {
+	
+	/// the pointer that will be used to reference the verification context for the cryptographic functions.
+	internal let storage:UnsafeMutableRawPointer
+	
+	/// initialize a verification context from a specified public key.
+	public init(publicKey:borrowing PublicKey) {
+		storage = publicKey.RAW_access { publicKeyPointer in
+			return __crawdog_ed25519_verify_init(nil, publicKeyPointer.baseAddress!)
+		}
+	}
+	
+	/// verifies the specified signature with the specified message content.
+	///	- parameters:
+	///		- signature: an unsafe pointer to the bytes containing the signature data
+	///		- message: an unsafe buffer pointer to the bytes containing the signature data
+	///	- returns: `true` is returned if the signature is valid.
+	public borrowing func verify(signature:UnsafePointer<UInt8>, message:UnsafeBufferPointer<UInt8>) -> Bool {
+		return (__crawdog_ed25519_verify_check(storage, signature, message.baseAddress!, message.count) == 1)
+	}
+	
+	deinit {
+		__crawdog_ed25519_verify_finish(storage)
+	}
+}
+
 /// generate the private and public key pair that will be used for signing.
 public func generateKeys(secretKey:MemoryGuarded<RAW_dh25519.PrivateKey>) throws -> (PublicKey, MemoryGuarded<PrivateKey>) {
 	var publicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
@@ -53,7 +80,7 @@ public func sign(to signature:UnsafeMutablePointer<UInt8>, privateKey:MemoryGuar
 	}
 }
 
-public func verify(signature:UnsafePointer<UInt8>, publicKey:PublicKey, message:UnsafeBufferPointer<UInt8>) -> Bool {
+public func verify(signature:UnsafePointer<UInt8>, publicKey:borrowing PublicKey, message:UnsafeBufferPointer<UInt8>) -> Bool {
 	return publicKey.RAW_access { publicKeyPtr in
 		return (0 != __crawdog_ed25519_verify_signature(signature, publicKeyPtr.baseAddress!, message.baseAddress!, message.count))
 	}
