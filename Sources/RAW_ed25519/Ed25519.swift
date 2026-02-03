@@ -10,21 +10,33 @@ public struct PrivateKey:Sendable, Hashable, Comparable, Equatable {}
 public struct BlindingContext:~Copyable {
 	
 	/// the pointer that will be used to reference the blinding context for the cryptographic functions.
-	internal var storage:UnsafeMutableRawPointer
+	internal let storage:UnsafeMutableRawPointer
 	
 	/// initialize a new blinding context for ed25519 operations from a specified source of entropy data.
 	/// - parameters:
-	///		- randomSource: 
+	///		- randomSource: a secure random source of data.
 	public init(randomSource:UnsafeBufferPointer<UInt8>) {
 		storage = __crawdog_ed25519_blinding_init(nil, randomSource.baseAddress!, randomSource.count)
 	}
 	
-	/// access the blinding context that is being contained within the structure instance.
-	///	- parameters:
-	///		- accessor: the accessor function that will be called and passed with the current memory position of the blinding context.
-	///	- NOTE: values returned or thrown by the accessor function will be transparently returned (or re-thrown) through this function.
-	public mutating func accessBlindingContext<R, E>(_ accessor:(inout UnsafeMutableRawPointer) throws(E) -> R) throws(E) -> R {
-		return try accessor(&storage)
+	/// generate the private and public key pair that will be used for signing.
+	public borrowing func generateKeys(secretKey:MemoryGuarded<RAW_dh25519.PrivateKey>) throws -> (PublicKey, MemoryGuarded<PrivateKey>) {
+		var publicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
+		let privateKey = try MemoryGuarded<PrivateKey>.blank()
+		publicKey.RAW_access_mutating { publicKeyPtr in
+			privateKey.RAW_access_mutating { privateKeyPtr in
+				secretKey.RAW_access { skPtr in
+					__crawdog_ed25519_create_keypair(publicKeyPtr.baseAddress!, privateKeyPtr.baseAddress!, storage, skPtr.baseAddress!)
+				}
+			}
+		}
+		return (publicKey, privateKey)
+	}
+	
+	public borrowing func sign(to signature:UnsafeMutablePointer<UInt8>, privateKey:MemoryGuarded<PrivateKey>, message:UnsafeBufferPointer<UInt8>) {
+		privateKey.RAW_access { privateKeyPtr in
+			__crawdog_ed25519_sign_message(signature, privateKeyPtr.baseAddress!, storage, message.baseAddress!, message.count)
+		}
 	}
 	
 	/// deinitialize the blinding context memory when this struct is dereferenced
