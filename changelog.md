@@ -4,9 +4,13 @@
 
 	- Instances of blinding contexts are supported natively in Swift through non-copyable structures.
 	
+	- Blinding contexts.
+	
+	- Reusable verification contexts.
+	
 - Ergonomic improvements to `RAW_base64`.
 
-	- `Value` is now `CustomDebugStringConvertible`
+	- `Value` is now `CustomDebugStringConvertible`.
 
 ## 20.1.0
 

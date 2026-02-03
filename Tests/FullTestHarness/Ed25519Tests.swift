@@ -38,8 +38,6 @@ extension rawdog_tests {
 			var randomPrivateKey = MemoryGuarded<RAW_dh25519.PrivateKey>(RAW_decode:try generateSecureRandomBytes(count:32), count:32)!
 			let publicKey = PublicKey(privateKey:randomPrivateKey)
 			var verificationContext:VerificationContext? = try VerificationContext(publicKey:publicKey)
-//			#expect(verificationContext != nil)
-//			verficiationContext = nil
 		}
 	}
 }

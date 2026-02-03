@@ -20,6 +20,8 @@ public struct BlindingContext:~Copyable {
 	}
 	
 	/// generate the private and public key pair that will be used for signing.
+	///	- parameters:
+	///		- secretKey: the dh25519 private key that should be used to create the 
 	public borrowing func generateKeys(secretKey:MemoryGuarded<RAW_dh25519.PrivateKey>) throws -> (PublicKey, MemoryGuarded<PrivateKey>) {
 		var publicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
 		let privateKey = try MemoryGuarded<PrivateKey>.blank()
@@ -33,6 +35,7 @@ public struct BlindingContext:~Copyable {
 		return (publicKey, privateKey)
 	}
 	
+	/// 
 	public borrowing func sign(to signature:UnsafeMutablePointer<UInt8>, privateKey:MemoryGuarded<PrivateKey>, message:UnsafeBufferPointer<UInt8>) {
 		privateKey.RAW_access { privateKeyPtr in
 			__crawdog_ed25519_sign_message(signature, privateKeyPtr.baseAddress!, storage, message.baseAddress!, message.count)
@@ -86,12 +89,14 @@ public func generateKeys(secretKey:MemoryGuarded<RAW_dh25519.PrivateKey>) throws
 	return (publicKey, privateKey)
 }
 
+/// 
 public func sign(to signature:UnsafeMutablePointer<UInt8>, privateKey:MemoryGuarded<PrivateKey>, message:UnsafeBufferPointer<UInt8>) {
 	privateKey.RAW_access { privateKeyPtr in
 		__crawdog_ed25519_sign_message(signature, privateKeyPtr.baseAddress!, nil, message.baseAddress!, message.count)
 	}
 }
 
+/// 
 public func verify(signature:UnsafePointer<UInt8>, publicKey:borrowing PublicKey, message:UnsafeBufferPointer<UInt8>) -> Bool {
 	return publicKey.RAW_access { publicKeyPtr in
 		return (0 != __crawdog_ed25519_verify_signature(signature, publicKeyPtr.baseAddress!, message.baseAddress!, message.count))
