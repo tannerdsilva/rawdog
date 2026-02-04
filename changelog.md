@@ -1,4 +1,4 @@
-## 20.2.0
+# 21.0.0
 
 - Expanded public API surface of `curve25519` to support `ed25519` signatures.
 
