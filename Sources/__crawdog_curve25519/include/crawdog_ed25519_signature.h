@@ -13,7 +13,7 @@
 #define __CRAWDOG_ED25519_PRIVATE_KEY_SIZE    64
 #define __CRAWDOG_ED25519_SIGNATURE_SIZE      64
 
-/* Generate public key associated with the secret key */
+/// generate public key associated with the secret key
 void __crawdog_ed25519_create_keypair(
     unsigned char *pubKey,              /* OUT: public key */
     unsigned char *privKey,             /* OUT: private key */

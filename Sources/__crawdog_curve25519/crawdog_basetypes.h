@@ -1,6 +1,7 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
 // copyright (c) 2015 mehdi sotoodeh
+
 #ifndef __CURVE25519_BASE_TYPE_H
 #define __CURVE25519_BASE_TYPE_H
 
