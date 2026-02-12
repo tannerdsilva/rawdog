@@ -1,5 +1,5 @@
 // LICENSE MIT
-// copyright (c) tanner silva 2024. all rights reserved.
+// copyright (c) tanner silva 2025. all rights reserved.
 #ifndef __CRAWDOG_BLAKE_ROUND_MKA_OPT_H
 #define __CRAWDOG_BLAKE_ROUND_MKA_OPT_H
 

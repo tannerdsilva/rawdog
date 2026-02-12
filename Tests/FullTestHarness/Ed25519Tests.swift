@@ -6,8 +6,16 @@ import RAW_dh25519
 @testable import __crawdog_curve25519_tests
 @testable import RAW_ed25519
 
+extension BlindingContext {
+	fileprivate borrowing func validateStorage() -> UnsafeMutableRawPointer {
+		return storage
+	}
+}
+
 extension rawdog_tests {
-	@Suite("__crawdog_curve25519",
+
+	@Suite(
+		"__crawdog_curve25519",
 		.serialized
 	)
 	struct Curve25519Tests {
@@ -28,7 +36,7 @@ extension rawdog_tests {
 			let randomSource = try generateSecureRandomBytes(count:64)
 			try randomSource.RAW_access { randomSourceBufferPointer in
 				var newBlindingContext:BlindingContext? = try BlindingContext(randomSource:randomSourceBufferPointer)
-				#expect(newBlindingContext!.storage != nil)
+				#expect(newBlindingContext!.validateStorage() != nil)
 				newBlindingContext = nil
 			}
 		}
