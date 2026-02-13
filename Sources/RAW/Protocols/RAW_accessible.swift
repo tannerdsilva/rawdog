@@ -8,7 +8,7 @@ public protocol RAW_accessible:RAW_encodable {
 }
 
 extension RAW_accessible {
-	public borrowing func RAW_encode(count:inout size_t) {
+	public borrowing func RAW_encode(count:inout Int) {
 		RAW_access { buffer in
 			count = buffer.count
 		}
@@ -18,5 +18,25 @@ extension RAW_accessible {
 			_ = RAW_memcpy(dest, buffer.baseAddress!, buffer.count)
 			return dest + buffer.count
 		}
+	}
+}
+
+extension RAW_accessible where Self:Equatable, Self:RAW_comparable {
+	public static func == (lhs:Self, rhs:Self) -> Bool {
+		return lhs.RAW_access({ lhsBuff in
+			rhs.RAW_access({ rhsBuff in
+				return RAW_compare(lhs_data:lhsBuff.baseAddress!, lhs_count:lhsBuff.count, rhs_data:rhsBuff.baseAddress!, rhs_count:rhsBuff.count) == 0
+			})
+		})
+	}
+}
+
+extension RAW_accessible where Self:Comparable, Self:RAW_comparable {
+	public static func < (lhs:Self, rhs:Self) -> Bool {
+		return lhs.RAW_access({ lhsBuff in
+			rhs.RAW_access({ rhsBuff in
+				return RAW_compare(lhs_data:lhsBuff.baseAddress!, lhs_count:lhsBuff.count, rhs_data:rhsBuff.baseAddress!, rhs_count:rhsBuff.count) < 0
+			})
+		})
 	}
 }

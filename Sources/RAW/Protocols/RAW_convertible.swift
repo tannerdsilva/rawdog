@@ -8,7 +8,7 @@ public protocol RAW_decodable {
 	/// initialize from the contents of a raw data buffer.
 	/// the byte buffer SHOULD be considered comprehensive and exact, meaning that any failure to stride in full should result in a nil return.
 	/// - note: the initializer may returrn nil if the value is considered invalid or malformed.
-	init?(RAW_decode:UnsafeRawPointer, count:size_t)
+	init?(RAW_decode:UnsafeRawPointer, count:Int)
 }
 
 /// a special decodable type that is capable of returning a decoded Self from an unbounded forward seeking buffer read.
@@ -28,7 +28,7 @@ extension RAW_decodable {
 
 public protocol RAW_encodable {
 	/// encodes the size of the given instance to a size_t inout parameter.
-	borrowing func RAW_encode(count:inout size_t)
+	borrowing func RAW_encode(count:inout Int)
 
 	/// encodes the value to the specified pointer.
 	/// - returns: the pointer advanced by the number of bytes written. unexpected behavior may occur if the pointer is not advanced by the number of bytes returned in ``RAW_byte_count``.

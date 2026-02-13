@@ -1,3 +1,7 @@
+# 22.0.0
+
+- Continued transition away from `size_t` symbol to `Int` for all Swift targets and protocols.
+	
 # 21.0.0
 
 - Expanded public API surface of `curve25519` to support `ed25519` signatures.

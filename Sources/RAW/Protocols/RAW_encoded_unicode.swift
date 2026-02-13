@@ -1,5 +1,6 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
+
 /// this protocol exists to create a slightly cleaner relationship between the two string based RAW_convertible macros (``RAW_convertible_string_type_macro`` and ``RAW_convertible_string_init_macro``).
 public protocol RAW_encoded_unicode:RAW_convertible, RAW_accessible, Sequence<Character>, RAW_comparable, Comparable, Equatable {
 	associatedtype RAW_convertible_unicode_encoding:UnicodeCodec where RAW_convertible_unicode_encoding.CodeUnit:FixedWidthInteger
@@ -12,8 +13,8 @@ public protocol RAW_encoded_unicode:RAW_convertible, RAW_accessible, Sequence<Ch
 }
 
 fileprivate struct RAW_native_translation_iterator<T:RAW_encoded_fixedwidthinteger>:IteratorProtocol {
-	internal var count_up:size_t
-	internal let count:size_t
+	internal var count_up:Int
+	internal let count:Int
 	private var head:UnsafeRawPointer
 	fileprivate init(buffer:UnsafeBufferPointer<UInt8>) {
 		count = buffer.count
@@ -36,7 +37,7 @@ extension RAW_encoded_unicode {
 		self.init(str.unicodeScalars)
 	}
 
-	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:Int, rhs_data:UnsafeRawPointer, rhs_count:Int) -> Int32 {
 		var lhsBuffer = RAW_native_translation_iterator<RAW_integer_encoding_impl>(buffer:UnsafeBufferPointer<UInt8>(start:lhs_data.assumingMemoryBound(to:UInt8.self), count:lhs_count))
 		var lhsDecoder = RAW_convertible_unicode_encoding()
 		var rhsBuffer = RAW_native_translation_iterator<RAW_integer_encoding_impl>(buffer:UnsafeBufferPointer<UInt8>(start:rhs_data.assumingMemoryBound(to:UInt8.self), count:rhs_count))
