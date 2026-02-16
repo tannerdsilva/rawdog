@@ -1,5 +1,5 @@
 public protocol RAW_hasher {
-	static var RAW_hasher_blocksize:size_t { get }
+	static var RAW_hasher_blocksize:Int { get }
 
 	associatedtype RAW_hasher_outputtype:RAW_staticbuff
 
@@ -7,10 +7,6 @@ public protocol RAW_hasher {
 	init() throws
 	/// update the hasher with new data from an UnsafeRawBufferPointer
 	mutating func update(_ :UnsafeRawBufferPointer) throws
-	/// update the hasher with new data from an UnsafeBufferPointer<UInt8>
-	mutating func update(_ :UnsafeBufferPointer<UInt8>) throws
-	/// update the hasher with new data with the specified data and length arguments
-	mutating func update(_ :UnsafeRawPointer, count:size_t) throws
 	/// finish a hasher by outputting to a pointer
 	mutating func finish(into _:UnsafeMutableRawPointer) throws
 }
@@ -35,7 +31,7 @@ extension RAW_hasher {
 		try update(UnsafeRawBufferPointer(inputData))
 	}
 	
-	public mutating func update(_ ptr:UnsafeRawPointer, count:size_t) throws {
+	public mutating func update(_ ptr:UnsafeRawPointer, count:Int) throws {
 		try update(UnsafeRawBufferPointer(start:ptr, count:count))
 	}
 }
