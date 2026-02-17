@@ -1,6 +1,14 @@
 import CRAW
 
 public final class MemoryGuarded<GuardedStaticbuffType>:@unchecked Sendable, RAW_decodable, RAW_accessible where GuardedStaticbuffType:RAW_staticbuff {
+    public func RAW_access_mutable<R, E>(as: UnsafeMutableRawBufferPointer.Type, _ body: (UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E : Error {
+        try body(UnsafeMutableRawBufferPointer(start:storage.assumingMemoryBound(to:UInt8.self), count:MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size))
+    }
+
+    public func RAW_access_immutable<R, E>(as: UnsafeRawBufferPointer.Type, _ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E : Error {
+        try body(UnsafeRawBufferPointer(start:storage.assumingMemoryBound(to:UInt8.self), count:MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size))
+    }
+
 	public struct MemoryPageLockFailure:Swift.Error {}
 
 	private static func memoryPrepare() throws -> UnsafeMutableRawPointer {
@@ -46,11 +54,11 @@ public final class MemoryGuarded<GuardedStaticbuffType>:@unchecked Sendable, RAW
 		return MemoryGuarded(storage:storage)
 	}
 	
-	public func RAW_access<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E : Error {
+	public func RAW_access_immutable<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E : Error {
 		try body(UnsafeBufferPointer(start:storage.assumingMemoryBound(to:UInt8.self), count:MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size))
 	}
 
-	public func RAW_access_mutating<R, E>(as:UnsafeMutableBufferPointer<UInt8>.Type, _ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E : Error {
+	public func RAW_access_mutable<R, E>(as:UnsafeMutableBufferPointer<UInt8>.Type, _ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E : Error {
 		try body(UnsafeMutableBufferPointer(start:storage.assumingMemoryBound(to:UInt8.self), count:MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size))
 	}
 

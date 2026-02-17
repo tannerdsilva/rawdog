@@ -271,7 +271,7 @@ internal struct RAW_convertible_string_type_macro_v2:MemberMacro, ExtensionMacro
 		return (attached:asStruct, encoding:encodingType.foundUnicodeType!, backingType:foundBackingType)
 	}
 
-	static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, conformingTo protocols:[TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+	internal static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, conformingTo protocols:[TypeSyntax], in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
 		guard let (structDecl, unicodeType, backingType) = Self.validate(declaration:declaration, node:node, context:context, addDiagnostics:true) else {
 			// unable to validate the attached member. return nil.
 			return []
@@ -326,12 +326,17 @@ internal struct RAW_convertible_string_type_macro_v2:MemberMacro, ExtensionMacro
 		"""))
 		buildDecls.append(DeclSyntax("""
 			\(structDecl.modifiers) borrowing func RAW_access<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-				return try \(bytesVarName).RAW_access(body)
+				return try \(bytesVarName).RAW_access_immutable(as:UnsafeBufferPointer<UInt8>.self, body)
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
-			\(structDecl.modifiers) mutating func RAW_access_mutating<R, E>(as:UnsafeMutableBufferPointer<UInt8>.Type, _ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-				return try \(bytesVarName).RAW_access_mutating(body)
+			\(structDecl.modifiers) mutating func RAW_access_mutable<R, E>(as:UnsafeMutableRawBufferPointer.Type, _ body:(UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try \(bytesVarName).RAW_access_mutable(as:UnsafeMutableRawBufferPointer.self, body)
+			}
+		"""))
+		buildDecls.append(DeclSyntax("""
+			\(structDecl.modifiers) mutating func RAW_access_mutable<R, E>(as:UnsafeMutableBufferPointer<UInt8>.Type, _ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try \(bytesVarName).RAW_access_mutable(as:UnsafeMutableBufferPointer<UInt8>.self, body)
 			}
 		"""))
 				buildDecls.append(DeclSyntax("""

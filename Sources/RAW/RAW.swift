@@ -95,7 +95,7 @@ public func generateSecureRandomBytes<StaticbuffType>(into memoryGuardedStaticbu
 	guard MemoryLayout<StaticbuffType.RAW_staticbuff_storetype>.size <= 256 else {
 		throw InvalidSecureRandomBytesLengthError()
 	}
-	try memoryGuardedStaticbuff.RAW_access_mutating(as:UnsafeMutableBufferPointer<UInt8>.self) { buffer in
+	try memoryGuardedStaticbuff.RAW_access_mutable(as:UnsafeMutableBufferPointer<UInt8>.self) { buffer in
 		guard __craw_get_entropy_bytes(buffer.baseAddress!, MemoryLayout<StaticbuffType.RAW_staticbuff_storetype>.size) == 0 else {
 			throw InvalidSecureRandomBytesLengthError()
 		}
@@ -142,7 +142,7 @@ public struct RAW_staticbuff_iterator<S>:IteratorProtocol where S:RAW_staticbuff
 		defer {
 			index += 1
 		}
-		return buffer.RAW_access { rawBuffer in
+		return buffer.RAW_access_immutable { rawBuffer in
 			return rawBuffer[index]
 		}
 	}
