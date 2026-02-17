@@ -1,5 +1,5 @@
 // LICENSE MIT
-// copyright (c) tanner silva 2024. all rights reserved.
+// copyright (c) tanner silva 2026. all rights reserved.
 
 public protocol RAW_accessible_immutable:RAW_encodable {
 	/// allows for non-mutating access to the raw representation of the instance through an raw buffer pointer.

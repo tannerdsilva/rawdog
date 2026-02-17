@@ -1142,16 +1142,14 @@ public struct RAW_staticbuff_concat_macro:MemberMacro, ExtensionMacro {
 		buildDecls.append(DeclSyntax("""
 			\(asStruct.modifiers) borrowing func RAW_access_immutable<R, E>(as:UnsafeRawBufferPointer.Type, _ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
-					let asBuffer = UnsafeRawBufferPointer(start:UnsafeRawPointer(buff), count:MemoryLayout<RAW_staticbuff_storetype>.size)
-					return try body(asBuffer)
+					return try body(UnsafeRawBufferPointer(start:UnsafeRawPointer(buff), count:MemoryLayout<RAW_staticbuff_storetype>.size))
 				}
 			}
 		"""))
 		buildDecls.append(DeclSyntax("""
 			\(asStruct.modifiers) borrowing func RAW_access_immutable<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
-					let asBuffer = UnsafeBufferPointer<UInt8>(start:UnsafeRawPointer(buff).assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size)
-					return try body(asBuffer)
+					return try body(UnsafeBufferPointer<UInt8>(start:UnsafeRawPointer(buff).assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size))
 				}
 			}
 		"""))

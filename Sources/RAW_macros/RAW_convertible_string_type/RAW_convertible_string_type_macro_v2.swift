@@ -334,6 +334,16 @@ internal struct RAW_convertible_string_type_macro_v2:MemberMacro, ExtensionMacro
 				return try \(bytesVarName).RAW_access_mutating(body)
 			}
 		"""))
+				buildDecls.append(DeclSyntax("""
+			\(structDecl.modifiers) borrowing func RAW_access_immutable<R, E>(as:UnsafeRawBufferPointer.Type, _ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try \(bytesVarName).RAW_access_immutable(as:UnsafeRawBufferPointer.self, body)
+			}
+		"""))
+		buildDecls.append(DeclSyntax("""
+			\(structDecl.modifiers) borrowing func RAW_access_immutable<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try \(bytesVarName).RAW_access_immutable(as:UnsafeBufferPointer<UInt8>.self, body)
+			}
+		"""))
 		buildDecls.append(DeclSyntax("""
 			\(structDecl.modifiers) borrowing func RAW_encode(count:inout size_t) {
 				count += \(countVarName)

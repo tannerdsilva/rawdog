@@ -12,7 +12,6 @@ import SwiftDiagnostics
 @main
 struct RAW_macros:CompilerPlugin {
 	let providingMacros:[Macro.Type] = [
-		RAW_convertible_string_type_macro_depricated.self,
 		RAW_convertible_string_type_macro_v2.self,
 		RAW_staticbuff_floatingpoint_type_macro.self,
 		RAW_staticbuff_fixedwidthinteger_type_macro.self,

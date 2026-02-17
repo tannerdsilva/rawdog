@@ -64,6 +64,7 @@ public macro RAW_convertible_string_type<S:RAW_encoded_fixedwidthinteger>(_:any 
 										named(RAW_convertible_unicode_encoding),
 										named(init(RAW_decode:count:)),
 										named(RAW_encode(count:)),
-										named(RAW_encode(dest:)))
+										named(RAW_encode(dest:)),
+										named(RAW_access_immutable(as:_:)))
 @attached(extension,	conformances:	RAW_encoded_unicode)
 public macro RAW_convertible_string_type<U:UnicodeCodec>(backing: any RAW_encoded_fixedwidthinteger.Type) = #externalMacro(module:"RAW_macros", type:"RAW_convertible_string_type_macro_v2")

@@ -15,6 +15,22 @@ extension Array:RAW_accessible, RAW_encodable where Element == UInt8 {
     		return try accessBytes(ptr.pointee, ptr.pointee.count)
     	}
 	}
+	public borrowing func RAW_access_immutable<R, E>(as:UnsafeRawBufferPointer.Type, _ body:(UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {
+		func accessBytes(_ unsafePtr:UnsafePointer<UInt8>) throws(E) -> R where E:Swift.Error {
+			return try body(UnsafeRawBufferPointer(start:UnsafeRawPointer(unsafePtr), count:count))
+		}
+		return try withUnsafePointer(to:self) { (ptr:UnsafePointer<Self>) throws(E) -> R in
+			return try accessBytes(ptr.pointee)
+		}
+	}
+	public borrowing func RAW_access_immutable<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R {
+		func accessBytes(_ unsafePtr:UnsafePointer<UInt8>) throws(E) -> R where E:Swift.Error {
+			return try body(UnsafeBufferPointer<UInt8>(start:unsafePtr, count:count))
+		}
+		return try withUnsafePointer(to:self) { (ptr:UnsafePointer<Self>) throws(E) -> R in
+			return try accessBytes(ptr.pointee)
+		}
+	}
 	public borrowing func RAW_encode(count cntVar: inout size_t) {
 		cntVar += count
 	}
