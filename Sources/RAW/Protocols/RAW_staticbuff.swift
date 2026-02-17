@@ -93,7 +93,7 @@ extension RAW_staticbuff {
 	}
 
 	// extend a default implementation of the RAW_access_mutating function
-	public mutating func RAW_access_mutating<R, E>(_ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+	public mutating func RAW_access_mutating<R, E>(as:UnsafeMutableBufferPointer<UInt8>.Type, _ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 		return try RAW_access_staticbuff_mutating { (ptr:UnsafeMutableRawPointer) throws(E) -> R in
 			try body(UnsafeMutableBufferPointer(start:ptr.assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size))
 		}

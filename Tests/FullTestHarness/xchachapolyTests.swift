@@ -22,8 +22,8 @@ extension rawdog_tests {
 			defer {
 				buffer.deallocate()
 			}
-			let returnedTag = try plaintextData.RAW_access { ptPtr in
-				return try aad.RAW_access { aadPtr in
+			let returnedTag = try plaintextData.RAW_access(as:UnsafeBufferPointer<UInt8>.self) { ptPtr in
+				return try aad.RAW_access(as:UnsafeBufferPointer<UInt8>.self) { aadPtr in
 					var context = RAW_xchachapoly.Context(key:key)
 					return try context.encrypt(nonce:nonce, associatedData:aadPtr, inputData:ptPtr, output:buffer.baseAddress!)
 				}
@@ -45,8 +45,8 @@ extension rawdog_tests {
 				defer {
 					byteBuffer.deallocate()
 				}
-				let tag = try plaintext.RAW_access { ptPtr in
-					return try [UInt8]().RAW_access { adBuff in
+				let tag = try plaintext.RAW_access(as:UnsafeBufferPointer<UInt8>.self) { ptPtr in
+					return try [UInt8]().RAW_access(as:UnsafeBufferPointer<UInt8>.self) { adBuff in
 						return try context.encrypt(nonce:testNonce, associatedData:adBuff, inputData:ptPtr, output:byteBuffer.baseAddress!)
 					}
 				}
@@ -56,8 +56,8 @@ extension rawdog_tests {
 				defer {
 					reverseText.deallocate()
 				}
-				try plaintext.RAW_access { ptPtr in
-					try [UInt8]().RAW_access { adBuff in
+				try plaintext.RAW_access(as:UnsafeBufferPointer<UInt8>.self) { ptPtr in
+					try [UInt8]().RAW_access(as:UnsafeBufferPointer<UInt8>.self) { adBuff in
 						try context.decrypt(tag:tag, nonce:testNonce, associatedData:adBuff, inputData:UnsafeBufferPointer<UInt8>(byteBuffer), output:reverseText.baseAddress!)
 					}
 				}

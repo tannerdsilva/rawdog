@@ -46,11 +46,11 @@ public final class MemoryGuarded<GuardedStaticbuffType>:@unchecked Sendable, RAW
 		return MemoryGuarded(storage:storage)
 	}
 	
-	public func RAW_access<R, E>(_ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E : Error {
+	public func RAW_access<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E : Error {
 		try body(UnsafeBufferPointer(start:storage.assumingMemoryBound(to:UInt8.self), count:MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size))
 	}
 
-	public func RAW_access_mutating<R, E>(_ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E : Error {
+	public func RAW_access_mutating<R, E>(as:UnsafeMutableBufferPointer<UInt8>.Type, _ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E : Error {
 		try body(UnsafeMutableBufferPointer(start:storage.assumingMemoryBound(to:UInt8.self), count:MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size))
 	}
 
@@ -58,5 +58,11 @@ public final class MemoryGuarded<GuardedStaticbuffType>:@unchecked Sendable, RAW
 		try? secureZeroBytes(storage, count:MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size)
 		_ = RAW_munlock(storage, MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size)
 		RAW_free(storage)
+	}
+}
+
+extension MemoryGuarded {
+	public func RAW_access_mutating<R, E>(_ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E : Error {
+		try body(UnsafeMutableBufferPointer(start:storage.assumingMemoryBound(to:UInt8.self), count:MemoryLayout<GuardedStaticbuffType.RAW_staticbuff_storetype>.size))
 	}
 }

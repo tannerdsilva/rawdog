@@ -1,13 +1,13 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
 extension Array:RAW_accessible, RAW_encodable where Element == UInt8 {
-    public mutating func RAW_access_mutating<R, E>(_ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+    public mutating func RAW_access_mutating<R, E>(as:UnsafeMutableBufferPointer<UInt8>.Type, _ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
     	func accessBytes(_ unsafePtr:UnsafeMutablePointer<UInt8>, _ cnt:Int) throws(E) -> R where E:Swift.Error {
     		return try body(UnsafeMutableBufferPointer<UInt8>(start:unsafePtr, count:cnt))
     	}
 		return try accessBytes(&self, count)
     }
-	public borrowing func RAW_access<R, E>(_ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+	public borrowing func RAW_access<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 		func accessBytes(_ unsafePtr:UnsafePointer<UInt8>, _ cnt:Int) throws(E) -> R where E:Swift.Error {
     		return try body(UnsafeBufferPointer<UInt8>(start:unsafePtr, count:cnt))
     	}

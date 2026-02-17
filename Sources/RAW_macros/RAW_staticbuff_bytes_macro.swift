@@ -573,7 +573,7 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 		declString.append(DeclSyntax("""
-			\(asStruct.modifiers) borrowing func RAW_access<R, E>(_ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+			\(asStruct.modifiers) borrowing func RAW_access<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
 					let asBuffer = UnsafeBufferPointer<UInt8>(start:UnsafeRawPointer(buff).assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size)
 					return try body(asBuffer)
