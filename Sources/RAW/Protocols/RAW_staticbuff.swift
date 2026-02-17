@@ -1,13 +1,12 @@
 // LICENSE MIT
-// copyright (c) tanner silva 2025. all rights reserved.
+// copyright (c) tanner silva 2026. all rights reserved.
 
 /// represents a raw binary value of a pre-specified, static length.
 public protocol RAW_staticbuff:RAW_convertible_fixed, RAW_comparable_fixed, RAW_accessible, Sendable {
-	associatedtype RAW_fixed_type = RAW_staticbuff_storetype
+	associatedtype RAW_fixed_type
 
-	/// the type that will be used to represent the raw data.
-	/// - note: this protocol assumes that the result of `MemoryLayout<Self.RAW_staticbuff_storetype>.size` is the true size of your static buffer data. behavior with this protocol is undefined if this is not the case.
-	associatedtype RAW_staticbuff_storetype
+	@available(*, deprecated, renamed:"RAW_fixed_type")
+	typealias RAW_staticbuff_storetype = RAW_fixed_type
 
 	/// initialize the static buffer from a pointer to its raw representation store type. behavior is undefined if the raw representation is shorter than the assumed size of the static buffer.
 	init(RAW_staticbuff:UnsafeRawPointer)
@@ -102,9 +101,9 @@ extension RAW_staticbuff {
 
 extension RAW_staticbuff {
 	public static prefix func ~ (value:Self) -> Self {
-		return value.RAW_access { valuePtr in
+		return value.RAW_access_immutable { valuePtr in
 			var returnValue = Self(RAW_staticbuff:Self.RAW_staticbuff_zeroed())
-			returnValue.RAW_access_mutating { returnValuePtr in
+			returnValue.RAW_access_mutable { returnValuePtr in
 				for i in 0..<returnValuePtr.count {
 					returnValuePtr[i] = ~valuePtr[i]
 				}

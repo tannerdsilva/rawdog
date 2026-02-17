@@ -11,6 +11,11 @@ public protocol RAW_decodable {
 	init?(RAW_decode:UnsafeRawPointer, count:Int)
 }
 
+public protocol RAW_decodable_V2 {
+	init?(RAW_decode:UnsafeRawBufferPointer)
+	init?(RAW_decode:UnsafeBufferPointer<UInt8>)
+}
+
 /// a special decodable type that is capable of returning a decoded Self from an unbounded forward seeking buffer read.
 public protocol RAW_decodable_unbounded: RAW_decodable {
 

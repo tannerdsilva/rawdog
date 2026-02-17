@@ -5,11 +5,10 @@
 /// when a type is a static buffer type, it is a fixed size with a "literally expressed" representation in memory. usually, the only way to ensure this is the case in Swift is to write everything as byte tuples (UInt8, UInt8...). thankfully, this macro provides a convenient way to write structures in this way.
 /// - arguments:
 /// 	- size_t: the byte count of the static buffer type. NOTE: this must be an integer literal in base10 format WITHOUT any special characters ('_' or others) in the value syntax
-@attached(member, 		names:			named(RAW_staticbuff_storetype),
+@attached(member, 		names:			named(RAW_fixed_type),
 										named(RAW_access_staticbuff),
 										named(RAW_access_staticbuff_mutating),
 										named(RAW_staticbuff),
-										named(RAW_access),
 										named(RAW_staticbuff_zeroed),
 										named(init(RAW_staticbuff:)),
 										named(RAW_encode(count:)),
@@ -21,11 +20,10 @@
 @attached(extension,	conformances:	RAW_staticbuff)
 public macro RAW_staticbuff(bytes:size_t) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_bytes_macro")
 
-@attached(member, 		names:			named(RAW_staticbuff_storetype),
+@attached(member, 		names:			named(RAW_fixed_type),
 										named(init(RAW_staticbuff:)),
 										named(RAW_access_staticbuff),
 										named(RAW_access_staticbuff_mutating),
-										named(RAW_access),
 										named(RAW_staticbuff),
 										named(RAW_staticbuff_zeroed),
 										named(RAW_encode(count:)),
@@ -60,8 +58,6 @@ public macro RAW_convertible_string_type<S:RAW_encoded_fixedwidthinteger>(_:any 
 
 @attached(member,		names:			named(init(_:)),
 										named(makeIterator()),
-										named(RAW_access),
-										named(RAW_access_mutating),
 										named(RAW_integer_encoding_impl),
 										named(RAW_convertible_unicode_encoding),
 										named(init(RAW_decode:count:)),

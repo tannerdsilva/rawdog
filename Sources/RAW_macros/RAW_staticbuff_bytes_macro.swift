@@ -511,12 +511,12 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 		// assemble the primary extension declaration.
 		declString.append(
 			DeclSyntax("""
-			/// \(raw:byteCount)x UInt8 literal type (identical to ``RAW_fixed_type``)
-			\(raw:asStruct.modifiers) typealias RAW_staticbuff_storetype = \(generateUnsignedByteTypeExpression(byteCount:UInt16(byteCount)))
+			/// \(raw:byteCount)x UInt8 literal type
+			\(raw:asStruct.modifiers) typealias RAW_fixed_type = \(generateUnsignedByteTypeExpression(byteCount:UInt16(byteCount)))
 		"""))
 		declString.append(
 			DeclSyntax("""
-			private var \(varName):RAW_staticbuff_storetype
+			private var \(varName):RAW_fixed_type
 			""")
 		)
 
@@ -570,14 +570,6 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 					_ = RAW_memcpy(dest, buff, MemoryLayout<RAW_staticbuff_storetype>.size)!
 				}
 				return dest.advanced(by:MemoryLayout<RAW_staticbuff_storetype>.size)
-			}
-		"""))
-		declString.append(DeclSyntax("""
-			\(asStruct.modifiers) borrowing func RAW_access<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
-					let asBuffer = UnsafeBufferPointer<UInt8>(start:UnsafeRawPointer(buff).assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size)
-					return try body(asBuffer)
-				}
 			}
 		"""))
 		declString.append(DeclSyntax("""

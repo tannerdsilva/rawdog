@@ -1,6 +1,18 @@
 # 22.0.0
 
 - Continued transition away from `size_t` symbol to `Int` for all Swift targets and protocols.
+
+- Introduces two new protocols that provide a better functional surface for the RAW_access concept.
+
+	- New protocols
+	
+		- RAW.RAW_accessible_mutable
+	
+		- RAW.RAW_accessible_immutable
+	
+	- RAW_accessible is now a typealias for the protocols listed above. Useful extensions are provided to minimize immediate work required to migrate your code that was built on versions <= 21.0.0
+
+
 	
 # 21.0.0
 
