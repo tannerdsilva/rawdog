@@ -588,6 +588,20 @@ public struct RAW_staticbuff_bytes_macro:MemberMacro, ExtensionMacro {
 			}
 		"""))
 		declString.append(DeclSyntax("""
+			\(asStruct.modifiers) borrowing func RAW_access_immutable<R, E>(as:UnsafeRawBufferPointer.Type, _ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
+					return try body(UnsafeRawBufferPointer(start:UnsafeRawPointer(buff), count:MemoryLayout<RAW_staticbuff_storetype>.size))
+				}
+			}
+		"""))
+		declString.append(DeclSyntax("""
+			\(asStruct.modifiers) borrowing func RAW_access_immutable<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				return try withUnsafePointer(to:self) { (buff:UnsafePointer<Self>) throws(E) -> R in
+					return try body(UnsafeBufferPointer<UInt8>(start:UnsafeRawPointer(buff).assumingMemoryBound(to:UInt8.self), count:MemoryLayout<RAW_staticbuff_storetype>.size))
+				}
+			}
+		"""))
+		declString.append(DeclSyntax("""
 			\(asStruct.modifiers) mutating func RAW_access_staticbuff_mutating<R, E>(_ body:(UnsafeMutableRawPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 				return try withUnsafeMutablePointer(to:&self) { (buff:UnsafeMutablePointer<Self>) throws(E) -> R in
 					return try body(UnsafeMutableRawPointer(buff))
