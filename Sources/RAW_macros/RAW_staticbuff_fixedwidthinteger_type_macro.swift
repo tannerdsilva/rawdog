@@ -117,8 +117,8 @@ internal struct RAW_staticbuff_fixedwidthinteger_type_macro:ExtensionMacro, Memb
 		let nativeGet = DeclSyntax("""
 			\(asStruct.modifiers) func RAW_native() -> \(raw:intType) {
 				#if DEBUG
-				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
-				assert(MemoryLayout<\(raw:intType)>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<Self>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<\(raw:intType)>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
 				#endif
 				return withUnsafePointer(to:self) { selfPtr in
 					return \(raw:intType)(\(raw:nativeTranslatorName):UnsafeRawPointer(selfPtr).\(raw:loadFuncName)(as:\(raw:intType).self))
@@ -129,8 +129,8 @@ internal struct RAW_staticbuff_fixedwidthinteger_type_macro:ExtensionMacro, Memb
 		let nativeInit = DeclSyntax("""
 			\(asStruct.modifiers) init(RAW_native native:\(raw:intType)) {
 				#if DEBUG
-				assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
-				assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_staticbuff_storetype>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
+				assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
 				#endif
 				var enc = native.\(raw:nativeTranslatorName)
 				self.init(RAW_staticbuff:&enc)

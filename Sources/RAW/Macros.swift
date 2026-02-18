@@ -16,7 +16,9 @@
 										named(RAW_compare(lhs_data:lhs_count:rhs_data:rhs_count:)),
 										named(RAW_compare(lhs_data:rhs_data:)),
 										named(RAW_access_immutable(as:_:)),
-										named(RAW_access_mutable(as:_:)))
+										named(RAW_access_mutable(as:_:)),
+										named(init(RAW_decode:))										
+)
 @attached(extension,	conformances:	RAW_staticbuff)
 public macro RAW_staticbuff(bytes:size_t) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_bytes_macro")
 
@@ -31,7 +33,9 @@ public macro RAW_staticbuff(bytes:size_t) = #externalMacro(module:"RAW_macros", 
 										named(RAW_compare(lhs_data:lhs_count:rhs_data:rhs_count:)),
 										named(RAW_compare(lhs_data:rhs_data:)),
 										named(RAW_access_immutable(as:_:)),
-										named(RAW_access_mutable(as:_:)))
+										named(RAW_access_mutable(as:_:)),
+										named(init(RAW_decode:))
+)
 @attached(extension,	conformances:	RAW_staticbuff)
 public macro RAW_staticbuff(concat:any RAW_staticbuff.Type...) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_concat_macro")
 
