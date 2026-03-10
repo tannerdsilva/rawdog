@@ -1,89 +1,78 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2026. all rights reserved.
 
+/// a protocol for variable-length access to raw data.
 public typealias RAW_accessible = RAW_accessible_mutable & RAW_accessible_immutable
 
+// MARK: immutable access
+/// protocol for immutable access to raw contiguous data.
 public protocol RAW_accessible_immutable:RAW_encodable {
 	/// allows for non-mutating access to the raw representation of the instance through an raw buffer pointer.
-	borrowing func RAW_access_immutable<R, E>(as:UnsafeRawBufferPointer.Type, _ body:(UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error
-
-	/// allows for non-mutating access to the raw representation of the instance through a typed buffer pointer.
-	borrowing func RAW_access_immutable<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error
+	borrowing func RAW_access_immutable<R, E>(_:UnsafeRawBufferPointer.Type, _ body:(UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error
 }
-
-public protocol RAW_accessible_mutable:RAW_accessible_immutable {
-	/// allows for mutating access to the raw representation of the instance through an raw buffer pointer.
-	mutating func RAW_access_mutable<R, E>(as:UnsafeMutableRawBufferPointer.Type, _ body:(UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error
-
-	/// allows for mutating access to the raw representation of the instance through a typed buffer pointer.
-	mutating func RAW_access_mutable<R, E>(as:UnsafeMutableBufferPointer<UInt8>.Type, _ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error
-}
-
-// MARK: convenience functions 
+// default implementation for all RAW_accessible_immutable types - implements `UnsafeBufferPointer<UInt8>` access from the underlying `UnsafeRawBufferPointer` access.
 extension RAW_accessible_immutable {
-	public borrowing func RAW_access_immutable<R, E>(_ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-		return try RAW_access_immutable(as:UnsafeBufferPointer<UInt8>.self, body)
+	public borrowing func RAW_access_immutable<R, E>(_:UnsafeBufferPointer<UInt8>.Type, _ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		return try RAW_access_immutable(UnsafeRawBufferPointer.self) { (rawBuff:UnsafeRawBufferPointer) throws(E) -> R in
+			return try body(UnsafeBufferPointer<UInt8>(start:rawBuff.baseAddress?.assumingMemoryBound(to:UInt8.self), count:rawBuff.count))
+		}
 	}
 }
-extension RAW_accessible_mutable {
-	public mutating func RAW_access_mutable<R, E>(_ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-		return try RAW_access_mutable(as:UnsafeMutableBufferPointer<UInt8>.self, body)
+// default implementation for all RAW_accessible_immutable types - simply provides `UnsafeRawPointer` access to the raw bytes of the instance.
+extension RAW_accessible_immutable where Self:RAW_fixed {
+	public borrowing func RAW_access_immutable<R, E>(_:UnsafeRawPointer.Type, _ body:(UnsafeRawPointer) throws(E) -> R) throws(E) -> R {
+		return try RAW_access_immutable(UnsafeRawBufferPointer.self) { (rawBuff:UnsafeRawBufferPointer) throws(E) -> R in
+			return try body(rawBuff.baseAddress!)
+		}
 	}
 }
-
-// MARK: legacy support
-extension RAW_accessible_immutable {
-	@available(*, deprecated, renamed:"RAW_access_immutable")
-	public borrowing func RAW_access<R, E>(as:UnsafeBufferPointer<UInt8>.Type, _ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-		return try RAW_access_immutable(as:UnsafeBufferPointer<UInt8>.self, body)
-	}
-	@available(*, deprecated, renamed:"RAW_access_immutable")
-	public borrowing func RAW_access<R, E>(_ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-		return try RAW_access_immutable(as:UnsafeBufferPointer<UInt8>.self, body)
-	}
-
-}
-extension RAW_accessible_mutable {
-	@available(*, deprecated, renamed:"RAW_access_mutable")
-	public mutating func RAW_access_mutating<R, E>(_ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R {
-		return try RAW_access_mutable(as:UnsafeMutableBufferPointer<UInt8>.self, body)
-	}
-	@available(*, deprecated, renamed:"RAW_access_mutable")
-	public mutating func RAW_access_mutating<R, E>(as:UnsafeMutableBufferPointer<UInt8>.Type,_ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R {
-		return try RAW_access_mutable(as:UnsafeMutableBufferPointer<UInt8>.self, body)
-	}
-}
-
+// RAW_encodable implementation for all RAW_accessible_immutable types - simply copies the raw bytes to the destination buffer.
 extension RAW_accessible_immutable {
 	public borrowing func RAW_encode(count:inout Int) {
 		RAW_access_immutable { buffer in
 			count = buffer.count
 		}
 	}
-	public borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
-		return RAW_access_immutable { buffer in
+	public borrowing func RAW_encode(_:UnsafeMutableRawPointer.Type, dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		return RAW_access_immutable(UnsafeRawBufferPointer.self) { buffer in
 			_ = RAW_memcpy(dest, buffer.baseAddress!, buffer.count)
 			return dest + buffer.count
 		}
 	}
 }
 
-extension RAW_accessible_immutable where Self:Equatable, Self:RAW_comparable {
-	public static func == (lhs:Self, rhs:Self) -> Bool {
-		return lhs.RAW_access_immutable({ lhsBuff in
-			rhs.RAW_access_immutable({ rhsBuff in
-				return RAW_compare(lhs_data:lhsBuff.baseAddress!, lhs_count:lhsBuff.count, rhs_data:rhsBuff.baseAddress!, rhs_count:rhsBuff.count) == 0
-			})
-		})
+// MARK: mutable access
+public protocol RAW_accessible_mutable:RAW_accessible_immutable {
+	/// allows for mutating access to the raw representation of the instance through an raw buffer pointer.
+	mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawBufferPointer.Type, _ body:(UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error
+}
+// default implementation for all RAW_accessible_mutable types - implements `UnsafeMutableBufferPointer<UInt8>` access from the underlying `UnsafeMutableRawBufferPointer` access.
+extension RAW_accessible_mutable {
+	public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableBufferPointer<UInt8>.Type, _ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		return try RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { (rawBuff: UnsafeMutableRawBufferPointer) throws(E) -> R in
+			return try body(UnsafeMutableBufferPointer<UInt8>(start:rawBuff.baseAddress?.assumingMemoryBound(to:UInt8.self), count:rawBuff.count))
+		}
+	}
+}
+// default implementation for all RAW_accessible_mutable types - simply provides `UnsafeMutableRawPointer` access to the raw bytes of the instance.
+extension RAW_accessible_mutable where Self:RAW_fixed {
+	public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawPointer.Type, _ body:(UnsafeMutableRawPointer) throws(E) -> R) throws(E) -> R {
+		return try RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { (rawBuff:UnsafeMutableRawBufferPointer) throws(E) -> R in
+			return try body(rawBuff.baseAddress!)
+		}
 	}
 }
 
-extension RAW_accessible_immutable where Self:Comparable, Self:RAW_comparable {
-	public static func < (lhs:Self, rhs:Self) -> Bool {
-		return lhs.RAW_access_immutable({ lhsBuff in
-			rhs.RAW_access_immutable({ rhsBuff in
-				return RAW_compare(lhs_data:lhsBuff.baseAddress!, lhs_count:lhsBuff.count, rhs_data:rhsBuff.baseAddress!, rhs_count:rhsBuff.count) < 0
-			})
-		})
+// MARK: legacy & convenience
+// default implementation for all RAW_accessible_immutable types - simply provides `UnsafeBufferPointer<UInt8>` access to the raw bytes of the instance when a type is not specified.
+extension RAW_accessible_immutable {
+	public borrowing func RAW_access_immutable<R, E>(_ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		return try RAW_access_immutable(UnsafeBufferPointer<UInt8>.self, body)
+	}
+}
+// default implementation for all RAW_accessible_mutable types - simply provides `UnsafeMutableBufferPointer<UInt8>` access to the raw bytes of the instance when a type is not specified.
+extension RAW_accessible_mutable {
+	public mutating func RAW_access_mutable<R, E>(_ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		return try RAW_access_mutable(UnsafeMutableBufferPointer<UInt8>.self, body)
 	}
 }
