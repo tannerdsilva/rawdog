@@ -22,19 +22,8 @@ public func RAW_strlen(_ str:UnsafeRawPointer) -> size_t {
 	return CRAW.strlen(str)
 }
 
-#if RAWDOG_LOG
-import Logging
-internal func makeDefaultLogger(label loggerLabel:String, level:Logger.Level) -> Logger {
-	let logger = Logger(label:loggerLabel)
-	logger.logLevel = .trace
-	return logger
-}
-internal let mainLogger = Logger(label:"RAW")
-#endif
-
 @RAW_staticbuff(bytes:1)
-@RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
-public struct RAW_byte:Sendable, ExpressibleByIntegerLiteral, Hashable, Comparable, Equatable, Codable, CustomDebugStringConvertible {
+public struct RAW_byte:Sendable, Hashable, Comparable, Equatable, Codable, CustomDebugStringConvertible {
 	public var debugDescription:String {
 		return "\(RAW_native())"
 	}
@@ -72,7 +61,7 @@ public struct InvalidSecureRandomBytesLengthError:Error {}
 /// - returns: a static buffer of random bytes
 /// - throws: InvalidSecureRandomBytesLengthError if the requested number of bytes is greater than 256
 public func generateSecureRandomBytes<S>(as _:S.Type) throws -> S where S:RAW_staticbuff {
-	return S(RAW_staticbuff:try generateSecureRandomBytes(count:MemoryLayout<S>.size))
+	return S(RAW_decode:try generateSecureRandomBytes(count:MemoryLayout<S>.size))
 }
 
 /// source of secure random bytes from the system. this is the most secure way to generate random bytes, and is limited to a maximum 256 bytes.
@@ -92,11 +81,11 @@ public func generateSecureRandomBytes(count:size_t) throws -> [UInt8] {
 }
 
 public func generateSecureRandomBytes<StaticbuffType>(into memoryGuardedStaticbuff:MemoryGuarded<StaticbuffType>) throws where StaticbuffType:RAW_staticbuff {
-	guard MemoryLayout<StaticbuffType.RAW_staticbuff_storetype>.size <= 256 else {
+	guard MemoryLayout<StaticbuffType.RAW_fixed_type>.size <= 256 else {
 		throw InvalidSecureRandomBytesLengthError()
 	}
-	try memoryGuardedStaticbuff.RAW_access_mutable(as:UnsafeMutableBufferPointer<UInt8>.self) { buffer in
-		guard __craw_get_entropy_bytes(buffer.baseAddress!, MemoryLayout<StaticbuffType.RAW_staticbuff_storetype>.size) == 0 else {
+	try memoryGuardedStaticbuff.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { buffer in
+		guard __craw_get_entropy_bytes(buffer.baseAddress!, MemoryLayout<StaticbuffType.RAW_fixed_type>.size) == 0 else {
 			throw InvalidSecureRandomBytesLengthError()
 		}
 	}
@@ -136,7 +125,7 @@ public struct RAW_staticbuff_iterator<S>:IteratorProtocol where S:RAW_staticbuff
 	}
 	
 	public mutating func next() -> Element? {
-		guard index < MemoryLayout<S.RAW_staticbuff_storetype>.size else {
+		guard index < MemoryLayout<S.RAW_fixed_type>.size else {
 			return nil
 		}
 		defer {

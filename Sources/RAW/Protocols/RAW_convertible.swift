@@ -1,33 +1,25 @@
 // LICENSE MIT
-// copyright (c) tanner silva 2024. all rights reserved.
+// copyright (c) tanner silva 2026. all rights reserved.
 public typealias RAW_convertible = RAW_encodable & RAW_decodable;
 
-/// protocol that represents a type that can initialize from a raw representation in memory.
+// MARK: decode
 public protocol RAW_decodable {
-
 	/// initialize from the contents of a raw data buffer.
-	/// the byte buffer SHOULD be considered comprehensive and exact, meaning that any failure to stride in full should result in a nil return.
-	/// - note: the initializer may returrn nil if the value is considered invalid or malformed.
-	init?(RAW_decode:UnsafeRawPointer, count:Int)
-}
-
-public protocol RAW_decodable_V2 {
+	/// - NOTE: the length of the buffer must be exactly the size of the type.
+	/// - NOTE: it is expected and REQUIRED that the initializer returns nil if the buffer is not the exact correct length.
 	init?(RAW_decode:UnsafeRawBufferPointer)
-	init?(RAW_decode:UnsafeBufferPointer<UInt8>)
 }
 
-/// a special decodable type that is capable of returning a decoded Self from an unbounded forward seeking buffer read.
-public protocol RAW_decodable_unbounded: RAW_decodable {
-
-	/// initialize from the contents of a raw data buffer that has no known boundaries on the forward end.
-	/// - WARNING: this protocol is SUPER RIDICULOUSLY, IRRESPONSIBLY UNSAFE. Implement this ONLY if you know that you need it and why.
-	static func RAW_decode(unbounded:inout UnsafeRawPointer) -> Self?
-}
-
+// convenience initializer for decoding from a typed buffer pointer of UInt8.
 extension RAW_decodable {
-	/// initialize from the contents of a raw data buffer, as a mutable buffer pointer.
-	public init?(RAW_accessed ptr:UnsafeBufferPointer<UInt8>) {
-		self.init(RAW_decode:ptr.baseAddress!, count:ptr.count)
+	public init?(RAW_decode:UnsafeBufferPointer<UInt8>) {
+		self.init(RAW_decode:UnsafeRawBufferPointer(RAW_decode))
+	}
+	public init?(RAW_decode:UnsafeMutableBufferPointer<UInt8>) {
+		self.init(RAW_decode:UnsafeRawBufferPointer(RAW_decode))
+	}
+	public init?(RAW_decode:UnsafeMutableRawBufferPointer) {
+		self.init(RAW_decode:UnsafeRawBufferPointer(RAW_decode))
 	}
 }
 
@@ -37,5 +29,16 @@ public protocol RAW_encodable {
 
 	/// encodes the value to the specified pointer.
 	/// - returns: the pointer advanced by the number of bytes written. unexpected behavior may occur if the pointer is not advanced by the number of bytes returned in ``RAW_byte_count``.
-	@discardableResult borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8>
+	@discardableResult borrowing func RAW_encode(_:UnsafeMutableRawPointer.Type, dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer
+}
+
+extension RAW_encodable {
+	@discardableResult public borrowing func RAW_encode(_:UnsafeMutablePointer<UInt8>.Type, dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
+		return RAW_encode(UnsafeMutableRawPointer.self, dest:dest).assumingMemoryBound(to:UInt8.self)
+	}
+}
+extension RAW_encodable {
+	@discardableResult public borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
+		return RAW_encode(UnsafeMutablePointer<UInt8>.self, dest:dest)
+	}
 }

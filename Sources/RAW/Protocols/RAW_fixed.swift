@@ -9,54 +9,57 @@ public protocol RAW_fixed {
 	associatedtype RAW_fixed_type
 }
 
-/// a RAW_convertible type that is also RAW_fixed.
-public protocol RAW_convertible_fixed:RAW_convertible, RAW_fixed {
-	init?(RAW_decode:UnsafeRawPointer)
+// default implementation for all RAW_comparable types - lexicographically sorted data
+extension RAW_comparable where Self:RAW_fixed {
+	public static func RAW_compare(_ lhs:UnsafeRawPointer, _ rhs:UnsafeRawPointer) -> Int32 {
+		return RAW_compare(UnsafeRawBufferPointer(start:lhs, count:MemoryLayout<RAW_fixed_type>.size), UnsafeRawBufferPointer(start:rhs, count:MemoryLayout<RAW_fixed_type>.size))
+	}
+	public static func RAW_compare(_ lhs:UnsafeMutableRawPointer, _ rhs:UnsafeMutableRawPointer) -> Int32 {
+		return RAW_compare(UnsafeRawBufferPointer(start:lhs, count:MemoryLayout<RAW_fixed_type>.size), UnsafeRawBufferPointer(start:rhs, count:MemoryLayout<RAW_fixed_type>.size))
+	}
 }
 
-/// extensions that provide the expected implementations for ``RAW_convertible`` based on the knowledge gained from the ``RAW_fixed`` protocol.
-extension RAW_convertible_fixed {
-	public init?(RAW_decode ptr:UnsafeRawPointer, count:Int) {
-		guard count == MemoryLayout<RAW_fixed_type>.size else {
-			return nil
+// default implementation for all RAW_accessible_immutable types - simply provides `UnsafeRawPointer` access to the raw bytes of the instance.
+extension RAW_accessible_immutable where Self:RAW_fixed {
+	public borrowing func RAW_access_immutable<R, E>(_:UnsafeRawPointer.Type, _ body:(UnsafeRawPointer) throws(E) -> R) throws(E) -> R {
+		return try RAW_access_immutable(UnsafeRawBufferPointer.self) { buff throws(E) -> R in
+			return try body(buff.baseAddress!)
 		}
-		self.init(RAW_decode:ptr)
 	}
 }
 
-/// a type that can be compared with another instance of the same type.
-public protocol RAW_comparable_fixed:RAW_comparable, RAW_fixed {
-	/// the theoretical maximum value of this type.
-	static func RAW_comparable_fixed_theoretical_max() -> Self
-	/// the theoretical minimum value of this type.
-	static func RAW_comparable_fixed_theoretical_min() -> Self
-	/// compare two instances of the same type.
-	static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32
-}
-
-extension RAW_comparable_fixed where Self:RAW_staticbuff {
-	public static func RAW_comparable_fixed_theoretical_max() -> Self {
-		return ~Self(RAW_staticbuff:Self.RAW_staticbuff_zeroed())
-	}
-	public static func RAW_comparable_fixed_theoretical_min() -> Self {
-		return Self(RAW_staticbuff:Self.RAW_staticbuff_zeroed())
-	}
-}
-
-extension RAW_comparable_fixed {
-	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:Int, rhs_data:UnsafeRawPointer, rhs_count:Int) -> Int32 {
-		#if DEBUG
-		assert(lhs_count == MemoryLayout<RAW_fixed_type>.size, "lhs_count: \(lhs_count) != MemoryLayout<RAW_fixed_type>.size: \(MemoryLayout<RAW_fixed_type>.size)")
-		assert(rhs_count == MemoryLayout<RAW_fixed_type>.size, "rhs_count: \(rhs_count) != MemoryLayout<RAW_fixed_type>.size: \(MemoryLayout<RAW_fixed_type>.size)")
-		#endif
-		return RAW_compare(lhs_data:lhs_data, rhs_data:rhs_data)
-	}
-
-	public static func RAW_compare(lhs_data_seeking:inout UnsafeRawPointer, rhs_data_seeking:inout UnsafeRawPointer) -> Int32 {
-		defer {
-			lhs_data_seeking = lhs_data_seeking.advanced(by:MemoryLayout<RAW_fixed_type>.size)
-			rhs_data_seeking = rhs_data_seeking.advanced(by:MemoryLayout<RAW_fixed_type>.size)
+// default implementation for all RAW_accessible_mutable types - simply provides `UnsafeMutableRawPointer` access to the raw bytes of the instance.
+extension RAW_accessible_mutable where Self:RAW_fixed {
+	public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawPointer.Type, _ body:(UnsafeMutableRawPointer) throws(E) -> R) throws(E) -> R {
+		return try RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { buff throws(E) -> R in
+			return try body(buff.baseAddress!)
 		}
-		return RAW_compare(lhs_data:lhs_data_seeking, rhs_data:rhs_data_seeking)
+	}
+}
+
+// default implementation for all RAW_decodable types - simply loads the type from the raw pointer.
+extension RAW_decodable where Self:RAW_fixed {
+	public init(RAW_decode ptr:UnsafeRawPointer) {
+		self.init(RAW_decode:UnsafeRawBufferPointer(start:ptr, count:MemoryLayout<RAW_fixed_type>.size))!
+	}
+}
+
+// seeking decoders for RAW_fixed types - simply advances the pointer by the size of the fixed type and decodes the value from the original pointer.
+extension RAW_decodable where Self:RAW_fixed {
+	public init(RAW_decode ptrSeeker:UnsafeMutablePointer<UnsafeRawPointer>, seeking:UnsafeRawPointer.Type) {
+		self.init(RAW_decode:ptrSeeker.pointee)
+		ptrSeeker.pointee = (ptrSeeker.pointee + MemoryLayout<RAW_fixed_type>.size)
+	}
+	public init(RAW_decode ptr:UnsafeMutablePointer<UnsafeMutableRawPointer>, seeking:UnsafeMutableRawPointer.Type) {
+		self.init(RAW_decode:ptr.pointee)
+		ptr.pointee = (ptr.pointee + MemoryLayout<RAW_fixed_type>.size)
+	}
+	public init(RAW_decode ptrSeeker:UnsafeMutablePointer<UnsafePointer<UInt8>>, seeking:UnsafePointer<UInt8>.Type) {
+		self.init(RAW_decode:ptrSeeker.pointee)
+		ptrSeeker.pointee = (ptrSeeker.pointee + MemoryLayout<RAW_fixed_type>.size)
+	}
+	public init(RAW_decode ptr:UnsafeMutablePointer<UnsafeMutablePointer<UInt8>>, seeking:UnsafeMutablePointer<UInt8>.Type) {
+		self.init(RAW_decode:ptr.pointee)
+		ptr.pointee = (ptr.pointee + MemoryLayout<RAW_fixed_type>.size)
 	}
 }

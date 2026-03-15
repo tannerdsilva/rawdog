@@ -10,24 +10,18 @@ public protocol RAW_accessible_immutable:RAW_encodable {
 	/// allows for non-mutating access to the raw representation of the instance through an raw buffer pointer.
 	borrowing func RAW_access_immutable<R, E>(_:UnsafeRawBufferPointer.Type, _ body:(UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error
 }
+
 // default implementation for all RAW_accessible_immutable types - implements `UnsafeBufferPointer<UInt8>` access from the underlying `UnsafeRawBufferPointer` access.
 extension RAW_accessible_immutable {
 	public borrowing func RAW_access_immutable<R, E>(_:UnsafeBufferPointer<UInt8>.Type, _ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-		return try RAW_access_immutable(UnsafeRawBufferPointer.self) { (rawBuff:UnsafeRawBufferPointer) throws(E) -> R in
-			return try body(UnsafeBufferPointer<UInt8>(start:rawBuff.baseAddress?.assumingMemoryBound(to:UInt8.self), count:rawBuff.count))
+		return try RAW_access_immutable(UnsafeRawBufferPointer.self) { buff throws(E) -> R in
+			return try body(.init(start:buff.baseAddress?.assumingMemoryBound(to:UInt8.self), count:buff.count))
 		}
 	}
 }
-// default implementation for all RAW_accessible_immutable types - simply provides `UnsafeRawPointer` access to the raw bytes of the instance.
-extension RAW_accessible_immutable where Self:RAW_fixed {
-	public borrowing func RAW_access_immutable<R, E>(_:UnsafeRawPointer.Type, _ body:(UnsafeRawPointer) throws(E) -> R) throws(E) -> R {
-		return try RAW_access_immutable(UnsafeRawBufferPointer.self) { (rawBuff:UnsafeRawBufferPointer) throws(E) -> R in
-			return try body(rawBuff.baseAddress!)
-		}
-	}
-}
+
 // RAW_encodable implementation for all RAW_accessible_immutable types - simply copies the raw bytes to the destination buffer.
-extension RAW_accessible_immutable {
+extension RAW_accessible_immutable where Self:RAW_encodable {
 	public borrowing func RAW_encode(count:inout Int) {
 		RAW_access_immutable { buffer in
 			count = buffer.count
@@ -41,24 +35,25 @@ extension RAW_accessible_immutable {
 	}
 }
 
+extension RAW_accessible_immutable where Self:Hashable {
+	public func hash(into hasher:inout Hasher) {
+		RAW_access_immutable(UnsafeRawBufferPointer.self) { buff in
+			hasher.combine(bytes:buff)
+		}
+	}
+}
+
 // MARK: mutable access
 public protocol RAW_accessible_mutable:RAW_accessible_immutable {
 	/// allows for mutating access to the raw representation of the instance through an raw buffer pointer.
 	mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawBufferPointer.Type, _ body:(UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error
 }
+
 // default implementation for all RAW_accessible_mutable types - implements `UnsafeMutableBufferPointer<UInt8>` access from the underlying `UnsafeMutableRawBufferPointer` access.
 extension RAW_accessible_mutable {
 	public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableBufferPointer<UInt8>.Type, _ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-		return try RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { (rawBuff: UnsafeMutableRawBufferPointer) throws(E) -> R in
-			return try body(UnsafeMutableBufferPointer<UInt8>(start:rawBuff.baseAddress?.assumingMemoryBound(to:UInt8.self), count:rawBuff.count))
-		}
-	}
-}
-// default implementation for all RAW_accessible_mutable types - simply provides `UnsafeMutableRawPointer` access to the raw bytes of the instance.
-extension RAW_accessible_mutable where Self:RAW_fixed {
-	public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawPointer.Type, _ body:(UnsafeMutableRawPointer) throws(E) -> R) throws(E) -> R {
-		return try RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { (rawBuff:UnsafeMutableRawBufferPointer) throws(E) -> R in
-			return try body(rawBuff.baseAddress!)
+		return try RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { buff throws(E) -> R in
+			return try body(.init(start:buff.baseAddress?.assumingMemoryBound(to:UInt8.self), count:buff.count))
 		}
 	}
 }

@@ -1,6 +1,6 @@
 public protocol RAW_hasher {
 	static var RAW_hasher_blocksize:Int { get }
-
+	
 	associatedtype RAW_hasher_outputtype:RAW_staticbuff
 
 	/// initialize a new instance of the hasher context
@@ -15,10 +15,10 @@ extension RAW_hasher {
 	public mutating func finish(into obj:inout Optional<RAW_hasher_outputtype>) throws {
 		switch obj {
 			case nil:
-				obj = RAW_hasher_outputtype(RAW_staticbuff:RAW_hasher_outputtype.RAW_staticbuff_zeroed())
+				obj = RAW_hasher_outputtype.RAW_staticbuff_theoretical_min()
 				fallthrough
 			default:
-				try obj!.RAW_access_staticbuff_mutating { outputPtr in
+				try obj!.RAW_access_mutable(UnsafeMutableRawPointer.self) { outputPtr in
 					try finish(into:outputPtr)
 				}
 		}
@@ -42,13 +42,7 @@ extension RAW_hasher {
 	}
 	/// update the hasher with new data (accessible type)
 	public mutating func update<A>(_ data:borrowing A) throws where A:RAW_accessible {
-		try data.RAW_access { buffer in
-			try update(buffer)
-		}
-	}
-	/// update the hasher with new data (unsafe pointer to accessible type)
-	public mutating func update<A>(_ data:UnsafePointer<A>) throws where A:RAW_accessible {
-		try data.pointee.RAW_access { buffer in
+		try data.RAW_access_immutable { buffer in
 			try update(buffer)
 		}
 	}
@@ -59,9 +53,9 @@ extension RAW_hasher where RAW_hasher_outputtype:RAW_staticbuff {
 	public static func hash<A>(_ data:borrowing A) throws -> RAW_hasher_outputtype where A:RAW_accessible {
 		var hasher = try Self()
 		try hasher.update(data)
-		var output = RAW_hasher_outputtype(RAW_staticbuff:RAW_hasher_outputtype.RAW_staticbuff_zeroed())
-		try output.RAW_access_staticbuff_mutating {
-			try hasher.finish(into:$0)
+		var output = RAW_hasher_outputtype.RAW_staticbuff_theoretical_min()
+		try output.RAW_access_mutable(UnsafeMutableRawPointer.self) { outputPtr in
+			try hasher.finish(into:outputPtr)
 		}
 		return output
 	}

@@ -1,40 +1,30 @@
 // LICENSE MIT
-// copyright (c) tanner silva 2024. all rights reserved.
+// copyright (c) tanner silva 2026. all rights reserved.
 
 /// defines a type as a static buffer type. 
 /// when a type is a static buffer type, it is a fixed size with a "literally expressed" representation in memory. usually, the only way to ensure this is the case in Swift is to write everything as byte tuples (UInt8, UInt8...). thankfully, this macro provides a convenient way to write structures in this way.
 /// - arguments:
 /// 	- size_t: the byte count of the static buffer type. NOTE: this must be an integer literal in base10 format WITHOUT any special characters ('_' or others) in the value syntax
 @attached(member, 		names:			named(RAW_fixed_type),
-										named(RAW_access_staticbuff),
-										named(RAW_access_staticbuff_mutating),
-										named(RAW_staticbuff),
-										named(RAW_staticbuff_zeroed),
-										named(init(RAW_staticbuff:)),
-										named(RAW_encode(count:)),
-									 	named(RAW_encode(dest:)),
-										named(RAW_compare(lhs_data:lhs_count:rhs_data:rhs_count:)),
-										named(RAW_compare(lhs_data:rhs_data:)),
-										named(RAW_access_immutable(as:_:)),
-										named(RAW_access_mutable(as:_:)),
-										named(init(RAW_decode:))										
+										named(init(RAW_fixed_type:)),
+										named(RAW_fixed_type()),
+										named(RAW_access_immutable(_:_:)),
+										named(RAW_access_mutable(_:_:)),
+										named(init(RAW_decode:)),
+										named(RAW_staticbuff_theoretical_max()),
+										named(RAW_staticbuff_theoretical_min())
 )
 @attached(extension,	conformances:	RAW_staticbuff)
 public macro RAW_staticbuff(bytes:size_t) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_bytes_macro")
 
 @attached(member, 		names:			named(RAW_fixed_type),
-										named(init(RAW_staticbuff:)),
-										named(RAW_access_staticbuff),
-										named(RAW_access_staticbuff_mutating),
-										named(RAW_staticbuff),
-										named(RAW_staticbuff_zeroed),
-										named(RAW_encode(count:)),
-									 	named(RAW_encode(dest:)),
-										named(RAW_compare(lhs_data:lhs_count:rhs_data:rhs_count:)),
-										named(RAW_compare(lhs_data:rhs_data:)),
-										named(RAW_access_immutable(as:_:)),
-										named(RAW_access_mutable(as:_:)),
-										named(init(RAW_decode:))
+										named(init(RAW_fixed_type:)),
+										named(RAW_fixed_type()),
+										named(RAW_access_immutable(_:_:)),
+										named(RAW_access_mutable(_:_:)),
+										named(init(RAW_decode:)),
+										named(RAW_staticbuff_theoretical_max()),
+										named(RAW_staticbuff_theoretical_min())
 )
 @attached(extension,	conformances:	RAW_staticbuff)
 public macro RAW_staticbuff(concat:any RAW_staticbuff.Type...) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_concat_macro")
@@ -68,6 +58,8 @@ public macro RAW_convertible_string_type<S:RAW_encoded_fixedwidthinteger>(_:any 
 										named(RAW_encode(count:)),
 										named(RAW_encode(dest:)),
 										named(RAW_access_immutable(as:_:)),
-										named(RAW_access_mutable(as:_:)))
+										named(RAW_access_mutable(as:_:)),
+										named(init(RAW_decode:))
+)
 @attached(extension,	conformances:	RAW_encoded_unicode)
 public macro RAW_convertible_string_type<U:UnicodeCodec>(backing: any RAW_encoded_fixedwidthinteger.Type) = #externalMacro(module:"RAW_macros", type:"RAW_convertible_string_type_macro_v2")

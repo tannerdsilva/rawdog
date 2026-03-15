@@ -1,5 +1,5 @@
 // LICENSE MIT
-// copyright (c) tanner silva 2024. all rights reserved.
+// copyright (c) tanner silva 2026. all rights reserved.
 
 /// this protocol exists to create a slightly cleaner relationship between the two string based RAW_convertible macros (``RAW_convertible_string_type_macro`` and ``RAW_convertible_string_init_macro``).
 public protocol RAW_encoded_unicode:RAW_convertible, RAW_accessible, Sequence<Character>, RAW_comparable, Comparable, Equatable {
@@ -16,18 +16,18 @@ fileprivate struct RAW_native_translation_iterator<T:RAW_encoded_fixedwidthinteg
 	internal var count_up:Int
 	internal let count:Int
 	private var head:UnsafeRawPointer
-	fileprivate init(buffer:UnsafeBufferPointer<UInt8>) {
+	fileprivate init(buffer:UnsafeRawBufferPointer) {
 		count = buffer.count
 		count_up = 0
-		head = UnsafeRawPointer(buffer.baseAddress!)
+		head = buffer.baseAddress!
 	}
 	fileprivate mutating func next() -> T.RAW_native_type? {
 		guard count_up < count else {
 			return nil
 		}
-		let startPtr = head
-		let native = T.init(RAW_staticbuff_seeking: &head)
-		count_up += startPtr.distance(to:head)
+		let native = T.init(RAW_decode:head)
+		head += MemoryLayout<T.RAW_fixed_type>.size
+		count_up += MemoryLayout<T.RAW_fixed_type>.size
 		return native.RAW_native()
 	}
 }
@@ -36,15 +36,14 @@ extension RAW_encoded_unicode {
 	public init(_ str:consuming String) {
 		self.init(str.unicodeScalars)
 	}
-
-	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:Int, rhs_data:UnsafeRawPointer, rhs_count:Int) -> Int32 {
-		var lhsBuffer = RAW_native_translation_iterator<RAW_integer_encoding_impl>(buffer:UnsafeBufferPointer<UInt8>(start:lhs_data.assumingMemoryBound(to:UInt8.self), count:lhs_count))
+	public static func RAW_compare(_ lhs:UnsafeRawBufferPointer, _ rhs:UnsafeRawBufferPointer) -> Int32 {
+		var lhsIterator = RAW_native_translation_iterator<RAW_integer_encoding_impl>(buffer:lhs)
 		var lhsDecoder = RAW_convertible_unicode_encoding()
-		var rhsBuffer = RAW_native_translation_iterator<RAW_integer_encoding_impl>(buffer:UnsafeBufferPointer<UInt8>(start:rhs_data.assumingMemoryBound(to:UInt8.self), count:rhs_count))
+		var rhsIterator = RAW_native_translation_iterator<RAW_integer_encoding_impl>(buffer:rhs)
 		var rhsDecoder = RAW_convertible_unicode_encoding()
 		mainLoop: while true {
-			let lhsResult:UnicodeDecodingResult = lhsDecoder.decode(&lhsBuffer)
-			let rhsResult:UnicodeDecodingResult = rhsDecoder.decode(&rhsBuffer)
+			let lhsResult:UnicodeDecodingResult = lhsDecoder.decode(&lhsIterator)
+			let rhsResult:UnicodeDecodingResult = rhsDecoder.decode(&rhsIterator)
 			switch (lhsResult) {
 			case (.scalarValue(let lhsScalar)):
 				switch rhsResult {
@@ -82,15 +81,15 @@ fileprivate struct RAW_string_bytes_to_codeunit_unicode<I:RAW_encoded_unicode>:I
 		self.storedBytes = storedBytes
 	}
 	fileprivate mutating func next() -> I.RAW_convertible_unicode_encoding.CodeUnit? {
-		return storedBytes.RAW_access({ bytes in
+		return storedBytes.RAW_access_immutable(UnsafeRawBufferPointer.self) { bytes -> I.RAW_convertible_unicode_encoding.CodeUnit? in
 			guard byte_seeker < bytes.count && (bytes.count - byte_seeker) >= MemoryLayout<I.RAW_convertible_unicode_encoding.CodeUnit>.size else {
 				return nil
 			}
 			let start = bytes.baseAddress!.advanced(by:byte_seeker)
-			let nextItem = I.RAW_integer_encoding_impl(RAW_staticbuff:start).RAW_native()
+			let nextItem = I.RAW_integer_encoding_impl(RAW_decode:start).RAW_native()
 			byte_seeker += MemoryLayout<I.RAW_convertible_unicode_encoding.CodeUnit>.size
 			return nextItem
-		})
+		}
 	}
 }
 
