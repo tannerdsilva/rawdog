@@ -10,8 +10,8 @@ extension rawdog_tests {
 		@Test func testKyberKeys() throws {
 			let (pubKey, privKey) = try RAW_kyber.generateKyberKeyPair()
 			
-			let (cipherText, sharedSecretA) = RAW_kyber.kyberEncode(publicKey: pubKey)
-			let sharedSecretB = RAW_kyber.kyberDecode(cipherText: cipherText, privateKey: privKey)
+			let (cipherText, sharedSecretA) = RAW_kyber.kyberEncapsulation(publicKey: pubKey)
+			let sharedSecretB = RAW_kyber.kyberDecapsulation(cipherText: cipherText, privateKey: privKey)
 			
 			#expect(sharedSecretA == sharedSecretB)
 		}

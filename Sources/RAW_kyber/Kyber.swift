@@ -33,7 +33,7 @@ public func generateKyberKeyPair() throws -> (publicKey: PublicKey, privateKey: 
 	return (publicKey: pubKeyBuff, privateKey: privKeyBuff)
 }
 
-public func kyberEncode(publicKey: PublicKey) -> (Ciphertext, SharedSecret) {
+public func kyberEncapsulation(publicKey: PublicKey) -> (Ciphertext, SharedSecret) {
 	var cipherText = Ciphertext(RAW_staticbuff: Ciphertext.RAW_staticbuff_zeroed())
 	var sharedSecret = SharedSecret(RAW_staticbuff: SharedSecret.RAW_staticbuff_zeroed())
 	
@@ -48,7 +48,7 @@ public func kyberEncode(publicKey: PublicKey) -> (Ciphertext, SharedSecret) {
 	return (cipherText: cipherText, sharedSecret: sharedSecret)
 }
 
-public func kyberDecode(cipherText: Ciphertext, privateKey: MemoryGuarded<PrivateKey>) -> SharedSecret {
+public func kyberDecapsulation(cipherText: Ciphertext, privateKey: MemoryGuarded<PrivateKey>) -> SharedSecret {
 	var sharedSecret = SharedSecret(RAW_staticbuff: SharedSecret.RAW_staticbuff_zeroed())
 	
 	_ = privateKey.RAW_access { skPtr in
