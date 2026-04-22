@@ -1,4 +1,4 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 6.3
 import PackageDescription
 import CompilerPluginSupport
 
@@ -118,6 +118,7 @@ let package = Package(
 		.target(name:"RAW_md5", dependencies:["RAW", "__crawdog_md5"]),
 		.target(name:"RAW_mnemonic", dependencies:["RAW", "RAW_sha256"]),
 		.target(name:"RAW_kyber", dependencies:["RAW", "__crawdog_kyber"]),
+		.target(name:"RAW_dilithium", dependencies:["RAW", "__crawdog_dilithium"]),
 		.target(name:"RAW_sha1", dependencies:["RAW", "__crawdog_sha1"]),
 		.target(name:"RAW_sha256", dependencies:["RAW", "__crawdog_sha256"]),
 		.target(name:"RAW_sha512", dependencies:["RAW", "__crawdog_sha512"]),
@@ -255,8 +256,18 @@ let package = Package(
 			publicHeadersPath:"."
 		),
 		.target(
-			name:"__crawdog_kyber",
+			name:"__crawdog_quantum",
 			publicHeadersPath:"."
+		),
+		.target(
+			name:"__crawdog_kyber",
+			dependencies: ["__crawdog_quantum"],
+			publicHeadersPath:"include"
+		),
+		.target(
+			name:"__crawdog_dilithium",
+			dependencies: ["__crawdog_quantum"],
+			publicHeadersPath:"include"
 		),
 		// system library for testing
 		.systemLibrary(
@@ -270,6 +281,6 @@ let package = Package(
 		),
 		
 		// tests for raw and c targets
-		.testTarget(name:"FullTestHarness", dependencies:["RAW_md5", "RAW_kdf", "__crawdog_hkdf-tests", "__crawdog_xchachapoly", "RAW_xchachapoly", "__crawdog_hchacha20-tests", "__crawdog_argon2-tests", "__crawdog_argon2", "RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_sha512", "RAW_mnemonic", "RAW_kyber"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"FullTestHarness", dependencies:["RAW_md5", "RAW_kdf", "__crawdog_hkdf-tests", "__crawdog_xchachapoly", "RAW_xchachapoly", "__crawdog_hchacha20-tests", "__crawdog_argon2-tests", "__crawdog_argon2", "RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_sha512", "RAW_mnemonic", "RAW_kyber", "RAW_dilithium"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
 	]
 )
