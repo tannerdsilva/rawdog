@@ -1,46 +1,49 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
-extension Array:RAW_accessible, RAW_encodable where Element == UInt8 {
-    public mutating func RAW_access_mutating<R, E>(_ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-    	func accessBytes(_ unsafePtr:UnsafeMutablePointer<UInt8>, _ cnt:Int) throws(E) -> R where E:Swift.Error {
-    		return try body(UnsafeMutableBufferPointer<UInt8>(start:unsafePtr, count:cnt))
-    	}
-		return try accessBytes(&self, count)
-    }
-	public borrowing func RAW_access<R, E>(_ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-		func accessBytes(_ unsafePtr:UnsafePointer<UInt8>, _ cnt:Int) throws(E) -> R where E:Swift.Error {
-    		return try body(UnsafeBufferPointer<UInt8>(start:unsafePtr, count:cnt))
-    	}
-    	return try withUnsafePointer(to:self) { (ptr:UnsafePointer<Self>) throws(E) -> R in
-    		return try accessBytes(ptr.pointee, ptr.pointee.count)
-    	}
+
+// MARK: RAW_accessible_immutable + RAW_accessible_mutable
+extension Array:RAW_accessible_immutable, RAW_accessible_mutable, RAW_encodable where Element == UInt8 {
+	public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawBufferPointer.Type, _ body:(UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		return try Swift.withUnsafeMutableBytes(of:&self) { rawBuff throws(E) -> R in
+			return try body(rawBuff)
+		}
 	}
-	public borrowing func RAW_encode(count cntVar: inout size_t) {
+
+	public borrowing func RAW_access_immutable<R, E>(_:UnsafeRawBufferPointer.Type, _ body:(UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		return try Swift.withUnsafeBytes(of:self) { rawBuff throws(E) -> R in
+			return try body(rawBuff)
+		}
+	}
+
+	public borrowing func RAW_encode(count cntVar:inout Int) {
 		cntVar += count
 	}
-	public borrowing func RAW_encode(dest:UnsafeMutablePointer<UInt8>) -> UnsafeMutablePointer<UInt8> {
-		return withUnsafeBufferPointer({ buff in
-			_ = RAW_memcpy(dest, buff.baseAddress!, buff.count)!
-			return dest.advanced(by:buff.count)
-		})
+
+	@discardableResult public borrowing func RAW_encode(_:UnsafeMutableRawPointer.Type, destination dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
+		return Swift.withUnsafeBytes(of:self) { buff in
+			return RAW_memcpy(dest, buff.baseAddress, buff.count)
+		}
 	}
 }
 
+// MARK: RAW_decodable
 extension Array:RAW_decodable where Element == UInt8 {
-	public init(RAW_decode ptr:UnsafeRawPointer, count:size_t) {
-		let asByteBuffer = UnsafeBufferPointer<UInt8>(start:ptr.assumingMemoryBound(to:UInt8.self), count:count)
+	public init(RAW_decode buff:UnsafeRawBufferPointer) {
+		let asByteBuffer = UnsafeBufferPointer<UInt8>(start:buff.baseAddress?.assumingMemoryBound(to:UInt8.self), count:buff.count)
 		self.init(asByteBuffer)
 	}
 }
 
+// MARK: RAW_comparable
 extension Array:RAW_comparable where Element == UInt8 {}
 
+// MARK: encodable array initializers
 extension Array where Element == UInt8 {
-	public init<E>(RAW_encodable ptr:UnsafeMutablePointer<E>, byte_count_out:inout size_t) where E:RAW_encodable {
+	public init<E>(RAW_encodable ptr:UnsafeMutablePointer<E>, byte_count_out:inout Int) where E:RAW_encodable {
 		self.init(RAW_encodables:ptr, encodables_count: 1, byte_count_out: &byte_count_out)
 	}
-	public init<E>(RAW_encodables ptr:UnsafeMutablePointer<E>, encodables_count:size_t, byte_count_out:inout size_t) where E:RAW_encodable {
-		var encSize:size_t = 0
+	public init<E>(RAW_encodables ptr:UnsafeMutablePointer<E>, encodables_count:Int, byte_count_out:inout Int) where E:RAW_encodable {
+		var encSize:Int = 0
 		var seeker = ptr
 		for i in 0..<encodables_count {
 			defer {

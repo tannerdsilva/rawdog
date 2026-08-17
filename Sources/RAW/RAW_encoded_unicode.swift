@@ -1,16 +1,23 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
-/// this protocol exists to create a slightly cleaner relationship between the two string based RAW_convertible macros (``RAW_convertible_string_type_macro`` and ``RAW_convertible_string_init_macro``).
-public protocol RAW_encoded_unicode:RAW_convertible, RAW_accessible, Sequence<Character>, RAW_comparable, Comparable, Equatable {
+import Darwin
+
+/// this protocol exists to create a slightly cleaner relationship between the two string based RAW_convertible macros.
+public protocol RAW_encoded_unicode:RAW_decodable, RAW_encodable, RAW_accessible, RAW_comparable, Sequence<Character> {
+	/// the unicode encoding used by this type.
 	associatedtype RAW_convertible_unicode_encoding:UnicodeCodec where RAW_convertible_unicode_encoding.CodeUnit:FixedWidthInteger
 
+	/// the integer encoding implementation that backs the unicode encoding.
 	associatedtype RAW_integer_encoding_impl:RAW_encoded_fixedwidthinteger where RAW_integer_encoding_impl.RAW_native_type == RAW_convertible_unicode_encoding.CodeUnit
 		
+	/// initialize from a string's unicode scalar view.
 	init(_ string:consuming String.UnicodeScalarView)
 
+	/// create an iterator over the characters of this string.
 	consuming func makeIterator() -> RAW_encoded_unicode_iterator<Self>
 }
 
+/// internal iterator that translates raw bytes to native code units for comparison.
 fileprivate struct RAW_native_translation_iterator<T:RAW_encoded_fixedwidthinteger>:IteratorProtocol {
 	internal var count_up:size_t
 	internal let count:size_t
@@ -24,18 +31,20 @@ fileprivate struct RAW_native_translation_iterator<T:RAW_encoded_fixedwidthinteg
 		guard count_up < count else {
 			return nil
 		}
-		let startPtr = head
-		let native = T.init(RAW_staticbuff_seeking: &head)
-		count_up += startPtr.distance(to:head)
-		return native.RAW_native()
+		let result = head.loadUnaligned(as: T.RAW_native_type.self)
+		head = head.advanced(by: MemoryLayout<T.RAW_native_type>.size)
+		count_up += MemoryLayout<T.RAW_native_type>.size
+		return result
 	}
 }
 
 extension RAW_encoded_unicode {
+	/// initialize from a `String` value.
 	public init(_ str:consuming String) {
 		self.init(str.unicodeScalars)
 	}
 
+	/// compare two encoded unicode values by decoding and comparing scalar-by-scalar.
 	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
 		var lhsBuffer = RAW_native_translation_iterator<RAW_integer_encoding_impl>(buffer:UnsafeBufferPointer<UInt8>(start:lhs_data.assumingMemoryBound(to:UInt8.self), count:lhs_count))
 		var lhsDecoder = RAW_convertible_unicode_encoding()
@@ -54,12 +63,12 @@ extension RAW_encoded_unicode {
 						continue mainLoop
 					}
 				default:
-					return -1 // lhs stronger
+					return -1
 				}
 			default:
 				switch rhsResult {
 				case (.scalarValue(_)):
-					return 1 // rhs stronger
+					return 1
 				default:
 					return 0
 				}
@@ -74,6 +83,7 @@ extension RAW_encoded_unicode where Self:ExpressibleByStringLiteral {
 	}
 }
 
+/// internal iterator that reads code units from stored bytes.
 fileprivate struct RAW_string_bytes_to_codeunit_unicode<I:RAW_encoded_unicode>:IteratorProtocol {
 	private let storedBytes:[UInt8]
 	private var byte_seeker:size_t = 0
@@ -81,18 +91,19 @@ fileprivate struct RAW_string_bytes_to_codeunit_unicode<I:RAW_encoded_unicode>:I
 		self.storedBytes = storedBytes
 	}
 	fileprivate mutating func next() -> I.RAW_convertible_unicode_encoding.CodeUnit? {
-		return storedBytes.RAW_access({ bytes in
-			guard byte_seeker < bytes.count && (bytes.count - byte_seeker) >= MemoryLayout<I.RAW_convertible_unicode_encoding.CodeUnit>.size else {
-				return nil
-			}
+		guard byte_seeker < storedBytes.count && (storedBytes.count - byte_seeker) >= MemoryLayout<I.RAW_convertible_unicode_encoding.CodeUnit>.size else {
+			return nil
+		}
+		return storedBytes.withUnsafeBytes { bytes in
 			let start = bytes.baseAddress!.advanced(by:byte_seeker)
-			let nextItem = I.RAW_integer_encoding_impl(RAW_staticbuff:start).RAW_native()
+			let nextItem = start.loadUnaligned(as: I.RAW_convertible_unicode_encoding.CodeUnit.self)
 			byte_seeker += MemoryLayout<I.RAW_convertible_unicode_encoding.CodeUnit>.size
 			return nextItem
-		})
+		}
 	}
 }
 
+/// public iterator that produces `Character` values from an encoded unicode type.
 public struct RAW_encoded_unicode_iterator<T:RAW_encoded_unicode>:IteratorProtocol {
 	private var codeUnitTranslator:RAW_string_bytes_to_codeunit_unicode<T>
 	private var decoder:T.RAW_convertible_unicode_encoding

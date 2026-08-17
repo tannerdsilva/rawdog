@@ -1,31 +1,15 @@
 // LICENSE MIT
-// copyright (c) tanner silva 2024. all rights reserved.
-/// a type that does not require any size arguments because the size is known at compile time via the RAW_fixed_type associated type.
-public protocol RAW_fixed {
-	/// the type that expresses the size of this type.
-	/// - the size of this type is determined as ``MemoryLayout<RAW_fixed_type>.size``
-	/// - note: stride and alignment are NOT considered in any part of the implementations of this protocol.
-	associatedtype RAW_fixed_type
-}
+// copyright (c) tanner silva 2025. all rights reserved.
 
-/// a RAW_convertible type that is also RAW_fixed.
-public protocol RAW_convertible_fixed:RAW_convertible, RAW_fixed {
-	init?(RAW_decode:UnsafeRawPointer)
-}
+import Darwin
 
-/// extensions that provide the expected implementations for ``RAW_convertible`` based on the knowledge gained from the ``RAW_fixed`` protocol.
-extension RAW_convertible_fixed {
-	public init?(RAW_decode ptr:UnsafeRawPointer, count:size_t) {
-		guard count == MemoryLayout<RAW_fixed_type>.size else {
-			return nil
-		}
-		self.init(RAW_decode:ptr)
-	}
-}
-
-/// a type that can be compared with another instance of the same type.
+/// a type that can be compared with another instance of the same type using a fixed-size comparison.
 public protocol RAW_comparable_fixed:RAW_comparable, RAW_fixed {
-	/// compare two instances of the same type.
+	/// the theoretical maximum value of this type.
+	static func RAW_comparable_fixed_theoretical_max() -> Self
+	/// the theoretical minimum value of this type.
+	static func RAW_comparable_fixed_theoretical_min() -> Self
+	/// compare two instances of the same type using their raw pointer representations.
 	static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32
 }
 

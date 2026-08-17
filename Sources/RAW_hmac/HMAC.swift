@@ -11,8 +11,9 @@ public struct HMAC<H:RAW_hasher> {
 		var innerContext = try H.init()
 		var outerContext = try H.init()
 		var tmp:UInt8 = 0;
-		var keyScratch = H.RAW_hasher_outputtype(RAW_decode:key)!
-		try keyScratch.RAW_access_mutating { keyScratchPtr in
+		var keyVar = key
+		var keyScratch = H.RAW_hasher_outputtype(RAW_staticbuff_seeking:&keyVar)
+		try keyScratch.RAW_access_mutable { keyScratchPtr in
 			let useKeyPtr:UnsafePointer<UInt8>
 			let useKeyCount:size_t
 			if (count > H.RAW_hasher_blocksize) {
@@ -49,13 +50,13 @@ public struct HMAC<H:RAW_hasher> {
 	}
 	
 	public init<K>(key:borrowing K) throws where K:RAW_accessible {
-		self = try key.RAW_access { keyBuffer in
+		self = try key.RAW_access_immutable(UnsafeRawBufferPointer.self) { keyBuffer in
 			return try Self.initiate(key:keyBuffer.baseAddress!, count:keyBuffer.count)
 		}
 	}
 
 	public init<K>(key:UnsafePointer<K>) throws where K:RAW_accessible {
-		self = try key.pointee.RAW_access { keyBuffer in
+		self = try key.pointee.RAW_access_immutable(UnsafeRawBufferPointer.self) { keyBuffer in
 			return try Self.initiate(key:keyBuffer.baseAddress!, count:keyBuffer.count)
 		}
 	}
@@ -67,13 +68,18 @@ public struct HMAC<H:RAW_hasher> {
 	}
 
 	public mutating func finish() throws -> H.RAW_hasher_outputtype {
-		var innerResult:H.RAW_hasher_outputtype? = nil
-		try innerContext.finish(into:&innerResult)
-		try innerResult!.RAW_access {
+		let size = MemoryLayout<H.RAW_hasher_outputtype.RAW_fixed_type>.size
+		let buffer = UnsafeMutableRawPointer.allocate(byteCount: size, alignment: 1)
+		defer { buffer.deallocate() }
+		try innerContext.finish(into: buffer)
+		var seekPtr = UnsafeRawPointer(buffer)
+		let innerResult = H.RAW_hasher_outputtype(RAW_staticbuff_seeking: &seekPtr)
+		try innerResult.RAW_access_immutable(UnsafeRawBufferPointer.self) {
 			try outerContext.update($0)
 		}
-		try outerContext.finish(into:&innerResult)
-		return innerResult!
+		try outerContext.finish(into: buffer)
+		seekPtr = UnsafeRawPointer(buffer)
+		return H.RAW_hasher_outputtype(RAW_staticbuff_seeking: &seekPtr)
 	}
 }
 

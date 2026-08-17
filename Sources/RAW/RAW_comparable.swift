@@ -1,5 +1,6 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
+@_exported import CRAW
 import func CRAW.memcmp
 
 // /// the protocol that enables comparison and equality checks of programming objects from raw memory representations.
@@ -20,22 +21,24 @@ extension RAW_comparable {
 	}
 }
 
-extension RAW_accessible where Self:Equatable, Self:RAW_comparable {
+// Equatable sugar for RAW_accessible_immutable types that are also RAW_comparable
+extension RAW_accessible_immutable where Self:Equatable, Self:RAW_comparable {
 	public static func == (lhs:Self, rhs:Self) -> Bool {
-		return lhs.RAW_access({ lhsBuff in
-			rhs.RAW_access({ rhsBuff in
-				return RAW_compare(lhs_data:lhsBuff.baseAddress!, lhs_count:lhsBuff.count, rhs_data:rhsBuff.baseAddress!, rhs_count:rhsBuff.count) == 0
-			})
-		})
+		return lhs.RAW_access_immutable(UnsafeRawBufferPointer.self) { lhsBuf in
+			rhs.RAW_access_immutable(UnsafeRawBufferPointer.self) { rhsBuf in
+				return RAW_compare(lhs_data:lhsBuf.baseAddress!, lhs_count:lhsBuf.count, rhs_data:rhsBuf.baseAddress!, rhs_count:rhsBuf.count) == 0
+			}
+		}
 	}
 }
 
-extension RAW_accessible where Self:Comparable, Self:RAW_comparable {
+// Comparable sugar for RAW_accessible_immutable types that are also RAW_comparable
+extension RAW_accessible_immutable where Self:Comparable, Self:RAW_comparable {
 	public static func < (lhs:Self, rhs:Self) -> Bool {
-		return lhs.RAW_access({ lhsBuff in
-			rhs.RAW_access({ rhsBuff in
-				return RAW_compare(lhs_data:lhsBuff.baseAddress!, lhs_count:lhsBuff.count, rhs_data:rhsBuff.baseAddress!, rhs_count:rhsBuff.count) < 0
-			})
-		})
+		return lhs.RAW_access_immutable(UnsafeRawBufferPointer.self) { lhsBuf in
+			rhs.RAW_access_immutable(UnsafeRawBufferPointer.self) { rhsBuf in
+				return RAW_compare(lhs_data:lhsBuf.baseAddress!, lhs_count:lhsBuf.count, rhs_data:rhsBuf.baseAddress!, rhs_count:rhsBuf.count) < 0
+			}
+		}
 	}
 }
