@@ -44,7 +44,7 @@ extension Array where Element == Value {
 }
 
 public func encode<A:RAW_accessible>(_ accessibleBytes:borrowing A) -> Encoded {
-	accessibleBytes.RAW_access { decodedBytesToEncode in
+	accessibleBytes.RAW_access_immutable(UnsafeRawBufferPointer.self) { decodedBytesToEncode in
 		return Encoded(decoded_bytes:[UInt8](decodedBytesToEncode))
 	}
 }

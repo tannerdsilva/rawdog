@@ -42,7 +42,7 @@ public struct Salt:Sendable {
 
 public func hash(phrase:borrowing String, salt:borrowing Salt) throws -> [UInt8] {
 	var count:Int32 = 0
-	return try salt.RAW_access { saltBuffer in
+	return try salt.RAW_access_immutable(UnsafeRawBufferPointer.self) { saltBuffer in
 		var dataBuffer:UnsafeMutableRawPointer? = nil
 		let newHashBuffer = __crawdog_crypt_ra(phrase, saltBuffer.baseAddress, &dataBuffer, &count)
 		guard newHashBuffer != nil else {
@@ -65,6 +65,6 @@ public func hash(phrase:borrowing String, salt:borrowing Salt) throws -> [UInt8]
 		defer {
 			free(newHashBuffer!)
 		}
-		return [UInt8](RAW_decode:dataBuffer!, count:Int(count))
+		return [UInt8](UnsafeRawBufferPointer(start:dataBuffer!, count:Int(count)))
 	}
 }

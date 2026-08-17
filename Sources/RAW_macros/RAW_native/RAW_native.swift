@@ -35,7 +35,7 @@ public struct RAW_staticbuff_fixedwidthinteger_type_macro:DeclarationMacro {
 		let loadFuncName = typeName == "UInt8" || typeName == "Int8" ? "load" : "loadUnaligned"
 		
 		let nativeGetter = """
-		func RAW_native() -> \(typeName) {
+		public func RAW_native() -> \(typeName) {
 			#if DEBUG
 			assert(MemoryLayout<Self>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
 			assert(MemoryLayout<\(typeName)>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -47,7 +47,7 @@ public struct RAW_staticbuff_fixedwidthinteger_type_macro:DeclarationMacro {
 		"""
 		
 		let nativeInit = """
-		init(RAW_native native: \(typeName)) {
+		public init(RAW_native native: \(typeName)) {
 			#if DEBUG
 			assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
 			#endif

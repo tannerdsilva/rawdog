@@ -27,8 +27,9 @@ public enum Error:Swift.Error {
 // encode functions
 /// encode a byte array to a base64 encoded string.
 public func encode<A:RAW_accessible>(_ accessible:borrowing A) -> Encoded {
-	accessible.RAW_access { encodeBytes in
-		return Encoded(decoded_bytes:encodeBytes)
+	accessible.RAW_access_immutable(UnsafeRawBufferPointer.self) { encodeBytes in
+		let typedPtr = UnsafeBufferPointer<UInt8>(start:encodeBytes.baseAddress?.assumingMemoryBound(to:UInt8.self), count:encodeBytes.count)
+		return Encoded(decoded_bytes:typedPtr)
 	}
 }
 public func encode(_ inputByte:UnsafeBufferPointer<UInt8>) -> Encoded {

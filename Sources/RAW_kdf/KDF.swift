@@ -17,8 +17,8 @@ extension RAW_hasher {
                 message.append(contentsOf: info)
             }
             message.append(blockCounter)
-            t = try Self.hmac(key: prk, message: Array(message)).RAW_access {
-				return [UInt8](RAW_decode:$0.baseAddress!, count:$0.count)
+            t = try Self.hmac(key: prk, message: Array(message)).RAW_access_immutable(UnsafeRawBufferPointer.self) {
+				return [UInt8](RAW_decode:$0)
 			}
             let needed = min(t.count, len - output.count)
             output.append(contentsOf: t.prefix(needed))

@@ -132,9 +132,26 @@ extension RAW_staticbuff_macro.BytesMacro: MemberMacro, ExtensionMacro {
 		return [
 			DeclSyntax(stringLiteral: "#RAW_fixed_type(bytes: \(numberOfBytes))"),
 			DeclSyntax(stringLiteral: "var \(rawStaticBuffArg):RAW_fixed_type"),
-			DeclSyntax(stringLiteral: "#RAW_decode_decl(RAW_staticbuff:Self.self, storage: \\.\(rawStaticBuffArg))"),
-			DeclSyntax(stringLiteral: "#RAW_access_immutable_decl(RAW_staticbuff: Self.self, storage: \\.\(rawStaticBuffArg))"),
-			DeclSyntax(stringLiteral: "#RAW_access_mutable_decl(RAW_staticbuff: Self.self, storage: \\.\(rawStaticBuffArg))"),
+			DeclSyntax(stringLiteral: """
+public init?(RAW_decode bytes:UnsafeRawBufferPointer) {
+    guard bytes.count == MemoryLayout<RAW_fixed_type>.size else { return nil }
+    self = bytes.load(as: Self.self)
+}
+"""),
+			DeclSyntax(stringLiteral: """
+public borrowing func RAW_access_immutable<R, E>(_:UnsafeRawBufferPointer.Type, _ body:(UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+    return try withUnsafePointer(to: \(rawStaticBuffArg)) { (ptr:UnsafePointer<RAW_fixed_type>) throws(E) -> R in
+        return try body(UnsafeRawBufferPointer(start:ptr, count: MemoryLayout<RAW_fixed_type>.size))
+    }
+}
+"""),
+			DeclSyntax(stringLiteral: """
+public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawBufferPointer.Type, _ body:(UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+    return try withUnsafeMutablePointer(to: &\(rawStaticBuffArg)) { (ptr:UnsafeMutablePointer<RAW_fixed_type>) throws(E) -> R in
+        return try body(UnsafeMutableRawBufferPointer(start:ptr, count: MemoryLayout<RAW_fixed_type>.size))
+    }
+}
+"""),
 			DeclSyntax(stringLiteral: defaultInitializer),
 			DeclSyntax(stringLiteral: getterFunction),
 			DeclSyntax(stringLiteral: zeroFunction),

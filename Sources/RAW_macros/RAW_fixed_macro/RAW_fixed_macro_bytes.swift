@@ -15,7 +15,7 @@ extension RAW_macros.RAW_fixed_protocol {
 
 			let numberOfBytes = RAW_macro_validators.validateRAW_fixed_byte_argument(labeledExpression:node.arguments.first!, context:context) ?? 0
 			return [
-				DeclSyntax("typealias RAW_fixed_type = \(generateUnsignedByteTypeExpression(byteCount:numberOfBytes))")
+				DeclSyntax("public typealias RAW_fixed_type = \(generateUnsignedByteTypeExpression(byteCount:numberOfBytes))")
 			]
 	    }
 

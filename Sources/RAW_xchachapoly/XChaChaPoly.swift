@@ -30,8 +30,8 @@ public struct Context {
 	// 32 byte key initialization
 	public init(key:borrowing Key32) {
 		var newContext = __crawdog_xchachapoly_ctx()
-		key.RAW_access_staticbuff {
-			__crawdog_xchachapoly_init(&newContext, $0)
+		key.RAW_access_immutable(UnsafeRawBufferPointer.self) {
+			__crawdog_xchachapoly_init(&newContext, $0.baseAddress)
 		}
 		self.ctx = newContext
 	}
@@ -45,9 +45,9 @@ public struct Context {
 	/// - returns: the tag that was generated for this encryption
 	public mutating func encrypt(nonce:consuming Nonce, associatedData:UnsafeBufferPointer<UInt8>, inputData:UnsafeBufferPointer<UInt8>, output:UnsafeMutablePointer<UInt8>) throws -> Tag {
 		var newTag = Tag()
-		switch nonce.RAW_access_staticbuff({ noncePtr in
-			return newTag.RAW_access_staticbuff_mutating { tagPtr in
-				__crawdog_xchachapoly_crypt(&ctx, noncePtr, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr, Int32(MemoryLayout<Tag>.size), 1)
+		switch nonce.RAW_access_immutable({ noncePtr in
+			return newTag.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { tagPtr in
+				__crawdog_xchachapoly_crypt(&ctx, noncePtr.baseAddress, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr.baseAddress, Int32(MemoryLayout<Tag>.size), 1)
 			}
 		}) {
 			case 0:
@@ -65,9 +65,9 @@ public struct Context {
 	///		- nonce: the nonce to use for this decryption
 	///		- associatedData: the associated data to use for this decryption. may be zero length.
 	public mutating func decrypt(tag:consuming Tag, nonce:consuming Nonce, associatedData:UnsafeBufferPointer<UInt8>, inputData:UnsafeBufferPointer<UInt8>, output:UnsafeMutablePointer<UInt8>) throws {
-		switch nonce.RAW_access_staticbuff({ noncePtr in
-			tag.RAW_access_staticbuff_mutating { tagPtr in 
-				__crawdog_xchachapoly_crypt(&ctx, noncePtr, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr, Int32(MemoryLayout<Tag>.size), 0)
+		switch nonce.RAW_access_immutable({ noncePtr in
+			tag.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { tagPtr in 
+				__crawdog_xchachapoly_crypt(&ctx, noncePtr.baseAddress, associatedData.baseAddress, Int32(associatedData.count), inputData.baseAddress, Int32(inputData.count), output, tagPtr.baseAddress, Int32(MemoryLayout<Tag>.size), 0)
 			}
 		}) {
 			case 0:

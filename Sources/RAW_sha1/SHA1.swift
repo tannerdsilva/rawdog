@@ -6,7 +6,7 @@ import RAW
 public struct Hash:Sendable{}
 
 /// a SHA1 hasher.
-public struct Hasher<RAW_hasher_outputtype:RAW_staticbuff>:RAW_hasher where RAW_hasher_outputtype.RAW_staticbuff_storetype == (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) {
+public struct Hasher<RAW_hasher_outputtype:RAW_staticbuff>:RAW_hasher where RAW_hasher_outputtype.RAW_fixed_type == (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) {
 	public static var RAW_hasher_blocksize:size_t { size_t(__CRAWDOG_SHA1_BLOCK_SIZE) }
 	
 	public typealias RAW_hasher_outputtype = Hash
@@ -33,10 +33,4 @@ public struct Hasher<RAW_hasher_outputtype:RAW_staticbuff>:RAW_hasher where RAW_
 		__crawdog_sha1_finish(&context, pointer.assumingMemoryBound(to:__crawdog_sha1_output.self))
 	}
 
-	public mutating func finish<S>(into output:inout Optional<S>) throws where S:RAW_staticbuff, S.RAW_staticbuff_storetype == RAW_hasher_outputtype.RAW_staticbuff_storetype {
-		output = S(RAW_staticbuff:S.RAW_staticbuff_zeroed())
-		output!.RAW_access_staticbuff_mutating {
-			__crawdog_sha1_finish(&context, $0.assumingMemoryBound(to:__crawdog_sha1_output.self))
-		}
-	}
 }
