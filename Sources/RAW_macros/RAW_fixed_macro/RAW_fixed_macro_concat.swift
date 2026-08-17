@@ -88,7 +88,7 @@ extension RAW_macros.RAW_fixed_protocol.ConcatMacro:DeclarationMacro {
 		}
 		buildTupleString += ")"
 		return [
-			DeclSyntax("typealias RAW_fixed_type = \(raw:buildTupleString)")
+			DeclSyntax("public typealias RAW_fixed_type = \(raw:buildTupleString)")
 		]
 	}
 }

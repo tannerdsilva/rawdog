@@ -224,7 +224,7 @@ struct RAW_fixed_type_macro_concat_tests {
 	func testRAW_fixed_type_concat_valid_use() throws {
 		assertMacroExpansion(
 			"#RAW_fixed_type(concat:Example1.self, Example2.self)",
-			expandedSource: "typealias RAW_fixed_type = (Example1.RAW_fixed_type, Example2.RAW_fixed_type)",
+			expandedSource: "public typealias RAW_fixed_type = (Example1.RAW_fixed_type, Example2.RAW_fixed_type)",
 			macroSpecs:["RAW_fixed_type": MacroSpec(type: RAW_macros.RAW_fixed_protocol.ConcatMacro.self, conformances:[])],
 			failureHandler: { (testFailureSpec:TestFailureSpec) in
 				Issue.record(
@@ -250,7 +250,7 @@ struct RAW_fixed_type_tests {
 		// test with 5 bytes
 		assertMacroExpansion(
 			"#RAW_fixed_type(bytes:5)",
-			expandedSource: "typealias RAW_fixed_type = (UInt8, UInt8, UInt8, UInt8, UInt8)",
+			expandedSource: "public typealias RAW_fixed_type = (UInt8, UInt8, UInt8, UInt8, UInt8)",
 			macroSpecs:["RAW_fixed_type": MacroSpec(type: RAW_macros.RAW_fixed_protocol.BytesMacro.self, conformances:[])],
 			failureHandler: { (testFailureSpec:TestFailureSpec) in
 				Issue.record(
@@ -267,7 +267,7 @@ struct RAW_fixed_type_tests {
 		// test with 16 bytes
 		assertMacroExpansion(
 			"#RAW_fixed_type(bytes:16)",
-			expandedSource: "typealias RAW_fixed_type = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)",
+			expandedSource: "public typealias RAW_fixed_type = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)",
 			macroSpecs:["RAW_fixed_type": MacroSpec(type: RAW_macros.RAW_fixed_protocol.BytesMacro.self, conformances:[])],
 			failureHandler: { (testFailureSpec:TestFailureSpec) in
 				Issue.record(
@@ -284,7 +284,7 @@ struct RAW_fixed_type_tests {
 		// test with 0 bytes
 		assertMacroExpansion(
 			"#RAW_fixed_type(bytes:0)",
-			expandedSource: "typealias RAW_fixed_type = ()",
+			expandedSource: "public typealias RAW_fixed_type = ()",
 			macroSpecs:["RAW_fixed_type": MacroSpec(type: RAW_macros.RAW_fixed_protocol.BytesMacro.self, conformances:[])],
 			failureHandler: { (testFailureSpec:TestFailureSpec) in
 				Issue.record(
@@ -301,7 +301,7 @@ struct RAW_fixed_type_tests {
 		// test with a positive prefix operator.
 		assertMacroExpansion(
 			"#RAW_fixed_type(bytes:+2)",
-			expandedSource:"typealias RAW_fixed_type = (UInt8, UInt8)",
+			expandedSource:"public typealias RAW_fixed_type = (UInt8, UInt8)",
 			macroSpecs:["RAW_fixed_type": MacroSpec(type: RAW_macros.RAW_fixed_protocol.BytesMacro.self, conformances:[])],
 			failureHandler: { (testFailureSpec:TestFailureSpec) in
 				Issue.record(
@@ -323,7 +323,7 @@ struct RAW_fixed_type_tests {
 		let expectedDiagnostic = DiagnosticSpec(id:expectedMessageID, message:"invalid prefix operator '-' found in bytes argument expression. only positive integer literals are allowed.", line:1, column:23)
 		assertMacroExpansion(
 			"#RAW_fixed_type(bytes:-2)",
-			expandedSource:"typealias RAW_fixed_type = ()",
+			expandedSource:"public typealias RAW_fixed_type = ()",
 			diagnostics: [expectedDiagnostic],
 			macroSpecs:["RAW_fixed_type": MacroSpec(type: RAW_macros.RAW_fixed_protocol.BytesMacro.self, conformances:[])],
 			failureHandler: { (testFailureSpec:TestFailureSpec) in
@@ -341,7 +341,7 @@ struct RAW_fixed_type_tests {
 		let expectedDiagnostic2 = DiagnosticSpec(id:expectedMessageID2, message:"float literal expressions are not allowed. only integer literals can be used to express the size of a `RAW_fixed_type`.", line:1, column:23)
 		assertMacroExpansion(
 			"#RAW_fixed_type(bytes:2.5)",
-			expandedSource:"typealias RAW_fixed_type = ()",
+			expandedSource:"public typealias RAW_fixed_type = ()",
 			diagnostics: [expectedDiagnostic2],
 			macroSpecs:["RAW_fixed_type": MacroSpec(type: RAW_macros.RAW_fixed_protocol.BytesMacro.self, conformances:[])],
 			failureHandler: { (testFailureSpec:TestFailureSpec) in
