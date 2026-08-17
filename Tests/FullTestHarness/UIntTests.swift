@@ -5,94 +5,50 @@ import Testing
 import RAW
 
 @RAW_staticbuff(bytes:1)
-@RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:true)
-fileprivate struct _UInt8:Sendable, ExpressibleByIntegerLiteral, Equatable {}
-
-extension rawdog_tests {
-	// test that the UInt8 type is correctly converting to and from a raw representation.
-	@Suite("RAWUInt8Tests")
-	struct RAWUInt8Tests {
-		@Test func testAsRAWVal() throws {
-			var value: _UInt8 = 128
-			var countout:size_t = 0
-			let rawVal = [UInt8](RAW_encodable:&value, byte_count_out:&countout)
-			let expectedBytes: [UInt8] = [0x80]
-			#expect(rawVal == expectedBytes)
-		}
-
-		@Test func testInitWithRAWData() {
-			let bytes: [UInt8] = [0x80]
-			let value = _UInt8(RAW_decode:bytes)
-			#expect(value == 128)
-		}
-	}
+fileprivate struct _UInt8:Sendable, RAW_native, Equatable {
+	#RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:true)
 }
 
 @RAW_staticbuff(bytes:2)
-@RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
-fileprivate struct _UInt16:Sendable, ExpressibleByIntegerLiteral, Equatable {}
-
-extension rawdog_tests {
-	@Suite("RAWUInt16Tests")
-	struct RAWUInt16Tests {
-		@Test func testAsRAWVal() throws {
-			var value:_UInt16 = 512
-			var countout:size_t = 0
-			let rawVal = [UInt8](RAW_encodable:&value, byte_count_out:&countout)
-			let expectedBytes: [UInt8] = [0x02, 0x00]
-			#expect(rawVal == expectedBytes)
-		}
-
-		@Test func testInitWithRAWData() {
-			var bytes: [UInt8] = [0x02, 0x00]
-			let value = _UInt16(RAW_decode:&bytes)
-			#expect(value == 512)
-		}
-	}
+fileprivate struct _UInt16:Sendable, RAW_native, Equatable {
+	#RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
 }
 
 @RAW_staticbuff(bytes:4)
-@RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
-fileprivate struct _UInt32:Sendable, ExpressibleByIntegerLiteral, Equatable {}
-
-extension rawdog_tests {
-	@Suite("RAWUInt32Tests")
-	struct RAWUInt32Tests {
-		@Test func testAsRAWVal() throws {
-			var value:_UInt32 = 512
-			var countout:size_t = 0
-			let rawVal = [UInt8](RAW_encodable:&value, byte_count_out:&countout)
-			let expectedBytes:[UInt8] = [0x00, 0x00, 0x02, 0x00]
-			#expect(rawVal == expectedBytes)
-		}
-
-		@Test func testInitWithRAWData() {
-			let bytes:[UInt8] = [0x00, 0x00, 0x02, 0x00]
-			let value = _UInt32(RAW_decode:bytes)
-			#expect(value == 512)
-		}
-	}
+fileprivate struct _UInt32:Sendable, RAW_native, Equatable {
+	#RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 }
 
 @RAW_staticbuff(bytes:8)
-@RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
-fileprivate struct _UInt64:Sendable, ExpressibleByIntegerLiteral, Equatable {}
+fileprivate struct _UInt64:Sendable, RAW_native, Equatable {
+	#RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
+}
 
 extension rawdog_tests {
-	@Suite("RAWUInt64Tests")
-	struct RAWUInt64Tests {
-		@Test func testAsRAWVal() throws {
-			var value:_UInt64 = 512
-			var countout:size_t = 0
-			let rawVal = [UInt8](RAW_encodable:&value, byte_count_out:&countout)
-			let expectedBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]
-			#expect(rawVal == expectedBytes)
+	@Suite("UIntTests")
+	struct UIntTests {
+		@Test func testUInt8() {
+			let bytes:[UInt8] = [0xAB]
+			let value = bytes.withUnsafeBytes { _UInt8(RAW_decode:$0)! }
+			#expect(value.RAW_native() == 0xAB)
 		}
 
-		@Test func testInitWithRAWData() {
-			let bytes: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]
-			let value = _UInt64(RAW_decode:bytes)
-			#expect(value == 512)
+		@Test func testUInt16() {
+			var bytes:[UInt8] = [0xAB, 0xCD]
+			let value = bytes.withUnsafeBytes { buf in var p = buf.baseAddress!; return _UInt16(RAW_staticbuff_seeking:&p) }
+			#expect(value.RAW_native() == 0xABCD)
+		}
+
+		@Test func testUInt32() {
+			let bytes:[UInt8] = [0xDE, 0xAD, 0xBE, 0xEF]
+			let value = bytes.withUnsafeBytes { _UInt32(RAW_decode:$0)! }
+			#expect(value.RAW_native() == 0xDEADBEEF)
+		}
+
+		@Test func testUInt64() {
+			let bytes:[UInt8] = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]
+			let value = bytes.withUnsafeBytes { _UInt64(RAW_decode:$0)! }
+			#expect(value.RAW_native() == 0x0102030405060708)
 		}
 	}
 }

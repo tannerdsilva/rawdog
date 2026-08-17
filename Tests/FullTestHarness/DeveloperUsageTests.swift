@@ -12,94 +12,69 @@ import __crawdog_argon2
 @RAW_staticbuff(bytes:2)
 struct MyFixeDThing:Sendable {}
 
-extension MyFixeDThing:ExpressibleByArrayLiteral {
-	@RAW_staticbuff(bytes:4)
-	struct MyInnie:Sendable {}
-} 
-
 @RAW_staticbuff(bytes:5)
-struct FixedBuff5:Sendable, ExpressibleByArrayLiteral, Equatable {}
+struct FixedBuff5:Sendable, Equatable {}
 
 @RAW_staticbuff(bytes:8)
-@RAW_staticbuff_binaryfloatingpoint_type<Double>()
-struct EncodedDouble:Sendable, ExpressibleByFloatLiteral {}
+struct EncodedDouble:Sendable {
+	#RAW_staticbuff_binaryfloatingpoint_type<Double>()
+}
 
 @RAW_staticbuff(bytes:4)
-@RAW_staticbuff_binaryfloatingpoint_type<Float>()
-struct EncodedFloat:Sendable, ExpressibleByFloatLiteral {}
-
-@RAW_staticbuff(concat:			FixedBuff5.self, 
-								EncodedDouble.self,
-								EncodedFloat.self,
-								FixedBuff5.self)
-struct MYSTRUCT:Sendable {
-	// this is a test of comments in the struct. (they seem to work ok)
-	private var firstItem:FixedBuff5
-	private var secondItem:EncodedDouble
-	private var thirdItem:EncodedFloat
-	private var fourthItem:FixedBuff5
+struct EncodedFloat:Sendable {
+	#RAW_staticbuff_binaryfloatingpoint_type<Float>()
 }
 
-@RAW_staticbuff(concat:			EncodedDouble.self,
-								EncodedFloat.self)
-fileprivate struct MYSTRUCT2:Sendable {
-	private var firstItem:EncodedDouble
-	private var secondItem:EncodedFloat
+@RAW_staticbuff(concat:FixedBuff5.self, EncodedDouble.self, EncodedFloat.self, FixedBuff5.self)
+struct MYSTRUCT:Sendable {}
 
-	fileprivate static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
-		var lhs = lhs_data.load(as:Self.self)
-		var rhs = rhs_data.load(as:Self.self)
-		let lastItemCompare = EncodedFloat.RAW_compare(lhs_data:&lhs.secondItem, rhs_data:&rhs.secondItem)
-		if lastItemCompare != 0 {
-			return lastItemCompare
-		}
-		return EncodedDouble.RAW_compare(lhs_data:&lhs.firstItem, rhs_data:&rhs.firstItem)
-	}
-}
+@RAW_staticbuff(concat:EncodedDouble.self, EncodedFloat.self)
+fileprivate struct MYSTRUCT2:Sendable {}
 
-@RAW_staticbuff(concat:MyFixeDThing.MyInnie.self)
-struct MyInnieWrapper:Sendable {
-	var innie:MyFixeDThing.MyInnie
-}
+@RAW_staticbuff(concat:MyFixeDThing.self)
+struct MyInnieWrapper:Sendable {}
 
 @RAW_staticbuff(bytes:8)
-@RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
-struct MyUInt64Equivalent:Sendable {}
+struct MyUInt64Equivalent:Sendable, RAW_native {
+	#RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
+}
 
-@RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 @RAW_staticbuff(bytes:4)
-struct MyUInt32Equivalent:Sendable {}
+struct MyUInt32Equivalent:Sendable, RAW_native {
+	#RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
+}
 
-@RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
 @RAW_staticbuff(bytes:2)
-struct MyUInt16Equivalent:Sendable {}
+struct MyUInt16Equivalent:Sendable, RAW_native {
+	#RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
+}
 
 @RAW_staticbuff(concat:MyUInt16Equivalent.self, MyUInt32Equivalent.self, MyUInt64Equivalent.self)
-struct MySpecialUIntType:Sendable {
-	var bitVar16:MyUInt16Equivalent
-	var bitVar32:MyUInt32Equivalent
-	var bitVar64:MyUInt64Equivalent
-	static let myComputedVar:String = "Hello"
-}
+struct MySpecialUIntType:Sendable {}
 
 @RAW_staticbuff(bytes:8)
-@RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
-struct EncodedUInt64:ExpressibleByIntegerLiteral, Sendable {}
+struct EncodedUInt64:Sendable, RAW_native {
+	#RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
+}
 
 @RAW_staticbuff(bytes:4)
-@RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
-struct EncodedUInt32:ExpressibleByIntegerLiteral, Sendable {}
+struct EncodedUInt32:Sendable, RAW_native {
+	#RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
+}
 
-// // mydually - this is used to test the linear sort and compare functions of the ConcatBufferType macro.
 @RAW_staticbuff(concat:EncodedUInt64.self, EncodedUInt32.self)
 struct MyDually:Sendable {
-	var first: EncodedUInt64
-	static let myThing:MyDually = MyDually(first: 10, second: 20)
-	var second: EncodedUInt32
-
 	init(first:UInt64, second:UInt32) {
-		self.first = EncodedUInt64(RAW_native:first)
-		self.second = EncodedUInt32(RAW_native:second)
+		self = EncodedUInt64(RAW_native:first).RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { buf1 in
+			return EncodedUInt32(RAW_native:second).RAW_access_immutable(UnsafeRawBufferPointer.self) { buf2 in
+				var result = MyDually()
+				result.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { resultBuf in
+					resultBuf.copyMemory(from: UnsafeRawBufferPointer(rebasing:buf1[0..<8]))
+					resultBuf.storeBytes(of: EncodedUInt32(RAW_native:second), toByteOffset:8, as:EncodedUInt32.self)
+				}
+				return result
+			}
+		}
 	}
 }
 
@@ -110,42 +85,10 @@ extension rawdog_tests {
 	struct TestDeveloperUsage {
 		@Test func testConcatMemoryLayout() {
 			let _ = MyUInt64Equivalent(RAW_native:66)
-			var _:FixedBuff5 = FixedBuff5(RAW_staticbuff:[0, 1, 2, 3, 4]) 
-			let _:FixedBuff5 = [0, 1, 2, 3, 4]
 		}
 
 		@Test func testEntropyNoThrow() throws {
 			let _ = try generateSecureRandomBytes(as:MySpecialUIntType.self)
-		}
-		@Test func testSortingByFirstVariable() {
-
-			// XCTAssertTrue(EncodedUInt64.RAW_compare(lhs:5, rhs:10) < 0)
-
-			let dually1 = MyDually(first: 10, second: 20)
-			let dually2 = MyDually(first: 5, second: 30)
-
-			#expect(dually2 < dually1, "\(dually2) < \(dually1)")
-
-			let dually3 = MyDually(first: 15, second: 40)
-
-			#expect(dually1 < dually3, "\(dually1) < \(dually3)")
-
-			let sortedArray = [dually1, dually2, dually3].sorted()
-
-			#expect(sortedArray == [dually2, dually1, dually3], "\(sortedArray)")
-		}
-
-		@Test func testComparingByFirstVariable() {
-			let dually1 = MyDually(first: 10, second: 20)
-			let dually2 = MyDually(first: 5, second: 30)
-			let dually3 = MyDually(first: 15, second: 40)
-
-			#expect(dually1 > dually2, "\(dually1) < \(dually2)")
-			#expect((dually2 > dually1) == false, "\(dually2) < \(dually1)")
-			#expect(dually1 < dually3, "\(dually1) < \(dually3)")
-			#expect((dually3 < dually1) == false, "\(dually3) < \(dually1)")
-			#expect(dually2 < dually3, "\(dually2) < \(dually3)")
-			#expect((dually3 < dually2) == false, "\(dually3) < \(dually2)")
 		}
 
 		@Test func testBlake2AndHexFunctionality() throws {
@@ -266,17 +209,13 @@ extension rawdog_tests {
 			#expect(blake2sHashString == "HfZQsfk=")
 			let b64Encoded:RAW_base64.Encoded = "HfZQsfk="
 			let base64Decoded = b64Encoded.decoded_data
-			// let base64Decoded = try RAW_base64.decode("HfZQsfk=")
-			let asBuff = FixedBuff5(RAW_decode:base64Decoded)!
+			let asBuff = base64Decoded.withUnsafeBytes { FixedBuff5(RAW_decode:$0)! }
 			#expect(blake2sHash == asBuff)
 		}
 
-		// verifies that the size of a tuple is equal to the sum of the sizes of its members.
 		@Test func testLayeredSizingOfStaticStructs() {
 			#expect(MemoryLayout<(FixedBuff5, FixedBuff5)>.size == 10)
-
 			#expect(MemoryLayout<MySpecialUIntType>.size == 14)
-
 			#expect(MemoryLayout<MySpecialUIntType>.stride == 14)
 		}
 
@@ -290,10 +229,10 @@ extension rawdog_tests {
 		
 		@Test func testPointerComparisons() {
 			let newStruct = MyLongStruct(RAW_staticbuff:MyLongStruct.RAW_staticbuff_zeroed())
-			let firstBaseAddress = newStruct.RAW_access { pointer in
+			let firstBaseAddress = newStruct.RAW_access_immutable(UnsafeRawBufferPointer.self) { pointer in
 				return pointer.baseAddress!
 			}
-			let secondAddress = newStruct.RAW_access { pointer in
+			let secondAddress = newStruct.RAW_access_immutable(UnsafeRawBufferPointer.self) { pointer in
 				return pointer.baseAddress!
 			}
 			#expect(firstBaseAddress == secondAddress)

@@ -19,7 +19,7 @@ struct NumberTests {
 			var value:_Double = _Double(RAW_native:Double.random(in:0..<Double.greatestFiniteMagnitude))
 			var countout:size_t = 0
 			let valueBytes = [UInt8](RAW_encodable:&value, byte_count_out:&countout)
-			let newVal = _Double(RAW_decode:valueBytes)!
+			let newVal = valueBytes.withUnsafeBytes { _Double(RAW_decode:$0)! }
 			#expect(newVal == value)
 		}
 	}
@@ -29,7 +29,7 @@ struct NumberTests {
 			var value:_Float = _Float(RAW_native:Float.random(in:0..<Float.greatestFiniteMagnitude))
 			var countout:size_t = 0
 			let valueBytes = [UInt8](RAW_encodable:&value, byte_count_out:&countout)
-			let newVal = _Float(RAW_decode:valueBytes)!
+			let newVal = valueBytes.withUnsafeBytes { _Float(RAW_decode:$0)! }
 			#expect(newVal == value)
 		}
 	}
