@@ -66,11 +66,11 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 		// stored properties
 		result.append(DeclSyntax("""
 		/// the length of the string without the null terminator
-		private let \(countVarName):size_t
+		private let \(raw: countVarName.text):size_t
 		"""))
 		result.append(DeclSyntax("""
 		/// this is stored with a terminating byte for C compatibility but this null terminator is not included in the count variable that this instance stores
-		private var \(bytesVarName):[UInt8]
+		private var \(raw: bytesVarName.text):[UInt8]
 		"""))
 
 		// typealiases
@@ -84,7 +84,7 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 		// makeIterator
 		result.append(DeclSyntax("""
 		public consuming func makeIterator() -> RAW_encoded_unicode_iterator<Self> {
-			return RAW_encoded_unicode_iterator(\(bytesVarName), encoding:Self.self)
+			return RAW_encoded_unicode_iterator(\(raw: bytesVarName.text), encoding:Self.self)
 		}
 		"""))
 
@@ -92,8 +92,8 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 		result.append(DeclSyntax("""
 		public init?(RAW_decode buffer:UnsafeRawBufferPointer) {
 			let asBuffer = UnsafeBufferPointer<UInt8>(start:buffer.baseAddress?.assumingMemoryBound(to:UInt8.self), count:buffer.count)
-			\(bytesVarName) = [UInt8](asBuffer)
-			\(countVarName) = buffer.count
+			\(raw: bytesVarName.text) = [UInt8](asBuffer)
+			\(raw: countVarName.text) = buffer.count
 		}
 		"""))
 
@@ -112,40 +112,54 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 					}
 				}
 			}
-			\(countVarName) = byteCount
-			\(bytesVarName) = bytes
+			\(raw: countVarName.text) = byteCount
+			\(raw: bytesVarName.text) = bytes
 		}
 		"""))
 
 		// RAW_access_immutable
 		result.append(DeclSyntax("""
-		public borrowing func RAW_access_immutable<R, E>(_ body:(UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-			return try \(bytesVarName).withUnsafeBytes { buffer in
-				try body(buffer)
+		public borrowing func RAW_access_immutable<R, E>(_:UnsafeRawBufferPointer.Type, _ body:(UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+			let result:Result<R, E> = \(raw: bytesVarName.text).withUnsafeBytes { buffer in
+				do {
+					return .success(try body(buffer))
+				} catch let error as E {
+					return .failure(error)
+				} catch {
+					fatalError("unexpected error type")
+				}
 			}
+			return try result.get()
 		}
 		"""))
 
 		// RAW_access_mutable
 		result.append(DeclSyntax("""
-		public mutating func RAW_access_mutable<R, E>(_ body:(UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-			return try \(bytesVarName).withUnsafeMutableBytes { buffer in
-				try body(buffer)
+		public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawBufferPointer.Type, _ body:(UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+			let result:Result<R, E> = \(raw: bytesVarName.text).withUnsafeMutableBytes { buffer in
+				do {
+					return .success(try body(buffer))
+				} catch let error as E {
+					return .failure(error)
+				} catch {
+					fatalError("unexpected error type")
+				}
 			}
+			return try result.get()
 		}
 		"""))
 
 		// RAW_encode(count:)
 		result.append(DeclSyntax("""
 		public borrowing func RAW_encode(count:inout Int) {
-			count += \(countVarName)
+			count += \(raw: countVarName.text)
 		}
 		"""))
 
 		// RAW_encode(_:destination:)
 		result.append(DeclSyntax("""
 		@discardableResult public borrowing func RAW_encode(_:UnsafeMutableRawPointer.Type, destination:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-			return \(bytesVarName).withUnsafeBytes { buffer in
+			return \(raw: bytesVarName.text).withUnsafeBytes { buffer in
 				let dest = destination
 				dest.copyMemory(from: buffer.baseAddress!, byteCount: buffer.count)
 				return dest.advanced(by: buffer.count)

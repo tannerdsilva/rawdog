@@ -120,6 +120,44 @@ extension rawdog_tests {
 		}
 	}
 	
+	// MARK: - RAW_encoded_unicode
+	
+	@RAW_staticbuff(bytes: 2)
+	struct _UTF16Char: RAW_encoded_fixedwidthinteger, Sendable {
+		#RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian: true)
+	}
+	
+	@RAW_convertible_string_type<UTF16>(backing: _UTF16Char.self)
+	struct TestUTF16String: Sendable {}
+	
+	@Suite("RAW_encoded_unicode via @RAW_convertible_string_type")
+	struct ConvertibleStringTypeTests {
+		@Test("init from String")
+		func testStringInit() {
+			let s = TestUTF16String("Hello")
+			// Verify it's accessible as raw bytes
+			let count = s.RAW_access_immutable(UnsafeRawBufferPointer.self) { $0.count }
+			#expect(count > 0)
+		}
+		
+		@Test("init from UnicodeScalarView")
+		func testUnicodeScalarInit() {
+			let scalars = "World".unicodeScalars
+			let s = TestUTF16String(scalars)
+			let count = s.RAW_access_immutable(UnsafeRawBufferPointer.self) { $0.count }
+			#expect(count > 0)
+		}
+		
+		@Test("iterator produces characters")
+		func testIterator() {
+			let s = TestUTF16String("Hi")
+			var iter = s.makeIterator()
+			#expect(iter.next() == "H")
+			#expect(iter.next() == "i")
+			#expect(iter.next() == nil)
+		}
+	}
+	
 	// MARK: - RAW_hex Sequence conformances
 	
 	@Suite("RAW_hex sequence conformances")
