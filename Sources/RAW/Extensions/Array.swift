@@ -4,15 +4,29 @@
 // MARK: RAW_accessible_immutable + RAW_accessible_mutable
 extension Array:RAW_accessible_immutable, RAW_accessible_mutable, RAW_encodable where Element == UInt8 {
 	public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawBufferPointer.Type, _ body:(UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-		return try Swift.withUnsafeMutableBytes(of:&self) { rawBuff throws(E) -> R in
-			return try body(rawBuff)
+		let result:Result<R, E> = self.withUnsafeMutableBytes { rawBuff in
+			do {
+				return .success(try body(rawBuff))
+			} catch let error as E {
+				return .failure(error)
+			} catch {
+				fatalError("unexpected error type in RAW_access_mutable for Array: \(error)")
+			}
 		}
+		return try result.get()
 	}
 
 	public borrowing func RAW_access_immutable<R, E>(_:UnsafeRawBufferPointer.Type, _ body:(UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
-		return try Swift.withUnsafeBytes(of:self) { rawBuff throws(E) -> R in
-			return try body(rawBuff)
+		let result:Result<R, E> = self.withUnsafeBytes { rawBuff in
+			do {
+				return .success(try body(rawBuff))
+			} catch let error as E {
+				return .failure(error)
+			} catch {
+				fatalError("unexpected error type in RAW_access_immutable for Array: \(error)")
+			}
 		}
+		return try result.get()
 	}
 
 	public borrowing func RAW_encode(count cntVar:inout Int) {
@@ -20,8 +34,8 @@ extension Array:RAW_accessible_immutable, RAW_accessible_mutable, RAW_encodable 
 	}
 
 	@discardableResult public borrowing func RAW_encode(_:UnsafeMutableRawPointer.Type, destination dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-		return Swift.withUnsafeBytes(of:self) { buff in
-			return RAW_memcpy(dest, buff.baseAddress, buff.count)
+		return self.withUnsafeBytes { buff in
+			return RAW_memcpy(dest, buff.baseAddress, buff.count) + buff.count
 		}
 	}
 }

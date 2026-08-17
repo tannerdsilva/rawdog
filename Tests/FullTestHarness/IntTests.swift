@@ -48,7 +48,7 @@ extension rawdog_tests {
 		@Test func testInt64() {
 			let bytes:[UInt8] = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0x00]
 			let value = bytes.withUnsafeBytes { _Int64(RAW_decode:$0)! }
-			#expect(value.RAW_native() == 0xFFFFFFFFFFFE00)
+			#expect(value.RAW_native() == 0xFFFFFFFFFFFFFE00)
 		}
 	}
 }
