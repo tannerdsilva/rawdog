@@ -5,21 +5,19 @@ import Testing
 @testable import RAW
 
 @RAW_staticbuff(bytes:2)
-fileprivate struct _UTF16_CHAR:Sendable, RAW_native {
+fileprivate struct _UTF16_CHAR:RAW_encoded_fixedwidthinteger, Sendable {
 	#RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
 }
-
-@RAW_convertible_string_type<UTF16>(backing:_UTF16_CHAR.self)
-fileprivate struct MyUTF16:Sendable {}
 
 extension rawdog_tests {
 	@Suite("StringTests")
 	struct StringTests {
 		@Test func testRAWEncodeAndDecodeUTF16() {
-			var myStarterString = MyUTF16()
-			var bcount = 0
-			let _ = [UInt8](RAW_encodable:&myStarterString, byte_count_out:&bcount)
-			#expect(bcount == 0)
+			var char = _UTF16_CHAR(RAW_native: UInt16(0x0041)) // 'A'
+			var bcount:size_t = 0
+			let encoded = [UInt8](RAW_encodable:&char, byte_count_out:&bcount)
+			#expect(bcount == 2)
+			#expect(encoded == [0x00, 0x41])
 		}
 	}
 }

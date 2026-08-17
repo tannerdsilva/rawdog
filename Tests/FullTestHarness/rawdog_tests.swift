@@ -17,6 +17,6 @@ public struct rawdog_tests {
 		let rightThing = key.RAW_access_immutable(UnsafeRawBufferPointer.self) { buff in
 			return buff
 		}
-		#expect(leftThing == rightThing)
+		#expect(leftThing.baseAddress == rightThing.baseAddress)
 	}
 }

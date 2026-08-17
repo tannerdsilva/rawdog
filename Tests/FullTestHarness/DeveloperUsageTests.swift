@@ -13,15 +13,15 @@ import __crawdog_argon2
 struct MyFixeDThing:Sendable {}
 
 @RAW_staticbuff(bytes:5)
-struct FixedBuff5:Sendable, Equatable {}
+struct FixedBuff5:Sendable, Equatable, RAW_decodable {}
 
 @RAW_staticbuff(bytes:8)
-struct EncodedDouble:Sendable {
+struct EncodedDouble:RAW_native, Sendable {
 	#RAW_staticbuff_binaryfloatingpoint_type<Double>()
 }
 
 @RAW_staticbuff(bytes:4)
-struct EncodedFloat:Sendable {
+struct EncodedFloat:RAW_native, Sendable {
 	#RAW_staticbuff_binaryfloatingpoint_type<Float>()
 }
 
@@ -63,20 +63,7 @@ struct EncodedUInt32:Sendable, RAW_native {
 }
 
 @RAW_staticbuff(concat:EncodedUInt64.self, EncodedUInt32.self)
-struct MyDually:Sendable {
-	init(first:UInt64, second:UInt32) {
-		self = EncodedUInt64(RAW_native:first).RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { buf1 in
-			return EncodedUInt32(RAW_native:second).RAW_access_immutable(UnsafeRawBufferPointer.self) { buf2 in
-				var result = MyDually()
-				result.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { resultBuf in
-					resultBuf.copyMemory(from: UnsafeRawBufferPointer(rebasing:buf1[0..<8]))
-					resultBuf.storeBytes(of: EncodedUInt32(RAW_native:second), toByteOffset:8, as:EncodedUInt32.self)
-				}
-				return result
-			}
-		}
-	}
-}
+struct MyDually:Sendable {}
 
 extension MyDually:Comparable, Equatable {}
 
@@ -88,7 +75,7 @@ extension rawdog_tests {
 		}
 
 		@Test func testEntropyNoThrow() throws {
-			let _ = try generateSecureRandomBytes(as:MySpecialUIntType.self)
+			let _ = try generateSecureRandomBytes(count: MemoryLayout<MySpecialUIntType>.size)
 		}
 
 		@Test func testBlake2AndHexFunctionality() throws {
@@ -200,7 +187,7 @@ extension rawdog_tests {
 					break;
 				}
 			}
-			var blake2sHasher = try Hasher<S, FixedBuff5>()
+			var blake2sHasher = try Hasher<S, [UInt8]>(outputCount:5)
 			try blake2sHasher.update(Array("Hello".utf8))
 			var blake2sHash = try blake2sHasher.finish()
 			var countout:size_t = 0
@@ -209,8 +196,7 @@ extension rawdog_tests {
 			#expect(blake2sHashString == "HfZQsfk=")
 			let b64Encoded:RAW_base64.Encoded = "HfZQsfk="
 			let base64Decoded = b64Encoded.decoded_data
-			let asBuff = base64Decoded.withUnsafeBytes { FixedBuff5(RAW_decode:$0)! }
-			#expect(blake2sHash == asBuff)
+			#expect(blake2sHash == base64Decoded)
 		}
 
 		@Test func testLayeredSizingOfStaticStructs() {

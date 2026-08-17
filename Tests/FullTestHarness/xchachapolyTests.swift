@@ -22,10 +22,12 @@ extension rawdog_tests {
 			defer {
 				buffer.deallocate()
 			}
-			let returnedTag = try plaintextData.RAW_access { ptPtr in
-				return try aad.RAW_access { aadPtr in
+			let returnedTag = try plaintextData.withUnsafeBytes { (ptPtr:UnsafeRawBufferPointer) in
+				return try aad.withUnsafeBytes { (aadPtr:UnsafeRawBufferPointer) in
 					var context = RAW_xchachapoly.Context(key:key)
-					return try context.encrypt(nonce:nonce, associatedData:aadPtr, inputData:ptPtr, output:buffer.baseAddress!)
+					let ptTyped = UnsafeBufferPointer<UInt8>(start:ptPtr.baseAddress?.assumingMemoryBound(to:UInt8.self), count:ptPtr.count)
+					let aadTyped = UnsafeBufferPointer<UInt8>(start:aadPtr.baseAddress?.assumingMemoryBound(to:UInt8.self), count:aadPtr.count)
+					return try context.encrypt(nonce:nonce, associatedData:aadTyped, inputData:ptTyped, output:buffer.baseAddress!)
 				}
 			}
 			let expectedTag = RAW_chachapoly.Tag(RAW_staticbuff:try RAW_hex.decode("c0875924c1c7987947deafd8780acf49"))
@@ -36,8 +38,10 @@ extension rawdog_tests {
 		}
 		@Test func testXChachaPolyEncryptDecryptRandomData() throws {
 			for i in 0..<64 {
-				var testKey = try generateSecureRandomBytes(as:Key32.self)
-				var testNonce = try generateSecureRandomBytes(as:RAW_xchachapoly.Nonce.self)
+				let keyBytes = try generateSecureRandomBytes(count: MemoryLayout<Key32>.size)
+				var testKey = keyBytes.withUnsafeBytes { Key32(RAW_decode:$0)! }
+				let nonceBytes = try generateSecureRandomBytes(count: MemoryLayout<RAW_xchachapoly.Nonce>.size)
+				var testNonce = nonceBytes.withUnsafeBytes { RAW_xchachapoly.Nonce(RAW_decode:$0)! }
 
 				var context = RAW_xchachapoly.Context(key:testKey)
 				var plaintext = Array<UInt8>("hello this is some plain text - lets see if we can encrypt it".utf8)
@@ -45,9 +49,12 @@ extension rawdog_tests {
 				defer {
 					byteBuffer.deallocate()
 				}
-				let tag = try plaintext.RAW_access { ptPtr in
-					return try [UInt8]().RAW_access { adBuff in
-						return try context.encrypt(nonce:testNonce, associatedData:adBuff, inputData:ptPtr, output:byteBuffer.baseAddress!)
+				let tag = try plaintext.withUnsafeBytes { (ptPtr:UnsafeRawBufferPointer) in
+					let emptyBuf = [UInt8]()
+					return try emptyBuf.withUnsafeBytes { (adBuff:UnsafeRawBufferPointer) in
+						let ptTyped = UnsafeBufferPointer<UInt8>(start:ptPtr.baseAddress?.assumingMemoryBound(to:UInt8.self), count:ptPtr.count)
+						let adTyped = UnsafeBufferPointer<UInt8>(start:adBuff.baseAddress?.assumingMemoryBound(to:UInt8.self), count:adBuff.count)
+						return try context.encrypt(nonce:testNonce, associatedData:adTyped, inputData:ptTyped, output:byteBuffer.baseAddress!)
 					}
 				}
 				let decryptedBytes = [UInt8](byteBuffer)
@@ -56,9 +63,11 @@ extension rawdog_tests {
 				defer {
 					reverseText.deallocate()
 				}
-				try plaintext.RAW_access { ptPtr in
-					try [UInt8]().RAW_access { adBuff in
-						try context.decrypt(tag:tag, nonce:testNonce, associatedData:adBuff, inputData:UnsafeBufferPointer<UInt8>(byteBuffer), output:reverseText.baseAddress!)
+				try plaintext.withUnsafeBytes { (ptPtr:UnsafeRawBufferPointer) in
+					let emptyBuf = [UInt8]()
+					try emptyBuf.withUnsafeBytes { (adBuff:UnsafeRawBufferPointer) in
+						let adTyped = UnsafeBufferPointer<UInt8>(start:adBuff.baseAddress?.assumingMemoryBound(to:UInt8.self), count:adBuff.count)
+						try context.decrypt(tag:tag, nonce:testNonce, associatedData:adTyped, inputData:UnsafeBufferPointer<UInt8>(byteBuffer), output:reverseText.baseAddress!)
 					}
 				}
 				let reverseBytes = [UInt8](reverseText)

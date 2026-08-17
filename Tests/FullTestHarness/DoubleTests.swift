@@ -4,12 +4,14 @@ import Testing
 import RAW
 
 @RAW_staticbuff(bytes:8)
-@RAW_staticbuff_binaryfloatingpoint_type<Double>()
-fileprivate struct _Double:Equatable, Sendable {}
+fileprivate struct _Double:RAW_native, Equatable, Sendable {
+	#RAW_staticbuff_binaryfloatingpoint_type<Double>()
+}
 
 @RAW_staticbuff(bytes:4)
-@RAW_staticbuff_binaryfloatingpoint_type<Float>()
-fileprivate struct _Float:Sendable, Equatable {}
+fileprivate struct _Float:RAW_native, Sendable, Equatable {
+	#RAW_staticbuff_binaryfloatingpoint_type<Float>()
+}
 
 @Suite("RAW floating point macros")
 struct NumberTests {
