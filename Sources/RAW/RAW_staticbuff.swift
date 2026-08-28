@@ -27,11 +27,11 @@ extension RAW_staticbuff where Self:RAW_accessible_mutable {
 }
 
 @attached(member, names: arbitrary)
-@attached(extension, conformances: RAW_staticbuff, RAW_accessible, RAW_decodable, RAW_encodable, RAW_comparable)
+@attached(extension, conformances: RAW_staticbuff, RAW_accessible, RAW_decodable, RAW_encodable, RAW_comparable, RAW_comparable_fixed)
 public macro RAW_staticbuff(bytes:Int) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_macro.BytesMacro")
 
 @attached(member, names: arbitrary)
-@attached(extension, conformances: RAW_staticbuff, RAW_accessible, RAW_decodable, RAW_encodable, RAW_comparable)
+@attached(extension, conformances: RAW_staticbuff, RAW_accessible, RAW_decodable, RAW_encodable, RAW_comparable, RAW_comparable_fixed)
 public macro RAW_staticbuff(concat:any RAW_staticbuff.Type...) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_macro.ConcatMacro")
 
 @freestanding(expression)
