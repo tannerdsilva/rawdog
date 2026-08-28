@@ -13,6 +13,16 @@ public protocol RAW_comparable_fixed:RAW_comparable, RAW_fixed {
 	static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32
 }
 
+/// default implementation for comparable fixed on raw staticbuff types.
+extension RAW_comparable_fixed where Self:RAW_staticbuff {
+	public static func RAW_comparable_fixed_theoretical_max() -> Self {
+		return ~Self(RAW_staticbuff:Self.RAW_staticbuff_zeroed())
+	}
+	public static func RAW_comparable_fixed_theoretical_min() -> Self {
+		return Self(RAW_staticbuff:Self.RAW_staticbuff_zeroed())
+	}
+}
+
 extension RAW_comparable_fixed {
 	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
 		#if DEBUG

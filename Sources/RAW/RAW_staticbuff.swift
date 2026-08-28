@@ -1,4 +1,4 @@
-public protocol RAW_staticbuff:RAW_fixed, Sendable {}
+public protocol RAW_staticbuff:RAW_fixed, RAW_comparable_fixed, Sendable {}
 
 // MARK: - Seeking initializer
 extension RAW_staticbuff {
