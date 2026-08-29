@@ -43,5 +43,41 @@ extension rawdog_tests {
 			let storagePointer = VerificationContext(publicKey:keypair.0).storage
 			#expect(storagePointer != nil)
 		}
+		
+		@Test("RAW_ed25519 :: sign / verify round-trip with tamper detection")
+		func testSignVerifyRoundTrip() throws {
+			let randomPrivateKey = try generateSecureRandomBytes(count:32).withUnsafeBytes { buff in
+				return MemoryGuarded<RAW_dh25519.PrivateKey>(RAW_decode:buff)!
+			}
+			let keypair = try generateKeys(secretKey:randomPrivateKey)
+			let message:[UInt8] = [0x00, 0x01, 0x02, 0x03, 0xDE, 0xAD, 0xBE, 0xEF]
+			var signature = [UInt8](repeating:0, count:64)
+
+			// free-function sign / verify
+			message.withUnsafeBufferPointer { msgBuf in
+				signature.withUnsafeMutableBufferPointer { sigBuf in
+					sign(to:sigBuf, privateKey:keypair.1, message:msgBuf)
+				}
+				signature.withUnsafeBufferPointer { sigBuf in
+					#expect(verify(signature:sigBuf, publicKey:keypair.0, message:msgBuf) == true)
+				}
+			}
+
+			// reusable verification context
+			let verifyCtx = VerificationContext(publicKey:keypair.0)
+			message.withUnsafeBufferPointer { msgBuf in
+				signature.withUnsafeBufferPointer { sigBuf in
+					#expect(verifyCtx.verify(signature:sigBuf, message:msgBuf) == true)
+				}
+			}
+
+			// tampered signature must fail
+			signature[0] ^= 0xFF
+			message.withUnsafeBufferPointer { msgBuf in
+				signature.withUnsafeBufferPointer { sigBuf in
+					#expect(verify(signature:sigBuf, publicKey:keypair.0, message:msgBuf) == false)
+				}
+			}
+		}
 	}
 }
