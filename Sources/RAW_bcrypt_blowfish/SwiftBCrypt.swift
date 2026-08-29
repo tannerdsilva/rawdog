@@ -36,7 +36,7 @@ public struct Salt:Sendable {
 		defer {
 			free(newSaltBuffer!)
 		}
-		return Salt(RAW_staticbuff:newSaltBuffer!)
+		return Salt(RAW_staticbuff:UnsafeRawPointer(newSaltBuffer!).loadUnaligned(as:Salt.RAW_fixed_type.self))
 	}
 }
 

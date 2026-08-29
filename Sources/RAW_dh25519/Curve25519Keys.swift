@@ -6,14 +6,14 @@ import RAW
 public struct PublicKey:Sendable, Hashable, Comparable, Equatable {
 	/// generates a public key from a private key
 	public init(privateKey:UnsafePointer<PrivateKey>) {
-		var newPublicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
+		var newPublicKey = PublicKey.RAW_comparable_fixed_theoretical_min()
 		newPublicKey.RAW_access_mutable(UnsafeMutableRawBufferPointer.self, { publicKeyPtr in
 			__crawdog_curve25519_calculate_public_key(publicKeyPtr.baseAddress!, privateKey)
 		})
 		self = newPublicKey
 	}
 	public init(privateKey:MemoryGuarded<PrivateKey>) {
-		self = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
+		self = PublicKey.RAW_comparable_fixed_theoretical_min()
 		RAW_access_mutable(UnsafeMutableRawBufferPointer.self, { publicKeyPtr in
 			privateKey.RAW_access_immutable(UnsafeRawBufferPointer.self, { pkBuff in
 				__crawdog_curve25519_calculate_public_key(publicKeyPtr.baseAddress!, pkBuff.baseAddress)

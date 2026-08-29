@@ -23,7 +23,7 @@ public struct BlindingContext:~Copyable {
 	///	- parameters:
 	///		- secretKey: the dh25519 private key that should be used to create the
 	public borrowing func generateKeys(secretKey:MemoryGuarded<RAW_dh25519.PrivateKey>) throws -> (PublicKey, MemoryGuarded<PrivateKey>) {
-		var publicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
+		var publicKey = PublicKey.RAW_comparable_fixed_theoretical_min()
 		let privateKey = try MemoryGuarded<PrivateKey>.blank()
 		publicKey.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { publicKeyPtr in
 			privateKey.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { privateKeyPtr in
@@ -81,7 +81,7 @@ public struct VerificationContext:~Copyable {
 
 /// generate the private and public key pair that will be used for signing.
 public func generateKeys(secretKey:MemoryGuarded<RAW_dh25519.PrivateKey>) throws -> (PublicKey, MemoryGuarded<PrivateKey>) {
-	var publicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
+	var publicKey = PublicKey.RAW_comparable_fixed_theoretical_min()
 	let privateKey = try MemoryGuarded<PrivateKey>.blank()
 	publicKey.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { publicKeyPtr in
 		privateKey.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { privateKeyPtr in

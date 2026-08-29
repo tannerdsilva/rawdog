@@ -46,12 +46,12 @@ struct RAW_staticbuff_bytes_tests {
 					_bytes = storetype
 				}
 
-				@available(*, deprecated, message: "use RAW_staticbuff() via RAW_fixed_type conformance instead")
+				@available(*, deprecated, message: "access the stored RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public consuming func RAW_staticbuff() -> RAW_fixed_type {
 					return _bytes
 				}
 
-				@available(*, deprecated, message: "use RAW_staticbuff_zeroed() via RAW_fixed_type conformance instead")
+				@available(*, deprecated, message: "construct a zeroed instance from a zeroed RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public static func RAW_staticbuff_zeroed() -> RAW_fixed_type {
 					(0, 0, 0, 0, 0)
 				}
@@ -119,12 +119,12 @@ struct RAW_staticbuff_bytes_tests {
 					_bytes = storetype
 				}
 
-				@available(*, deprecated, message: "use RAW_staticbuff() via RAW_fixed_type conformance instead")
+				@available(*, deprecated, message: "access the stored RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public consuming func RAW_staticbuff() -> RAW_fixed_type {
 					return _bytes
 				}
 
-				@available(*, deprecated, message: "use RAW_staticbuff_zeroed() via RAW_fixed_type conformance instead")
+				@available(*, deprecated, message: "construct a zeroed instance from a zeroed RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public static func RAW_staticbuff_zeroed() -> RAW_fixed_type {
 					(0)
 				}
@@ -192,12 +192,12 @@ struct RAW_staticbuff_bytes_tests {
 					_bytes = storetype
 				}
 
-				@available(*, deprecated, message: "use RAW_staticbuff() via RAW_fixed_type conformance instead")
+				@available(*, deprecated, message: "access the stored RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public consuming func RAW_staticbuff() -> RAW_fixed_type {
 					return _bytes
 				}
 
-				@available(*, deprecated, message: "use RAW_staticbuff_zeroed() via RAW_fixed_type conformance instead")
+				@available(*, deprecated, message: "construct a zeroed instance from a zeroed RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public static func RAW_staticbuff_zeroed() -> RAW_fixed_type {
 					(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 				}
@@ -304,12 +304,12 @@ let expectedDiagnostic = DiagnosticSpec(id:MessageID(domain:"RAW_macros", id:"st
 					_bytes = storetype
 				}
 
-				@available(*, deprecated, message: "use RAW_staticbuff() via RAW_fixed_type conformance instead")
+				@available(*, deprecated, message: "access the stored RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public consuming func RAW_staticbuff() -> RAW_fixed_type {
 					return _bytes
 				}
 
-				@available(*, deprecated, message: "use RAW_staticbuff_zeroed() via RAW_fixed_type conformance instead")
+				@available(*, deprecated, message: "construct a zeroed instance from a zeroed RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public static func RAW_staticbuff_zeroed() -> RAW_fixed_type {
 					(0, 0, 0, 0, 0)
 				}
@@ -380,12 +380,12 @@ let expectedDiagnostic = DiagnosticSpec(id:MessageID(domain:"RAW_macros", id:"st
 					_bytes = storetype
 				}
 
-				@available(*, deprecated, message: "use RAW_staticbuff() via RAW_fixed_type conformance instead")
+				@available(*, deprecated, message: "access the stored RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public consuming func RAW_staticbuff() -> RAW_fixed_type {
 					return _bytes
 				}
 
-				@available(*, deprecated, message: "use RAW_staticbuff_zeroed() via RAW_fixed_type conformance instead")
+				@available(*, deprecated, message: "construct a zeroed instance from a zeroed RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public static func RAW_staticbuff_zeroed() -> RAW_fixed_type {
 					(0, 0, 0, 0, 0)
 				}

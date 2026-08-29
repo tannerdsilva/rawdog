@@ -26,6 +26,38 @@ extension RAW_staticbuff where Self:RAW_accessible_mutable {
 	}
 }
 
+// MARK: - v21 compatibility
+// preserved, deprecated, so that v21 source keeps compiling unchanged:
+// - `RAW_staticbuff_storetype` was the v21 storage typealias name (now `RAW_fixed_type`).
+// - `RAW_access_staticbuff` / `RAW_access_staticbuff_mutating` were the v21 raw-pointer
+//   access helpers (now `RAW_access_immutable` / `RAW_access_mutable` over buffers).
+
+extension RAW_staticbuff {
+	/// v21-compatible name for `RAW_fixed_type`.
+	@available(*, deprecated, renamed:"RAW_fixed_type")
+	public typealias RAW_staticbuff_storetype = RAW_fixed_type
+}
+
+extension RAW_staticbuff where Self:RAW_accessible_immutable {
+	/// v21-compatible raw-pointer access alias for `RAW_access_immutable(UnsafeRawBufferPointer.self, _:)`.
+	@available(*, deprecated, message:"use RAW_access_immutable(UnsafeRawBufferPointer.self, _:) instead")
+	public borrowing func RAW_access_staticbuff<R, E>(_ body:(UnsafeRawPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		return try RAW_access_immutable(UnsafeRawBufferPointer.self) { (buff:UnsafeRawBufferPointer) throws(E) -> R in
+			return try body(buff.baseAddress!)
+		}
+	}
+}
+
+extension RAW_staticbuff where Self:RAW_accessible_mutable {
+	/// v21-compatible raw-pointer access alias for `RAW_access_mutable(UnsafeMutableRawBufferPointer.self, _:)`.
+	@available(*, deprecated, message:"use RAW_access_mutable(UnsafeMutableRawBufferPointer.self, _:) instead")
+	public mutating func RAW_access_staticbuff_mutating<R, E>(_ body:(UnsafeMutableRawPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		return try RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { (buff:UnsafeMutableRawBufferPointer) throws(E) -> R in
+			return try body(buff.baseAddress!)
+		}
+	}
+}
+
 @attached(member, names: arbitrary)
 @attached(extension, conformances: RAW_staticbuff, RAW_accessible, RAW_decodable, RAW_encodable, RAW_comparable, RAW_comparable_fixed)
 public macro RAW_staticbuff(bytes:Int) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_macro.BytesMacro")

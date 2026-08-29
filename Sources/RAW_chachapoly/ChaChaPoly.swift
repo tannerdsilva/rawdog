@@ -10,7 +10,7 @@ public struct Nonce:Sendable, Equatable {}
 @RAW_staticbuff(bytes:16)
 public struct Tag:Sendable, Equatable {
 	public init() {
-		self = Self(RAW_staticbuff:Self.RAW_staticbuff_zeroed())
+		self = Self.RAW_comparable_fixed_theoretical_min()
 	}
 }
 

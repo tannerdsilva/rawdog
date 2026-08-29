@@ -84,3 +84,24 @@ extension RAW_accessible_mutable {
 		return try RAW_access_mutable(UnsafeMutableBufferPointer<UInt8>.self, body)
 	}
 }
+
+// MARK: - v21 compatibility forwarders
+// these members exist so code written against the v21 API compiles unchanged.
+// they are deprecated: the RAW_access/RAW_access_mutating names were replaced by
+// RAW_access_immutable/RAW_access_mutable in v22.
+
+extension RAW_accessible_immutable {
+	/// v21-compatible alias for `RAW_access_immutable`.
+	@available(*, deprecated, message:"use RAW_access_immutable(_:) instead")
+	public borrowing func RAW_access<R, E>(_ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		return try RAW_access_immutable(UnsafeBufferPointer<UInt8>.self, body)
+	}
+}
+
+extension RAW_accessible_mutable {
+	/// v21-compatible alias for `RAW_access_mutable`.
+	@available(*, deprecated, message:"use RAW_access_mutable(_:) instead")
+	public mutating func RAW_access_mutating<R, E>(_ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		return try RAW_access_mutable(UnsafeMutableBufferPointer<UInt8>.self, body)
+	}
+}

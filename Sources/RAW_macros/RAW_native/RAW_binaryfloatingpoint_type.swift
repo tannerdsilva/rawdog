@@ -65,7 +65,9 @@ internal struct RAW_staticbuff_binaryfloatingpoint_type_macro:DeclarationMacro {
 			assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
 			#endif
 			var enc = native.\(nativeTranslatorName)
-			self.init(RAW_staticbuff: &enc)
+			self.init(RAW_staticbuff: withUnsafeBytes(of: &enc) { raw in
+				return raw.loadUnaligned(as: RAW_fixed_type.self)
+			})
 		}
 		"""
 		

@@ -106,7 +106,7 @@ extension RAW_staticbuff_macro.BytesMacro: MemberMacro, ExtensionMacro {
 		
 		let getterFunction =
 			"""
-			@available(*, deprecated, message: "use RAW_staticbuff() via RAW_fixed_type conformance instead")
+			@available(*, deprecated, message: "access the stored RAW_fixed_type via init(RAW_staticbuff:) instead")
 			public consuming func RAW_staticbuff() -> RAW_fixed_type {
 				return \(rawStaticBuffArg)
 			}
@@ -115,7 +115,7 @@ extension RAW_staticbuff_macro.BytesMacro: MemberMacro, ExtensionMacro {
 		let zeroTuple = "(" + Array(repeating: "0", count: numberOfBytes).joined(separator: ",") + ")"
 		let zeroFunction =
 			"""
-			@available(*, deprecated, message: "use RAW_staticbuff_zeroed() via RAW_fixed_type conformance instead")
+			@available(*, deprecated, message: "construct a zeroed instance from a zeroed RAW_fixed_type via init(RAW_staticbuff:) instead")
 			public static func RAW_staticbuff_zeroed() -> RAW_fixed_type {
 				\(zeroTuple)
 			}
