@@ -66,7 +66,7 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 		// stored properties
 		result.append(DeclSyntax("""
 		/// the length of the string without the null terminator
-		private let \(raw: countVarName.text):size_t
+		private let \(raw: countVarName.text):Int
 		"""))
 		result.append(DeclSyntax("""
 		/// this is stored with a terminating byte for C compatibility but this null terminator is not included in the count variable that this instance stores
@@ -100,7 +100,7 @@ internal struct RAW_convertible_string_type_macro:MemberMacro, ExtensionMacro {
 		// init(_: String.UnicodeScalarView)
 		result.append(DeclSyntax("""
 		public init(_ string:consuming String.UnicodeScalarView) {
-			var byteCount:size_t = 0
+			var byteCount:Int = 0
 			var bytes:[UInt8] = []
 			for curScalar in string {
 				RAW_convertible_unicode_encoding.encode(curScalar) { codeUnit in

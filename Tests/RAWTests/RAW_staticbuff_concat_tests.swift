@@ -61,7 +61,7 @@ struct RAW_staticbuff_concat_tests {
 					self = ptr.load(as: Self.self)
 				}
 
-				public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_count: size_t, rhs_data: UnsafeRawPointer, rhs_count: size_t) -> Int32 {
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_count: Int, rhs_data: UnsafeRawPointer, rhs_count: Int) -> Int32 {
 					var lhs_var = lhs_data;
 					var rhs_var = rhs_data
 					let b0 = A.RAW_compare(lhs_data: lhs_data, lhs_count: MemoryLayout<A>.size, rhs_data: rhs_data, rhs_count: MemoryLayout<A>.size)
@@ -186,7 +186,7 @@ let expectedDiagnostic = DiagnosticSpec(id:MessageID(domain:"RAW_macros", id:"st
 					self = ptr.load(as: Self.self)
 				}
 
-				public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_count: size_t, rhs_data: UnsafeRawPointer, rhs_count: size_t) -> Int32 {
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_count: Int, rhs_data: UnsafeRawPointer, rhs_count: Int) -> Int32 {
 					var lhs_var = lhs_data;
 					var rhs_var = rhs_data
 					let b0 = A.RAW_compare(lhs_data: lhs_data, lhs_count: MemoryLayout<A>.size, rhs_data: rhs_data, rhs_count: MemoryLayout<A>.size)

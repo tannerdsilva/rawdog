@@ -19,7 +19,7 @@ struct NumberTests {
 	func testEncodingAndDecodingDouble() {
 		for _ in 0..<5120 {
 			var value:_Double = _Double(RAW_native:Double.random(in:0..<Double.greatestFiniteMagnitude))
-			var countout:size_t = 0
+			var countout:Int = 0
 			let valueBytes = [UInt8](RAW_encodable:&value, byte_count_out:&countout)
 			let newVal = valueBytes.withUnsafeBytes { _Double(RAW_decode:$0)! }
 			#expect(newVal == value)
@@ -29,7 +29,7 @@ struct NumberTests {
 	func testEncodingAndDecodingFloat() {
 		for _ in 0..<5120 {
 			var value:_Float = _Float(RAW_native:Float.random(in:0..<Float.greatestFiniteMagnitude))
-			var countout:size_t = 0
+			var countout:Int = 0
 			let valueBytes = [UInt8](RAW_encodable:&value, byte_count_out:&countout)
 			let newVal = valueBytes.withUnsafeBytes { _Float(RAW_decode:$0)! }
 			#expect(newVal == value)

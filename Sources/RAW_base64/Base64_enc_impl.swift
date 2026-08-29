@@ -6,7 +6,7 @@ internal struct Encode {
 
 	/// computes the padding size for the given number of unencoded bytes.
 	/// - returns: the corresponding ``Encoded.Padding`` value.
-	internal static func compute_padding(unencoded_byte_count byteCount:size_t) -> Encoded.Padding {
+	internal static func compute_padding(unencoded_byte_count byteCount:Int) -> Encoded.Padding {
 		return switch byteCount % 3 {
 			case 0: .zero
 			case 1: .two
@@ -16,12 +16,12 @@ internal struct Encode {
 	}
 
 	/// computes the number of encoded bytes that would be required to encode the given number of unencoded bytes.
-	internal static func padded_length(unencoded_byte_count bytes:size_t) -> size_t {
+	internal static func padded_length(unencoded_byte_count bytes:Int) -> Int {
 		return ((bytes + 2) / 3) * 4
 	}
 
 	/// computes the number of encoded bytes that would be required to encode the given number of unencoded bytes.
-	internal static func unpadded_length(unencoded_byte_count bytes:size_t) -> size_t {
+	internal static func unpadded_length(unencoded_byte_count bytes:Int) -> Int {
 		let remainingBytes = bytes % 3
 		// calculate the length contribution of the remaining bytes
 		let remainingBlockLength = switch remainingBytes {
@@ -31,7 +31,7 @@ internal struct Encode {
 		return ((bytes / 3) * 4) + remainingBlockLength
 	}
 
-	internal static func chunk_parse_inline(decoded_bytes bytes:UnsafePointer<UInt8>, decoded_byte_count src_len:size_t, encoded_index:size_t) -> Value {
+	internal static func chunk_parse_inline(decoded_bytes bytes:UnsafePointer<UInt8>, decoded_byte_count src_len:Int, encoded_index:Int) -> Value {
 		let baseBlockIndex = ((encoded_index / 4) * 3)
 
 		#if RAWDOG_BASE64_LOG

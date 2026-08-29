@@ -14,7 +14,7 @@ extension rawdog_tests {
 	struct StringTests {
 		@Test func testRAWEncodeAndDecodeUTF16() {
 			var char = _UTF16_CHAR(RAW_native: UInt16(0x0041)) // 'A'
-			var bcount:size_t = 0
+			var bcount:Int = 0
 			let encoded = [UInt8](RAW_encodable:&char, byte_count_out:&bcount)
 			#expect(bcount == 2)
 			#expect(encoded == [0x00, 0x41])

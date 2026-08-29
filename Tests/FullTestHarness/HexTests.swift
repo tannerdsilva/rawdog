@@ -2,7 +2,6 @@
 // copyright (c) tanner silva 2024. all rights reserved.
 import Testing
 @testable import RAW_hex
-import struct RAW.size_t
 
 extension rawdog_tests {
 	@Suite("RAW_hex",
@@ -21,7 +20,7 @@ extension rawdog_tests {
 		@Test("RAW_hex :: encode")
 		func testHexEncodeAndDecodeWithLargeRandomData() throws {
 			for _ in 0..<512 {
-				let randomData = Encoded(values:[Value].random(count:size_t.random(in:512..<1024) * 2))
+				let randomData = Encoded(values:[Value].random(count:Int.random(in:512..<1024) * 2))
 				let decodedData = decode(randomData)
 				let encString = String(encode(decodedData))
 				#expect(String(randomData) == encString)

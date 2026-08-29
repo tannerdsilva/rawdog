@@ -81,6 +81,9 @@ let package = Package(
 			name:"RAW_hmac",
 			targets:["RAW_hmac"]),
 		.library(
+			name:"RAW_kdf",
+			targets:["RAW_kdf"]),
+		.library(
 			name:"RAW_md5",
 			targets:["RAW_md5"]),
 		.library(

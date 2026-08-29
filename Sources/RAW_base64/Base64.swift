@@ -18,7 +18,7 @@ public enum Error:Swift.Error {
 	case invalidPaddingLength
 	
 	/// the provided string could not be decoded.
-	case invalidEncodingLength(size_t)
+	case invalidEncodingLength(Int)
 
 	/// thrown when 
 	case invalidBase64EncodingCharacter(Character)
@@ -57,7 +57,7 @@ public func decode(_ encoded:borrowing Encoded) -> [UInt8] {
 
 extension Array where Element == Value {
 	/// returns an array of random hex values. the length of the array is specified by the `length` parameter.
-	public static func random(length:size_t) -> Self {
+	public static func random(length:Int) -> Self {
 		return Self(unsafeUninitializedCapacity:length, initializingWith: { valueBuffer, valueCount in
 			valueCount = 0
 			var seekPointer = valueBuffer.baseAddress!

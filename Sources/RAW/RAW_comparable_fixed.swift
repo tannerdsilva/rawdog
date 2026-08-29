@@ -40,19 +40,11 @@ extension RAW_comparable_fixed where Self:RAW_staticbuff {
 }
 
 extension RAW_comparable_fixed {
-	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:Int, rhs_data:UnsafeRawPointer, rhs_count:Int) -> Int32 {
 		#if DEBUG
 		assert(lhs_count == MemoryLayout<RAW_fixed_type>.size, "lhs_count: \(lhs_count) != MemoryLayout<RAW_fixed_type>.size: \(MemoryLayout<RAW_fixed_type>.size)")
 		assert(rhs_count == MemoryLayout<RAW_fixed_type>.size, "rhs_count: \(rhs_count) != MemoryLayout<RAW_fixed_type>.size: \(MemoryLayout<RAW_fixed_type>.size)")
 		#endif
 		return RAW_compare(lhs_data:lhs_data, rhs_data:rhs_data)
-	}
-
-	public static func RAW_compare(lhs_data_seeking:inout UnsafeRawPointer, rhs_data_seeking:inout UnsafeRawPointer) -> Int32 {
-		defer {
-			lhs_data_seeking = lhs_data_seeking.advanced(by:MemoryLayout<RAW_fixed_type>.size)
-			rhs_data_seeking = rhs_data_seeking.advanced(by:MemoryLayout<RAW_fixed_type>.size)
-		}
-		return RAW_compare(lhs_data:lhs_data_seeking, rhs_data:rhs_data_seeking)
 	}
 }

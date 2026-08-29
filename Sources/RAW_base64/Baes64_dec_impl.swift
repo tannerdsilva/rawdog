@@ -5,7 +5,7 @@ import RAW
 internal struct Decode {
 
 	/// returns the number of bytes that are required to stored the specified encoded data in decoded form.
-	internal static func length(unpadded_encoding_byte_length base64Length:size_t) throws -> size_t {
+	internal static func length(unpadded_encoding_byte_length base64Length:Int) throws -> Int {
 		let remainingBytes = switch base64Length % 4 {
 			case 3: 2
 			case 2: 1
@@ -17,12 +17,12 @@ internal struct Decode {
 	}
 
 	/// returns the number of bytes that are required to store the specified encoded data in decoded form.
-	internal static func length(padded_encoding_byte_length base64LengthPadded: size_t) -> size_t {
+	internal static func length(padded_encoding_byte_length base64LengthPadded: Int) -> Int {
 		return ((base64LengthPadded+3)/4*3)
 	}
 
-	private static func _parse_bytes_main<I>(dest_head:inout Array<UInt8>, src:inout I) throws -> (size_t, Encoded.Padding) where I:IteratorProtocol, I.Element == UInt8 {
-		var valueCount:size_t = 0
+	private static func _parse_bytes_main<I>(dest_head:inout Array<UInt8>, src:inout I) throws -> (Int, Encoded.Padding) where I:IteratorProtocol, I.Element == UInt8 {
+		var valueCount:Int = 0
 		while true {
 			let v_i0:UInt8
 			switch (src.next()) {
@@ -127,17 +127,17 @@ internal struct Decode {
 		}
 	}
 
-	internal static func process<SV>(values:consuming SV) throws -> ([UInt8], size_t) where SV:Sequence, SV.Element == Value {
+	internal static func process<SV>(values:consuming SV) throws -> ([UInt8], Int) where SV:Sequence, SV.Element == Value {
 		var newArray = Array<UInt8>()
 		var src = values.makeIterator()
-		var inputLength:size_t = 0
+		var inputLength:Int = 0
 		while let strideCount = try _chunk_parse_values(dest_head:&newArray, src:&src) {
 			inputLength += strideCount
 		}
 		return (newArray, inputLength)
 	}
 
-	internal static func process<SB>(bytes:consuming SB) throws -> ([UInt8], size_t) where SB:Sequence, SB.Element == UInt8 {
+	internal static func process<SB>(bytes:consuming SB) throws -> ([UInt8], Int) where SB:Sequence, SB.Element == UInt8 {
 		var newArray = Array<UInt8>()
 		var src = bytes.makeIterator()
 		let strideCount = try _parse_bytes_main(dest_head:&newArray, src:&src)

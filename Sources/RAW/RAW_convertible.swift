@@ -31,9 +31,6 @@ public macro RAW_encode_decl<S:RAW_staticbuff>(RAW_staticbuff:S.Type, storage:Ke
 @attached(body)
 public macro RAW_encode_impl<S:RAW_staticbuff>(RAW_staticbuff:S.Type, storage:KeyPath<S, S.RAW_fixed_type>) = #externalMacro(module:"RAW_macros", type:"RAW_encodable_protocol.DataMacro")
 
-@freestanding(declaration, names: named(RAW_encode(count:)))
-public macro RAW_encode_count_decl<S:RAW_fixed>(RAW_fixed:S.Type) = #externalMacro(module:"RAW_macros", type:"RAW_encodable_count_fixed_macro")
-
 @attached(body)
 public macro RAW_encode_count_impl<S:RAW_fixed>(RAW_fixed:S.Type) = #externalMacro(module:"RAW_macros", type:"RAW_encodable_count_fixed_macro")
 

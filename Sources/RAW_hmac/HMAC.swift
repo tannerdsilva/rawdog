@@ -7,7 +7,7 @@ public struct HMAC<H:RAW_hasher> {
 		innerContext = inner
 		outerContext = outer
 	}
-	private static func initiate(key:UnsafeRawPointer, count:size_t) throws -> Self {
+	private static func initiate(key:UnsafeRawPointer, count:Int) throws -> Self {
 		var innerContext = try H.init()
 		var outerContext = try H.init()
 		var tmp:UInt8 = 0;
@@ -15,7 +15,7 @@ public struct HMAC<H:RAW_hasher> {
 		var keyScratch = H.RAW_hasher_outputtype(RAW_staticbuff_seeking:&keyVar)
 		try keyScratch.RAW_access_mutable { keyScratchPtr in
 			let useKeyPtr:UnsafePointer<UInt8>
-			let useKeyCount:size_t
+			let useKeyCount:Int
 			if (count > H.RAW_hasher_blocksize) {
 				var keyContext = try H.init()
 				try keyContext.update(key, count:count)
@@ -45,7 +45,7 @@ public struct HMAC<H:RAW_hasher> {
 		return Self(inner:innerContext, outer:outerContext)
 	}
 
-	public init(key:UnsafeRawPointer, count:size_t) throws {
+	public init(key:UnsafeRawPointer, count:Int) throws {
 		self = try Self.initiate(key:key, count:count)
 	}
 	
@@ -93,7 +93,7 @@ extension HMAC {
 		try innerContext.update(inputData)
 	}
 		
-	public mutating func update(message data:UnsafeRawPointer, count:size_t) throws {
+	public mutating func update(message data:UnsafeRawPointer, count:Int) throws {
 		try innerContext.update(data, count:count)
 	}
 }

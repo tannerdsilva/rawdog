@@ -19,8 +19,8 @@ public protocol RAW_encoded_unicode:RAW_decodable, RAW_encodable, RAW_accessible
 
 /// internal iterator that translates raw bytes to native code units for comparison.
 fileprivate struct RAW_native_translation_iterator<T:RAW_encoded_fixedwidthinteger>:IteratorProtocol {
-	internal var count_up:size_t
-	internal let count:size_t
+	internal var count_up:Int
+	internal let count:Int
 	private var head:UnsafeRawPointer
 	fileprivate init(buffer:UnsafeBufferPointer<UInt8>) {
 		count = buffer.count
@@ -45,7 +45,7 @@ extension RAW_encoded_unicode {
 	}
 
 	/// compare two encoded unicode values by decoding and comparing scalar-by-scalar.
-	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
+	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:Int, rhs_data:UnsafeRawPointer, rhs_count:Int) -> Int32 {
 		var lhsBuffer = RAW_native_translation_iterator<RAW_integer_encoding_impl>(buffer:UnsafeBufferPointer<UInt8>(start:lhs_data.assumingMemoryBound(to:UInt8.self), count:lhs_count))
 		var lhsDecoder = RAW_convertible_unicode_encoding()
 		var rhsBuffer = RAW_native_translation_iterator<RAW_integer_encoding_impl>(buffer:UnsafeBufferPointer<UInt8>(start:rhs_data.assumingMemoryBound(to:UInt8.self), count:rhs_count))
@@ -86,7 +86,7 @@ extension RAW_encoded_unicode where Self:ExpressibleByStringLiteral {
 /// internal iterator that reads code units from stored bytes.
 fileprivate struct RAW_string_bytes_to_codeunit_unicode<I:RAW_encoded_unicode>:IteratorProtocol {
 	private let storedBytes:[UInt8]
-	private var byte_seeker:size_t = 0
+	private var byte_seeker:Int = 0
 	fileprivate init(storedBytes:consuming [UInt8]) {
 		self.storedBytes = storedBytes
 	}

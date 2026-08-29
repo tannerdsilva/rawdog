@@ -220,7 +220,7 @@ extension RAW_staticbuff_macro.ConcatMacro: MemberMacro, ExtensionMacro {
 		}
 		let rawCompareFunction =
 			"""
-			public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:size_t, rhs_data:UnsafeRawPointer, rhs_count:size_t) -> Int32 {
+			public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:Int, rhs_data:UnsafeRawPointer, rhs_count:Int) -> Int32 {
 				var lhs_var = lhs_data; var rhs_var = rhs_data
 				\(rawCompareCode)
 				return 0

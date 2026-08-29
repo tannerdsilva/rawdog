@@ -55,7 +55,7 @@ extension rawdog_tests {
 	}
 	
 	struct TestHasher: RAW_hasher {
-		static var RAW_hasher_blocksize: size_t { 64 }
+		static var RAW_hasher_blocksize: Int { 64 }
 		typealias RAW_hasher_outputtype = TestHashOutput
 		
 		private var state: UInt32 = 0

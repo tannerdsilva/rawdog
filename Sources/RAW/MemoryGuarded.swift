@@ -9,16 +9,16 @@ public final class MemoryGuarded<GuardedStaticbuffType>:@unchecked Sendable, RAW
 		var storePtr:UnsafeMutableRawPointer? = nil
 		
 		#if os(Linux)
-		guard posix_memalign(&storePtr, RAW_sysconf(Int32(_SC_PAGESIZE)), MemoryLayout<GuardedStaticbuffType.RAW_fixed_type>.size) == 0 else {
+		guard posix_memalign(&storePtr, CRAW.sysconf(Int32(_SC_PAGESIZE)), MemoryLayout<GuardedStaticbuffType.RAW_fixed_type>.size) == 0 else {
 			throw MemoryPageLockFailure()
 		}
 		#else
-		guard posix_memalign(&storePtr, RAW_sysconf(_SC_PAGESIZE), MemoryLayout<GuardedStaticbuffType.RAW_fixed_type>.size) == 0 else {
+		guard posix_memalign(&storePtr, CRAW.sysconf(_SC_PAGESIZE), MemoryLayout<GuardedStaticbuffType.RAW_fixed_type>.size) == 0 else {
 			throw MemoryPageLockFailure()
 		}
 		#endif
 
-		guard RAW_mlock(storePtr, MemoryLayout<GuardedStaticbuffType.RAW_fixed_type>.size) == 0 else {
+		guard CRAW.mlock(storePtr, MemoryLayout<GuardedStaticbuffType.RAW_fixed_type>.size) == 0 else {
 			throw MemoryPageLockFailure()
 		}
 		try secureZeroBytes(storePtr!, count:MemoryLayout<GuardedStaticbuffType.RAW_fixed_type>.size)
@@ -58,7 +58,7 @@ public final class MemoryGuarded<GuardedStaticbuffType>:@unchecked Sendable, RAW
 
 	deinit {
 		try? secureZeroBytes(storage, count:MemoryLayout<GuardedStaticbuffType.RAW_fixed_type>.size)
-		_ = RAW_munlock(storage, MemoryLayout<GuardedStaticbuffType.RAW_fixed_type>.size)
-		RAW_free(storage)
+		_ = CRAW.munlock(storage, MemoryLayout<GuardedStaticbuffType.RAW_fixed_type>.size)
+		CRAW.free(storage)
 	}
 }

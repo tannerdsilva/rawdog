@@ -29,10 +29,6 @@ extension Array:RAW_accessible_immutable, RAW_accessible_mutable, RAW_encodable 
 		return try result.get()
 	}
 
-	public borrowing func RAW_encode(count cntVar:inout Int) {
-		cntVar += count
-	}
-
 	@discardableResult public borrowing func RAW_encode(_:UnsafeMutableRawPointer.Type, destination dest:UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
 		return self.withUnsafeBytes { buff in
 			return RAW_memcpy(dest, buff.baseAddress, buff.count) + buff.count
@@ -63,7 +59,9 @@ extension Array where Element == UInt8 {
 			defer {
 				seeker += 1
 			}
-			ptr.advanced(by: i).pointee.RAW_encode(count:&encSize)
+			var elementSize:Int = 0
+			ptr.advanced(by: i).pointee.RAW_encode(count:&elementSize)
+			encSize += elementSize
 		}
 		byte_count_out = encSize
 

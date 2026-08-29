@@ -190,7 +190,7 @@ extension rawdog_tests {
 			var blake2sHasher = try Hasher<S, [UInt8]>(outputCount:5)
 			try blake2sHasher.update(Array("Hello".utf8))
 			var blake2sHash = try blake2sHasher.finish()
-			var countout:size_t = 0
+			var countout:Int = 0
 			let blake2sHashBytes = [UInt8](RAW_encodable:&blake2sHash, byte_count_out:&countout)
 			let blake2sHashString = RAW_base64.encode(blake2sHashBytes)
 			#expect(blake2sHashString == "HfZQsfk=")

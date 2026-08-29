@@ -22,12 +22,12 @@ public enum Error:Swift.Error {
 	/// - valid hex characters are `0-9`, `a-f`, and `A-F` in ascii form.
 	case invalidHexEncodingCharacter(Character)
 	/// thrown when a hex encoded string is not a valid size for the decoding algorithm. encoded strings must be an even number of characters, since they are represented with twice as many bytes.
-	case invalidEncodingSize(size_t)
+	case invalidEncodingSize(Int)
 }
 
 extension Array where Element == Value {
 	/// returns an array of random hex values. the length of the array is specified by the `length` parameter.
-	public static func random(count length:size_t) -> Self {
+	public static func random(count length:Int) -> Self {
 		return Self(unsafeUninitializedCapacity:length, initializingWith: { valueBuffer, valueCount in
 			valueCount = 0
 			var seekPointer = valueBuffer.baseAddress!
