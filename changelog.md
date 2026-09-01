@@ -1,3 +1,59 @@
+# 22.0.0
+
+- Complete macro/protocol rework of the fixed-length data model (the `v22-rewrite` line). A detailed v21→v22 migration map lives in the rawdog skills reference (`swift-cross-package-verification` → `references/rawdog-v22-api-migration.md`).
+
+- `RAW_fixed_type` is now the single canonical storage typealias, generated directly by the `@RAW_staticbuff` macro. The v21 `RAW_staticbuff_storetype` name is preserved as a deprecated alias on `extension RAW_fixed` (with a rename fix-it). v21 `public typealias RAW_fixed_type = RAW_staticbuff_storetype` declarations must be deleted — the macro generates the typealias itself, so the redeclaration self-references.
+
+- Native-type macros retain their v21 form (`@RAW_staticbuff_fixedwidthinteger_type<T>(bigEndian:)`, `@RAW_staticbuff_binaryfloatingpoint_type<T>()`) and now auto-inject the `RAW_encoded_fixedwidthinteger` / `RAW_encoded_binaryfloatingpoint` conformance. The freestanding `#`-form used briefly mid-rewrite has been removed.
+
+- `@RAW_staticbuff(bytes:)` generates its storage and member surface; the lower-level pieces are exposed as standalone macros for hand-written types:
+
+	- `#RAW_fixed_type(bytes:)` / `#RAW_fixed_type(concat:)` for the storage typealias.
+	- `#RAW_staticbuff_init`, `#RAW_staticbuff_access(_:storage:bodyReturnType:bodyThrowsType:body:)`, `#RAW_decode_decl`/`_impl`, `#RAW_encode_decl`/`_impl`, `#RAW_access_immutable_decl`/`_impl`, `#RAW_access_mutable_decl`/`_impl`.
+	- Stored instance properties are rejected by default (only `static` and computed properties are allowed).
+
+- `@RAW_staticbuff(concat:)`:
+
+	- Default mode: the storage is auto-generated as a `_bytes` member holding the concatenated component tuple.
+	- v21 compatibility mode: exactly N stored instance properties typed as the N concat components (in order) are accepted as the payload — no `_bytes` member is generated, and all access/decode/encode/compare machinery resolves through protocol defaults. Any other stored properties still produce a diagnostic with fix-its.
+
+- Access model: `RAW_accessible` is now the intersection of `RAW_accessible_immutable` and `RAW_accessible_mutable`, exposing `RAW_access_immutable(_:UnsafeRawBufferPointer.Type, _:)` and `RAW_access_mutable(_:UnsafeMutableRawBufferPointer.Type, _:)`. The v21 `RAW_access` / `RAW_access_mutating` names are retained as deprecated requirements with mutual defaults, so hand-written v21 conformances compile unchanged and drive the whole v22 accessor/encode surface through the witness table.
+
+- Decode model: `init?(RAW_decode _:UnsafeRawBufferPointer)` is the canonical decoder. The v21 `init?(RAW_decode:UnsafeRawPointer, count:size_t)` remains a deprecated requirement with a default — both conformance styles and both call forms work.
+
+- `RAW_staticbuff` now inherits `RAW_comparable_fixed`, providing `RAW_compare` plus `RAW_comparable_fixed_theoretical_min()` / `RAW_comparable_fixed_theoretical_max()` defaults over `MemoryLayout<RAW_fixed_type>`.
+
+- All access/decode members use typed throws (`throws(E)`).
+
+- `size_t` migrated to `Int` throughout the API (`RAW_encode(count:)`, error payloads, and so on — behavior-neutral, as C `size_t` imports as `Int`).
+
+- `RAW_kdf` added as a published product; dead symbols dropped; ed25519 sign/verify buffers sized against the 64-byte signature contract.
+
+- Migration for v21 macro-using consumers is a single mechanical edit: delete the redundant `typealias RAW_fixed_type = RAW_staticbuff_storetype`; everything else compiles with deprecation warnings + rename fix-its. Verified against pristine v21 bedrock (`da5b3d9`): clean build, 59 tests / 14 suites green after that one edit. Deliberately not bridged: `RAW_decodable_unbounded`, and concat types with stored state beyond the component set.
+
+# 21.0.0
+
+- Expanded the `curve25519` surface to full `ed25519` signatures, exposed through a new `RAW_ed25519` product:
+
+	- `PrivateKey` (64-byte static buffer type).
+	- Non-copyable `BlindingContext` for hardened signing operations, backed by native C context storage.
+	- Reusable `VerificationContext` for verifying large volumes of messages.
+	- `generateKeys(secretKey:)` top-level helper, using `RAW_dh25519` keys.
+
+- `RAW_mnemonic` complete rework around a new 2048-word English wordlist: a `Mnemonic` type with BIP39-style entropy ↔ words conversion (16–32 bytes of entropy, SHA-256 checksum, 12–24 words), plus typed errors.
+
+- `RAW_dh25519.PublicKey`: new `init(privateKey: MemoryGuarded<PrivateKey>)` (memory-guarded secret storage); the `UnsafePointer<PrivateKey>` variant is deprecated with a migration note.
+
+- `RAW_comparable_fixed` adds `RAW_comparable_fixed_theoretical_max()` / `RAW_comparable_fixed_theoretical_min()` requirements, defaulted for `RAW_staticbuff` types.
+
+- `RAW_base64` ergonomics: the `Error` type is extracted into its own file and is now `CustomDebugStringConvertible`; the `invalidEncodingLength` payload migrated from `size_t` to `Int`.
+
+- `RAW_ed25519` and `RAW_mnemonic` registered as `.library` products in the package manifest; test harness coverage expanded for both.
+
+## 20.1.0
+
+- Added the `~` prefix operator to invert the bits of a `RAW_staticbuff` value (all `RAW_staticbuff` types).
+
 # 20.0.0
 
 - Introduction of a new reference type `MemoryGuarded<GuardedStaticbuffType> where GuardedStaticbuffType:RAW_staticbuff`
