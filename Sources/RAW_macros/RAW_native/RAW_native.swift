@@ -5,22 +5,23 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 import SwiftDiagnostics
 
-/// freestanding declaration macro that generates `RAW_native()` and `init(RAW_native:)` for a `RAW_staticbuff` type
-/// backed by a `FixedWidthInteger` type.
+/// attached member macro that generates `RAW_native()` and `init(RAW_native:)` for a `RAW_staticbuff` type
+/// backed by a `FixedWidthInteger` type, and attaches the `RAW_encoded_fixedwidthinteger` conformance.
 ///
 /// usage:
 /// ```swift
-/// @RAW_staticbuff(bytes:4) struct MyUInt32:RAW_staticbuff {}
-/// #RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
+/// @RAW_staticbuff(bytes:4)
+/// @RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
+/// struct MyUInt32:RAW_staticbuff {}
 /// ```
-public struct RAW_staticbuff_fixedwidthinteger_type_macro:DeclarationMacro {
-	public static func expansion(of node:some SwiftSyntax.FreestandingMacroExpansionSyntax, in context:some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-		guard let genericClause = node.genericArgumentClause, let type = genericClause.arguments.first?.argument else {
+public struct RAW_staticbuff_fixedwidthinteger_type_macro:MemberMacro, ExtensionMacro {
+	public static func expansion(of node:AttributeSyntax, providingMembersOf declaration:some DeclGroupSyntax, conformingTo protocols:[TypeSyntax], in context:some MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+		guard let genericClause = node.attributeName.as(IdentifierTypeSyntax.self)?.genericArgumentClause, let type = genericClause.arguments.first?.argument else {
 			let diagnostic = Diagnostic(node:node, message:InternalMacroFailure(message:"expected a generic type parameter, e.g. <UInt32>"))
 			context.diagnose(diagnostic)
 			return []
 		}
-		guard let arg = node.arguments.first(where: { $0.label?.text == "bigEndian" }) else {
+		guard let args = node.arguments?.as(LabeledExprListSyntax.self), let arg = args.first(where: { $0.label?.text == "bigEndian" }) else {
 			let diagnostic = Diagnostic(node:node, message:InternalMacroFailure(message:"expected a 'bigEndian' argument, e.g. bigEndian:true"))
 			context.diagnose(diagnostic)
 			return []
@@ -62,5 +63,54 @@ public struct RAW_staticbuff_fixedwidthinteger_type_macro:DeclarationMacro {
 			DeclSyntax(stringLiteral: nativeGetter),
 			DeclSyntax(stringLiteral: nativeInit)
 		]
+	}
+
+	/// returns true when the attribute arguments are well-formed enough to generate members.
+	/// the member role emits the user-facing diagnostics; the extension role uses this to
+	/// avoid injecting a conformance the type cannot satisfy after a failed expansion.
+	fileprivate static func argumentsAreWellFormed(_ node:AttributeSyntax) -> Bool {
+		guard let genericClause = node.attributeName.as(IdentifierTypeSyntax.self)?.genericArgumentClause, let type = genericClause.arguments.first?.argument, type.trimmedDescription.isEmpty == false else {
+			return false
+		}
+		guard let args = node.arguments?.as(LabeledExprListSyntax.self), let arg = args.first(where: { $0.label?.text == "bigEndian" }), let boolExpr = arg.expression.as(BooleanLiteralExprSyntax.self), boolExpr.literal.text == "true" || boolExpr.literal.text == "false" else {
+			return false
+		}
+		return true
+	}
+
+	public static func expansion(
+		of node: AttributeSyntax,
+		attachedTo decl: some DeclGroupSyntax,
+		providingExtensionsOf type: some TypeSyntaxProtocol,
+		conformingTo protocols: [TypeSyntax],
+		in context: some SwiftSyntaxMacros.MacroExpansionContext
+	) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
+		// skip entirely when the conformance is already declared in the type's own
+		// inheritance clause (the compiler then passes an empty conformingTo list)
+		guard argumentsAreWellFormed(node), protocols.isEmpty == false else {
+			return []
+		}
+		let inherited = InheritedTypeListSyntax(
+			protocols.enumerated().map { index, proto in
+				let element = InheritedTypeSyntax(type: proto)
+
+				// add comma AFTER every element except the last
+				if index < protocols.count - 1 {
+					return element.with(\.trailingComma, .commaToken())
+				} else {
+					return element
+				}
+			}
+		)
+
+		let ext = ExtensionDeclSyntax(
+			extendedType: type,
+			inheritanceClause: InheritanceClauseSyntax(
+				inheritedTypes: inherited
+			),
+			memberBlock: MemberBlockSyntax(members: [])
+		)
+
+		return [ext]
 	}
 }

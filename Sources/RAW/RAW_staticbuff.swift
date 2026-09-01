@@ -29,14 +29,10 @@ extension RAW_staticbuff where Self:RAW_accessible_mutable {
 // MARK: - v21 compatibility
 // preserved, deprecated, so that v21 source keeps compiling unchanged:
 // - `RAW_staticbuff_storetype` was the v21 storage typealias name (now `RAW_fixed_type`).
+//   the deprecated bridge lives on the `RAW_fixed` base protocol (see RAW_fixed.swift)
+//   so it covers both `RAW_fixed` and `RAW_staticbuff` conformers.
 // - `RAW_access_staticbuff` / `RAW_access_staticbuff_mutating` were the v21 raw-pointer
 //   access helpers (now `RAW_access_immutable` / `RAW_access_mutable` over buffers).
-
-extension RAW_staticbuff {
-	/// v21-compatible name for `RAW_fixed_type`.
-	@available(*, deprecated, renamed:"RAW_fixed_type")
-	public typealias RAW_staticbuff_storetype = RAW_fixed_type
-}
 
 extension RAW_staticbuff where Self:RAW_accessible_immutable {
 	/// v21-compatible raw-pointer access alias for `RAW_access_immutable(UnsafeRawBufferPointer.self, _:)`.

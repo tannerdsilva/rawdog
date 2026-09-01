@@ -62,8 +62,8 @@ public func generateSecureRandomBytes(count:Int) throws -> [UInt8] {
 // MARK: - RAW_byte type
 
 @RAW_staticbuff(bytes:1)
+@RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
 public struct RAW_byte:Sendable, RAW_native, Hashable, Comparable, Equatable, Codable, CustomDebugStringConvertible {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
 	public var debugDescription:String {
 		return "\(RAW_native())"
 	}

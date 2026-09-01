@@ -6,6 +6,20 @@ public protocol RAW_fixed {
 	associatedtype RAW_fixed_type
 }
 
+// MARK: - v21 compatibility
+// `RAW_staticbuff_storetype` was the v21 storage typealias name (now `RAW_fixed_type`).
+// the deprecated bridge intentionally lives on the `RAW_fixed` base protocol so the old
+// name resolves on both `RAW_fixed` and `RAW_staticbuff` conformers (qualified and
+// unqualified reference sites) with a rename fix-it. the v21 redeclaration pattern
+// (`public typealias RAW_fixed_type = RAW_staticbuff_storetype`) is NOT recoverable —
+// the `@RAW_staticbuff` macro generates `RAW_fixed_type` itself, so the line must be
+// deleted when migrating.
+extension RAW_fixed {
+	/// v21-compatible name for `RAW_fixed_type`.
+	@available(*, deprecated, renamed:"RAW_fixed_type")
+	public typealias RAW_staticbuff_storetype = RAW_fixed_type
+}
+
 @attached(extension, conformances:RAW_fixed)
 public macro RAW_fixed(bytes:Int) = #externalMacro(module:"RAW_macros", type:"RAW_fixed_protocol.BytesMacro")
 

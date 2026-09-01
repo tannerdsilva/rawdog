@@ -18,13 +18,13 @@ struct FourBytesHashable:RAW_staticbuff, RAW_decodable, Hashable {}
 struct EightBytes:RAW_staticbuff, RAW_decodable, Equatable, Comparable {}
 
 @RAW_staticbuff(bytes:1)
+@RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
 struct TestU8:RAW_staticbuff, RAW_decodable, RAW_native, Equatable {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
 }
 
 @RAW_staticbuff(bytes:4)
+@RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 struct TestU32BE:RAW_staticbuff, RAW_decodable, RAW_native, Equatable {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 }
 
 // MARK: - Protocol Conformance Tests

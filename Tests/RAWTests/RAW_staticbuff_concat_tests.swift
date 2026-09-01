@@ -226,5 +226,91 @@ let expectedDiagnostic = DiagnosticSpec(id:MessageID(domain:"RAW_macros", id:"st
 			}
 		)
 	}
+
+	@Test("v21 compatibility mode - stored component properties become the payload (no _bytes)")
+	func testStaticbuffConcatV21Mode() throws {
+		assertMacroExpansion(
+			"""
+			@RAW_staticbuff(concat: A.self, B.self)
+			struct AB:RAW_staticbuff, RAW_decodable {
+				var first:A
+				var second:B
+			}
+			""",
+			expandedSource:
+			"""
+
+			struct AB:RAW_staticbuff, RAW_decodable {
+				var first:A
+				var second:B
+
+				#RAW_fixed_type(concat: A.self, B.self)
+
+				public init(RAW_staticbuff storetype: consuming RAW_fixed_type) {
+					#if DEBUG
+					assert(MemoryLayout<Self>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
+					#endif
+					self = withUnsafePointer(to: storetype) { ptr in
+						return UnsafeRawPointer(ptr).load(as: Self.self)
+					}
+				}
+
+				@available(*, deprecated, message: "access the stored RAW_fixed_type via init(RAW_staticbuff:) instead")
+				public consuming func RAW_staticbuff() -> RAW_fixed_type {
+					var copy = self
+					return withUnsafePointer(to: &copy) { ptr in
+						return UnsafeRawPointer(ptr).load(as: RAW_fixed_type.self)
+					}
+				}
+
+				@available(*, deprecated, message: "construct a zeroed instance from a zeroed RAW_fixed_type via init(RAW_staticbuff:) instead")
+				public static func RAW_staticbuff_zeroed() -> RAW_fixed_type {
+					(A.RAW_staticbuff_zeroed(), B.RAW_staticbuff_zeroed())
+				}
+
+				@available(*, deprecated, message: "use init(RAW_staticbuff storetype:) instead")
+				public init(RAW_staticbuff ptr: UnsafeRawPointer) {
+					self = ptr.load(as: Self.self)
+				}
+
+				public init?(RAW_decode bytes: UnsafeRawBufferPointer) {
+				    guard bytes.count == MemoryLayout<RAW_fixed_type>.size else {
+				    	return nil
+				    }
+				    self = bytes.load(as: Self.self)
+				}
+
+				public borrowing func RAW_access<R, E>(_ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E: Swift.Error {
+				    return try withUnsafePointer(to: self) { (buff: UnsafePointer<Self>) throws(E) -> R in
+				        let asBuffer = UnsafeBufferPointer<UInt8>(start: UnsafeRawPointer(buff).assumingMemoryBound(to: UInt8.self), count: MemoryLayout<RAW_fixed_type>.size)
+				        return try body(asBuffer)
+				    }
+				}
+
+				public mutating func RAW_access_mutating<R, E>(_ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E: Swift.Error {
+				    return try withUnsafeMutablePointer(to: &self) { (buff: UnsafeMutablePointer<Self>) throws(E) -> R in
+				        let asBuffer = UnsafeMutableBufferPointer<UInt8>(start: UnsafeMutableRawPointer(buff).assumingMemoryBound(to: UInt8.self), count: MemoryLayout<RAW_fixed_type>.size)
+				        return try body(asBuffer)
+				    }
+				}
+			}
+
+			extension AB: RAW_staticbuff, RAW_accessible, RAW_decodable, RAW_encodable, RAW_comparable {
+			}
+			""",
+			macroSpecs:["RAW_staticbuff": MacroSpec(type: RAW_staticbuff_macro.ConcatMacro.self, conformances:["RAW_staticbuff", "RAW_accessible", "RAW_decodable", "RAW_encodable", "RAW_comparable"])],
+			indentationWidth:.tabs(1),
+			failureHandler: { (testFailureSpec:TestFailureSpec) in
+				Issue.record(
+					TestFailureSpecError(
+						message:testFailureSpec.message,
+						path:testFailureSpec.location.filePath,
+						line:testFailureSpec.location.line,
+						column:testFailureSpec.location.column
+					)
+				)
+			}
+		)
+	}
 }
 

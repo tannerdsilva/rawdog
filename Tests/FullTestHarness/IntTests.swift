@@ -5,23 +5,23 @@ import Testing
 import RAW
 
 @RAW_staticbuff(bytes:1)
+@RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:true)
 fileprivate struct _Int8:Sendable, RAW_native, Equatable {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:true)
 }
 
 @RAW_staticbuff(bytes:2)
+@RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
 fileprivate struct _Int16:Sendable, RAW_native, Equatable {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
 }
 
 @RAW_staticbuff(bytes:4)
+@RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 fileprivate struct _Int32:Sendable, RAW_native, Equatable {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 }
 
 @RAW_staticbuff(bytes:8)
+@RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
 fileprivate struct _Int64:Sendable, RAW_native, Equatable {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
 }
 
 extension rawdog_tests {

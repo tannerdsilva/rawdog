@@ -5,8 +5,8 @@ import Testing
 @testable import RAW
 
 @RAW_staticbuff(bytes:2)
+@RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
 fileprivate struct _UTF16_CHAR:RAW_encoded_fixedwidthinteger, Sendable {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
 }
 
 extension rawdog_tests {

@@ -16,13 +16,13 @@ struct MyFixeDThing:Sendable {}
 struct FixedBuff5:Sendable, Equatable, RAW_decodable {}
 
 @RAW_staticbuff(bytes:8)
+@RAW_staticbuff_binaryfloatingpoint_type<Double>()
 struct EncodedDouble:RAW_native, Sendable {
-	#RAW_staticbuff_binaryfloatingpoint_type<Double>()
 }
 
 @RAW_staticbuff(bytes:4)
+@RAW_staticbuff_binaryfloatingpoint_type<Float>()
 struct EncodedFloat:RAW_native, Sendable {
-	#RAW_staticbuff_binaryfloatingpoint_type<Float>()
 }
 
 @RAW_staticbuff(concat:FixedBuff5.self, EncodedDouble.self, EncodedFloat.self, FixedBuff5.self)
@@ -35,31 +35,31 @@ fileprivate struct MYSTRUCT2:Sendable {}
 struct MyInnieWrapper:Sendable {}
 
 @RAW_staticbuff(bytes:8)
+@RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
 struct MyUInt64Equivalent:Sendable, RAW_native {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
 }
 
 @RAW_staticbuff(bytes:4)
+@RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 struct MyUInt32Equivalent:Sendable, RAW_native {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 }
 
 @RAW_staticbuff(bytes:2)
+@RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
 struct MyUInt16Equivalent:Sendable, RAW_native {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian:true)
 }
 
 @RAW_staticbuff(concat:MyUInt16Equivalent.self, MyUInt32Equivalent.self, MyUInt64Equivalent.self)
 struct MySpecialUIntType:Sendable {}
 
 @RAW_staticbuff(bytes:8)
+@RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
 struct EncodedUInt64:Sendable, RAW_native {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt64>(bigEndian:true)
 }
 
 @RAW_staticbuff(bytes:4)
+@RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 struct EncodedUInt32:Sendable, RAW_native {
-	#RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 }
 
 @RAW_staticbuff(concat:EncodedUInt64.self, EncodedUInt32.self)

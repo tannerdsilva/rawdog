@@ -50,8 +50,8 @@ extension rawdog_tests {
 	
 	/// A minimal RAW_hasher conformer for protocol testing
 	@RAW_staticbuff(bytes: 4)
+	@RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian: true)
 	struct TestHashOutput: RAW_staticbuff, RAW_accessible_mutable, RAW_native, Sendable, Equatable {
-		#RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian: true)
 	}
 	
 	struct TestHasher: RAW_hasher {
@@ -123,8 +123,8 @@ extension rawdog_tests {
 	// MARK: - RAW_encoded_unicode
 	
 	@RAW_staticbuff(bytes: 2)
+	@RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian: true)
 	struct _UTF16Char: RAW_encoded_fixedwidthinteger, Sendable {
-		#RAW_staticbuff_fixedwidthinteger_type<UInt16>(bigEndian: true)
 	}
 	
 	@RAW_convertible_string_type<UTF16>(backing: _UTF16Char.self)

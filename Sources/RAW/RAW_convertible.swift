@@ -5,7 +5,32 @@
 /// a protocol for types that can initialize from raw durable storage.
 /// - NOTE: the length of the buffer must be exactly the length that will be consumed during the initialization. if the length of the buffer is not correct, the initializer *must* return nil. it is expected and REQUIRED that the initializer returns nil if the buffer is not the exact correct length. it is implied that when calling this initializer, the entirety of the buffer can be considered "consumed" if the initializer returns a non-nil value, and that the buffer is not consumed if the initializer returns nil.
 public protocol RAW_decodable {
+	/// v21-compatible pointer + count decode. both this and the buffer form are
+	/// requirements with mutual defaults, so generic code dispatches through the
+	/// witness table: v21 hand-written conformances witness this form, macro-generated
+	/// types witness the buffer form (C `size_t` imports as `Int`).
+	@available(*, deprecated, message:"use init?(RAW_decode:) with an UnsafeRawBufferPointer")
+	init?(RAW_decode _:UnsafeRawPointer, count:Int)
+	/// v22 raw byte buffer decode.
 	init?(RAW_decode _:UnsafeRawBufferPointer)
+}
+
+extension RAW_decodable {
+	/// pointer + count decode default for macro-generated types: forwards through the
+	/// witness table to their buffer initializer.
+	public init?(RAW_decode ptr:UnsafeRawPointer, count:Int) {
+		self.init(RAW_decode: UnsafeRawBufferPointer(start: ptr, count: count))
+	}
+
+	/// buffer decode default for v21 conformers: forwards through the witness table to
+	/// their pointer + count initializer. a nil base address (empty buffer) fails: no
+	/// valid decode can begin from zero bytes.
+	public init?(RAW_decode buff:UnsafeRawBufferPointer) {
+		guard let base = buff.baseAddress else {
+			return nil
+		}
+		self.init(RAW_decode: base, count: buff.count)
+	}
 }
 
 @freestanding(declaration, names: named(init(RAW_decode:)))

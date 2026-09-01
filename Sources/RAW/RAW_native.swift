@@ -11,10 +11,30 @@ public protocol RAW_native {
 	func RAW_native() -> RAW_native_type
 }
 
-@freestanding(declaration, names: named(RAW_native()), named(init(RAW_native:)))
+/// attached member macro that generates `RAW_native()` and `init(RAW_native:)` for a `RAW_staticbuff` type
+/// backed by a `FixedWidthInteger` type, and attaches the `RAW_encoded_fixedwidthinteger` conformance.
+///
+/// usage:
+/// ```swift
+/// @RAW_staticbuff(bytes:4)
+/// @RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
+/// struct MyUInt32:RAW_staticbuff {}
+/// ```
+@attached(member, names: named(RAW_native()), named(init(RAW_native:)))
+@attached(extension, conformances: RAW_encoded_fixedwidthinteger)
 public macro RAW_staticbuff_fixedwidthinteger_type<T:FixedWidthInteger>(bigEndian:Bool) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_fixedwidthinteger_type_macro")
 
-@freestanding(declaration, names: named(RAW_native()), named(init(RAW_native:)))
+/// attached member macro that generates `RAW_native()` and `init(RAW_native:)` for a `RAW_staticbuff` type
+/// backed by a `BinaryFloatingPoint` type, and attaches the `RAW_encoded_binaryfloatingpoint` conformance.
+///
+/// usage:
+/// ```swift
+/// @RAW_staticbuff(bytes:4)
+/// @RAW_staticbuff_binaryfloatingpoint_type<Float>()
+/// struct MyFloat:RAW_staticbuff {}
+/// ```
+@attached(member, names: named(RAW_native()), named(init(RAW_native:)))
+@attached(extension, conformances: RAW_encoded_binaryfloatingpoint)
 public macro RAW_staticbuff_binaryfloatingpoint_type<T:BinaryFloatingPoint>() = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_binaryfloatingpoint_type_macro")
 
 public protocol RAW_encoded_fixedwidthinteger:RAW_native, RAW_staticbuff where RAW_native_type:FixedWidthInteger {}

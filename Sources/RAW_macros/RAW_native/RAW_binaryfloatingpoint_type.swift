@@ -19,18 +19,19 @@ fileprivate let typeBitNames:[String:String] = [
 	"Float16":"bitPattern"
 ]
 
-/// freestanding declaration macro that generates `RAW_native()` and `init(RAW_native:)` for a `RAW_staticbuff` type
-/// backed by a `BinaryFloatingPoint` type.
+/// attached member macro that generates `RAW_native()` and `init(RAW_native:)` for a `RAW_staticbuff` type
+/// backed by a `BinaryFloatingPoint` type, and attaches the `RAW_encoded_binaryfloatingpoint` conformance.
 ///
 /// usage:
 /// ```swift
-/// @RAW_staticbuff(bytes:4) struct MyFloat:RAW_staticbuff {}
-/// #RAW_staticbuff_binaryfloatingpoint_type<Float>()
+/// @RAW_staticbuff(bytes:4)
+/// @RAW_staticbuff_binaryfloatingpoint_type<Float>()
+/// struct MyFloat:RAW_staticbuff {}
 /// ```
-internal struct RAW_staticbuff_binaryfloatingpoint_type_macro:DeclarationMacro {
-	internal static func expansion(of node:some SwiftSyntax.FreestandingMacroExpansionSyntax, in context:some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
+internal struct RAW_staticbuff_binaryfloatingpoint_type_macro:MemberMacro, ExtensionMacro {
+	internal static func expansion(of node:AttributeSyntax, providingMembersOf declaration:some DeclGroupSyntax, conformingTo protocols:[TypeSyntax], in context:some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
 		// extract the generic type parameter
-		guard let genericClause = node.genericArgumentClause, let type = genericClause.arguments.first?.argument else {
+		guard let genericClause = node.attributeName.as(IdentifierTypeSyntax.self)?.genericArgumentClause, let type = genericClause.arguments.first?.argument else {
 			let diagnostic = Diagnostic(node:node, message:InternalMacroFailure(message:"expected a generic type parameter, e.g. <Float>"))
 			context.diagnose(diagnostic)
 			return []
@@ -75,5 +76,55 @@ internal struct RAW_staticbuff_binaryfloatingpoint_type_macro:DeclarationMacro {
 			DeclSyntax(stringLiteral: nativeGetter),
 			DeclSyntax(stringLiteral: nativeInit)
 		]
+	}
+
+	/// returns true when the attribute arguments are well-formed enough to generate members.
+	/// the member role emits the user-facing diagnostics; the extension role uses this to
+	/// avoid injecting a conformance the type cannot satisfy after a failed expansion.
+	fileprivate static func argumentsAreWellFormed(_ node:AttributeSyntax) -> Bool {
+		guard let genericClause = node.attributeName.as(IdentifierTypeSyntax.self)?.genericArgumentClause, let type = genericClause.arguments.first?.argument else {
+			return false
+		}
+		let typeName = type.trimmedDescription
+		guard typeBitpatternTypes[typeName] != nil, typeBitNames[typeName] != nil else {
+			return false
+		}
+		return true
+	}
+
+	internal static func expansion(
+		of node: AttributeSyntax,
+		attachedTo decl: some DeclGroupSyntax,
+		providingExtensionsOf type: some TypeSyntaxProtocol,
+		conformingTo protocols: [TypeSyntax],
+		in context: some SwiftSyntaxMacros.MacroExpansionContext
+	) throws -> [SwiftSyntax.ExtensionDeclSyntax] {
+		// skip entirely when the conformance is already declared in the type's own
+		// inheritance clause (the compiler then passes an empty conformingTo list)
+		guard argumentsAreWellFormed(node), protocols.isEmpty == false else {
+			return []
+		}
+		let inherited = InheritedTypeListSyntax(
+			protocols.enumerated().map { index, proto in
+				let element = InheritedTypeSyntax(type: proto)
+
+				// add comma AFTER every element except the last
+				if index < protocols.count - 1 {
+					return element.with(\.trailingComma, .commaToken())
+				} else {
+					return element
+				}
+			}
+		)
+
+		let ext = ExtensionDeclSyntax(
+			extendedType: type,
+			inheritanceClause: InheritanceClauseSyntax(
+				inheritedTypes: inherited
+			),
+			memberBlock: MemberBlockSyntax(members: [])
+		)
+
+		return [ext]
 	}
 }
