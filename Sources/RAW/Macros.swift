@@ -1,5 +1,11 @@
 import Darwin
 
+/// thin Swift wrapper over the C `memcpy` that forwards to the standard library.
+/// - parameters:
+///   - dest: the destination pointer
+///   - src: the source pointer
+///   - count: the number of bytes to copy
+/// - returns: `dest`, unchanged, matching `memcpy` semantics
 public func RAW_memcpy(_ dest:UnsafeMutableRawPointer, _ src:UnsafeRawPointer?, _ count:Int) -> UnsafeMutableRawPointer {
 	return memcpy(dest, src, count)
 }

@@ -15,6 +15,7 @@ public protocol RAW_comparable_fixed:RAW_comparable, RAW_fixed {
 
 /// default implementation for comparable fixed on raw staticbuff types.
 extension RAW_comparable_fixed where Self:RAW_staticbuff {
+	/// the theoretical maximum value: a full `0xFF` byte pattern of the fixed size.
 	public static func RAW_comparable_fixed_theoretical_max() -> Self {
 		return withUnsafeTemporaryAllocation(byteCount:MemoryLayout<RAW_fixed_type>.size, alignment:MemoryLayout<Self>.alignment) { buffer in
 			let bytePtr = buffer.baseAddress!.assumingMemoryBound(to:UInt8.self)
@@ -24,6 +25,7 @@ extension RAW_comparable_fixed where Self:RAW_staticbuff {
 			return buffer.baseAddress!.load(as:Self.self)
 		}
 	}
+	/// the theoretical minimum value: an all-zero byte pattern of the fixed size.
 	public static func RAW_comparable_fixed_theoretical_min() -> Self {
 		return withUnsafeTemporaryAllocation(byteCount:MemoryLayout<RAW_fixed_type>.size, alignment:MemoryLayout<Self>.alignment) { buffer in
 			let bytePtr = buffer.baseAddress!.assumingMemoryBound(to:UInt8.self)
@@ -40,6 +42,8 @@ extension RAW_comparable_fixed where Self:RAW_staticbuff {
 }
 
 extension RAW_comparable_fixed {
+	/// fixed-size comparison over the raw byte representation. asserts that both
+	/// counts match the fixed size in debug builds.
 	public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:Int, rhs_data:UnsafeRawPointer, rhs_count:Int) -> Int32 {
 		#if DEBUG
 		assert(lhs_count == MemoryLayout<RAW_fixed_type>.size, "lhs_count: \(lhs_count) != MemoryLayout<RAW_fixed_type>.size: \(MemoryLayout<RAW_fixed_type>.size)")

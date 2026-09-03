@@ -78,6 +78,7 @@ extension RAW_encoded_unicode {
 }
 
 extension RAW_encoded_unicode where Self:ExpressibleByStringLiteral {
+	/// initialize from a string literal.
 	public init(stringLiteral value: String) {
 		self.init(value)
 	}
@@ -107,10 +108,12 @@ fileprivate struct RAW_string_bytes_to_codeunit_unicode<I:RAW_encoded_unicode>:I
 public struct RAW_encoded_unicode_iterator<T:RAW_encoded_unicode>:IteratorProtocol {
 	private var codeUnitTranslator:RAW_string_bytes_to_codeunit_unicode<T>
 	private var decoder:T.RAW_convertible_unicode_encoding
+	/// create an iterator over the raw bytes of an encoded unicode type.
 	public init(_ encodedType:consuming [UInt8], encoding:T.Type) {
 		codeUnitTranslator = RAW_string_bytes_to_codeunit_unicode<T>(storedBytes:encodedType)
 		decoder = T.RAW_convertible_unicode_encoding()
 	}
+	/// advance to the next decoded `Character`, or nil at the end of the data.
 	public mutating func next() -> Character? {
 		switch decoder.decode(&codeUnitTranslator) {
 		case .scalarValue(let scalar):

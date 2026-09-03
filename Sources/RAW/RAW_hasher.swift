@@ -25,16 +25,19 @@ public protocol RAW_hasher {
 
 // default implementations for RAW_hasher update variants
 extension RAW_hasher {
+	/// update the hasher from a byte buffer.
 	public mutating func update(_ inputData:UnsafeBufferPointer<UInt8>) throws {
 		try update(UnsafeRawBufferPointer(inputData))
 	}
 
+	/// update the hasher from a raw pointer and count.
 	public mutating func update(_ ptr:UnsafeRawPointer, count:Int) throws {
 		try update(UnsafeRawBufferPointer(start:ptr, count:count))
 	}
 }
 
 extension RAW_hasher {
+	/// update the hasher from a mutable byte buffer.
 	public mutating func update(_ inputData:UnsafeMutableBufferPointer<UInt8>) throws {
 		try update(UnsafeRawBufferPointer(inputData))
 	}

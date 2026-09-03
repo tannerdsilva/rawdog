@@ -14,7 +14,6 @@ public struct RAW_staticbuff_access_decl:ExpressionMacro {
 			context.diagnose(diagnostic)
 			return ExprSyntax("()")
 		}
-		var instanceArgumentReference:DeclReferenceExprSyntax? = nil
 		var bodyReturnType:MemberAccessExprSyntax? = nil
 		var bodyThrowsType:MemberAccessExprSyntax? = nil
 		var bodyArgumentReference:DeclReferenceExprSyntax? = nil
@@ -22,7 +21,8 @@ public struct RAW_staticbuff_access_decl:ExpressionMacro {
 		argLoop: for (i, arg) in node.arguments.enumerated() {
 			switch i {
 				case 0:
-					instanceArgumentReference = arg.expression.as(DeclReferenceExprSyntax.self)
+					// argument zero is the instance reference. it is validated for API symmetry
+					// with the macro signature but is never emitted by this expansion.
 					continue argLoop
 				case 1:
 					let allNames = RAW_macro_validators.validateRAW_keypath_argument(labeledExpression:arg, context:context)
@@ -48,7 +48,7 @@ public struct RAW_staticbuff_access_decl:ExpressionMacro {
 					return ExprSyntax("()")
 			}
 		}
-		guard let instanceArgumentReference, let bodyReturnType, let bodyThrowsType, let bodyArgumentReference, let storageName else {
+		guard let bodyReturnType, let bodyThrowsType, let bodyArgumentReference, let storageName else {
 			let diagnostic = Diagnostic(node:node, message:InternalMacroFailure(message:"could not parse all required arguments in RAW_staticbuff_access macro invocation."))
 			context.diagnose(diagnostic)
 			return ExprSyntax("()")

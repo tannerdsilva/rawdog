@@ -1,129 +1,105 @@
-# RAW_accessible_immutable
-
-@Metadata {
-    @PageTitle("RAW_accessible_immutable")
-    @Available(iOS, introduced: 1.0)
-    @Available(macOS, introduced: 1.0)
-    @Available(Linux, introduced: 1.0)
-}
+# ``RAW/RAW_accessible_immutable``
 
 ## Overview
 
-The `RAW_accessible_immutable` protocol defines the core contract for types within the `rawdog` ecosystem that provide safe, immutable access to their underlying raw memory representation. 
+`RAW_accessible_immutable` defines the contract for types that expose their underlying
+raw storage for **immutable** access. rawdog types hold their bytes in statically
+allocated storage; this protocol is how you read them.
 
-In systems programming, particularly when dealing with binary encoding, decoding, and cryptographic operations, direct access to contiguous memory is essential. However, Swift's memory safety model often obscures this access inconsistently behind potential layers of abstraction. `RAW_accessible_immutable` bridges this gap by providing a standardized, error-handling-capable interface to access the raw bytes of an object without allowing mutation.
+access is **closure-scoped**: the receiver hands your closure an
+`UnsafeRawBufferPointer` view of its storage, and the pointer cannot escape that scope.
+this keeps rawdog memory-safe even while operating on raw bytes.
 
-This protocol is designed to work in tandem with `rawdog`'s static memory allocation strategies, ensuring that access patterns remain efficient (using `borrowing` semantics) and safe (encapsulated within a closure-based access model).
+the protocol carries two requirements which are wired together by mutual defaults, so a
+conformer implements whichever one it was written against:
 
-## Protocol Requirements
+- ``RAW_access_immutable(_:_:)`` — the v22 raw-buffer accessor, passed an
+  `UnsafeRawBufferPointer`
+- ``RAW_access(_:)`` — the v21-compatible byte-buffer accessor, passed an
+  `UnsafeBufferPointer<UInt8>` (deprecated in v22)
 
-Conforming types must implement a single requirement that grants access to an `UnsafeRawBufferPointer`. This access is scoped within a closure, ensuring that the pointer does not escape the safety boundary defined by the implementation.
+macro-generated types witness the v22 form; hand-written v21 code witnesses the v21
+form. either way, calling either method dispatches through the witness table to the
+conformer's concrete member.
+
+## requirements
 
 ```swift
 public protocol RAW_accessible_immutable {
     borrowing func RAW_access_immutable<R, E>(
-        _: UnsafeRawBufferPointer.Type, 
+        _: UnsafeRawBufferPointer.Type,
         _ body: (UnsafeRawBufferPointer) throws(E) -> R
+    ) throws(E) -> R where E: Swift.Error
+
+    @available(*, deprecated, message: "use RAW_access_immutable(UnsafeRawBufferPointer.self, _:) instead")
+    borrowing func RAW_access<R, E>(
+        _ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R
     ) throws(E) -> R where E: Swift.Error
 }
 ```
 
-### Method Signature Breakdown
+- `borrowing` keeps the accessor copy-free without taking ownership.
+- the `UnsafeRawBufferPointer.Type` first argument is a typed sentinel that
+  disambiguates the raw-buffer accessor from its byte-typed and untyped conveniences.
+- `throws(E)` is Swift typed throws: the exact error type `E` flows through the
+  accessor, so error handling stays precise across the whole call.
 
-- **`borrowing`**: The method uses borrowing semantics to avoid unnecessary copies of the conforming instance during access.
-- **`UnsafeRawBufferPointer.Type`**: The first argument is a type sentinel used to disambiguate overloads.
-- **`body`**: A closure that receives the raw buffer pointer. This is where inspection or reading operations occur.
-- **`throws(E)`**: Utilizes Swift's typed throws feature (Swift 5.10+), allowing the caller to specify the exact error type `E` that might be thrown during access, maintaining type safety throughout the call stack.
-- **`where E: Swift.Error`**: Constrains the error type to conform to the standard Error protocol.
+## byte-typed conveniences
 
-## Default Implementations
-
-To reduce boilerplate, `rawdog` provides a default implementation for `RAW_accessible_immutable` that allows access via `UnsafeBufferPointer<UInt8>`. This is particularly useful for byte-level operations where type casting from `Raw` to `UInt8` is otherwise repetitive.
+the common byte-level case is covered by a convenience that re-exposes the raw buffer
+as an `UnsafeBufferPointer<UInt8>`:
 
 ```swift
-extension RAW_accessible_immutable {
-    public borrowing func RAW_access_immutable<R, E>(
-        _: UnsafeBufferPointer<UInt8>.Type, 
-        _ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R
+let totalBytes = value.RAW_access_immutable(UnsafeBufferPointer<UInt8>.self) { bytes in
+    bytes.count
+}
+```
+
+when the closure parameter type is unambiguous, even the sentinel can be omitted:
+
+```swift
+let totalBytes: Int = value.RAW_access_immutable { (bytes: UnsafeBufferPointer<UInt8>) in
+    bytes.count
+}
+```
+
+## adoption for RAW_staticbuff types
+
+types declared with `@RAW_staticbuff(bytes:)` gain `RAW_accessible_immutable`
+automatically — the macro generates the storage accessors.
+
+for hand-written storage, the macro pair
+``RAW_access_immutable_decl(RAW_staticbuff:storage:)`` and
+``RAW_access_immutable_impl(RAW_staticbuff:storage:)`` generate the required signature
+and body against a key path into the type's storage:
+
+```swift
+struct MyData: RAW_accessible_immutable {
+    var storage: (UInt8, UInt8, UInt8, UInt8) = (0, 0, 0, 0)
+
+    RAW_access_immutable_decl(
+        RAW_staticbuff: MyData.self,
+        storage: \.storage
+    )
+
+    borrowing func RAW_access_immutable<R, E>(
+        _: UnsafeRawBufferPointer.Type,
+        _ body: (UnsafeRawBufferPointer) throws(E) -> R
     ) throws(E) -> R where E: Swift.Error {
-        return try RAW_access_immutable(UnsafeRawBufferPointer.self) { buff throws(E) -> R in
-            return try body(.init(
-                start: buff.baseAddress?.assumingMemoryBound(to: UInt8.self), 
-                count: buff.count
-            ))
-        }
+        RAW_access_immutable_impl(
+            RAW_staticbuff: MyData.self,
+            storage: \.storage
+        )
     }
 }
 ```
 
-This extension internally calls the primary `UnsafeRawBufferPointer` requirement, safely assuming memory binding to `UInt8`. This allows conforming types to immediately support byte-specific operations without additional code.
-
-## Automatic Conformance via Macros
-
-Manually implementing the protocol requirement for every static buffer type is verbose and error-prone. The `rawdog` package provides two macros to automate this conformance for types that utilize `RAW_staticbuff` storage.
-
-### Declaration Macro
-
-The `RAW_access_immutable_decl` macro is a freestanding declaration macro. It generates the required function signature within your type's definition.
-
-```swift
-@freestanding(declaration, names: named(RAW_access_immutable(_:_:)))
-public macro RAW_access_immutable_decl<S: RAW_staticbuff>(
-    RAW_staticbuff: S.Type, 
-    storage: KeyPath<S, S.RAW_fixed_type>
-) = #externalMacro(module: "RAW_macros", type: "RAW_accessible_immutable_fixed_macro")
-```
-
-### Implementation Macro
-
-The `RAW_access_immutable_impl` macro is an attached body macro. It is applied to the function generated by the declaration macro (or a manually written signature matching the requirement) to inject the implementation logic.
-
-```swift
-@attached(body)
-public macro RAW_access_immutable_impl<S: RAW_staticbuff>(
-    RAW_staticbuff: S.Type, 
-    storage: KeyPath<S, S.RAW_fixed_type>
-) = #externalMacro(module: "RAW_macros", type: "RAW_accessible_immutable_fixed_macro")
-```
-
-### Macro Parameters
-
-Both macros require specific context to generate the correct memory access code:
-
-1.  **`RAW_staticbuff`**: The type conforming to `RAW_staticbuff`. This ensures the underlying storage meets the static allocation requirements of the `rawdog` system.
-2.  **`storage`**: A `KeyPath` pointing to the specific property within the type that holds the raw fixed-type storage. This allows the macro to generate the correct pointer arithmetic and base address retrieval.
-
-## Example Adoption
-
-The following example demonstrates how to adopt `RAW_accessible_immutable` on a custom structure using the provided macros.
-
-```swift
-struct MyBinaryData: RAW_accessible_immutable {
-    // Assume StaticBuffer conforms to RAW_staticbuff
-    var storage: StaticBuffer<1024> 
-
-    // 1. Generate the declaration
-    RAW_access_immutable_decl(
-        RAW_staticbuff: StaticBuffer<1024>.self, 
-        storage: \.storage
-    )
-
-    // 2. Provide the body implementation via macro
-    borrowing func RAW_access_immutable<R, E>(
-        _: UnsafeRawBufferPointer.Type, 
-        _ body: (UnsafeRawBufferPointer) throws(E) -> R
-    ) throws(E) -> R where E: Swift.Error 
-    RAW_access_immutable_impl(
-        RAW_staticbuff: StaticBuffer<1024>.self, 
-        storage: \.storage
-    )
-}
-```
-
-By using these macros, the implementation guarantees that the pointer access aligns with the static memory layout defined by `rawdog`, preserving the library's guarantees regarding alignment and endianness handling.
+the generated body hands the closure an `UnsafeRawBufferPointer` over the referenced
+storage, preserving alignment and the closure-scoped safety guarantee.
 
 ## See Also
 
+- ``RAW_accessible_mutable``
 - <doc:RAW_staticbuff>
-- <doc:RAW_macros>
-- [README](<root:README>)
+- <doc:RAW_decodable>
+- <doc:RAW_encodable>

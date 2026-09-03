@@ -44,9 +44,8 @@ public func secureZeroBytes(_ buffer:UnsafeMutableBufferPointer<UInt8>) throws {
 public struct InvalidSecureRandomBytesLengthError:Error {}
 
 /// source of secure random bytes from the system. this is the most secure way to generate random bytes, and is limited to a maximum 256 bytes.
-/// - parameter [UInt8].Type: the type of the static buffer to generate and return
 /// - parameter count: the number of bytes to generate
-/// - returns: the byte array of bytes sourced
+/// - returns: an array of freshly sourced random bytes
 public func generateSecureRandomBytes(count:Int) throws -> [UInt8] {
 	guard count <= 256 else {
 		throw InvalidSecureRandomBytesLengthError()
@@ -61,9 +60,13 @@ public func generateSecureRandomBytes(count:Int) throws -> [UInt8] {
 
 // MARK: - RAW_byte type
 
+/// a single byte, modeled as a ``RAW_staticbuff`` type. this is the canonical example
+/// of a rawdog native type: it wraps a `UInt8` (little-endian) in one byte of storage
+/// and is `Sendable`, `Hashable`, `Comparable`, and `Codable`.
 @RAW_staticbuff(bytes:1)
 @RAW_staticbuff_fixedwidthinteger_type<UInt8>(bigEndian:false)
 public struct RAW_byte:Sendable, RAW_native, Hashable, Comparable, Equatable, Codable, CustomDebugStringConvertible {
+	/// a description of the wrapped `UInt8` value.
 	public var debugDescription:String {
 		return "\(RAW_native())"
 	}
