@@ -65,6 +65,9 @@ public func decode<S>(_ str:consuming S) throws -> [UInt8] where S:Sequence, S.E
 		}
 		buildValues.append(try Value(validate:char))
 	}
+	guard buildValues.count.isMultiple(of: 2) else {
+		throw Error.invalidEncodingSize(buildValues.count)
+	}
 	return [UInt8](_decode_main_values(buildValues))
 }
 

@@ -149,7 +149,15 @@ internal struct _decode_main_values:Sequence {
 			guard let v1 = valIterate.next() else {
 				return nil
 			}
-			return (v1.hexcharIndexValue() << 4) |  valIterate.next()!.hexcharIndexValue()
+			guard let v2 = valIterate.next() else {
+				// a lone trailing nibble cannot form a byte, so it is dropped here.
+				// the throwing decode entry points reject odd-length input with
+				// `Error.invalidEncodingSize` before this iterator is reached; this
+				// guard only protects the non-throwing `Encoded(values:)` path from
+				// force-unwrapping a nil into a crash.
+				return nil
+			}
+			return (v1.hexcharIndexValue() << 4) | v2.hexcharIndexValue()
 		}
 	}
 	private let decoded_values:[Value]

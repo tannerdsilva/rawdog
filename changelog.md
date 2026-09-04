@@ -41,6 +41,8 @@
 
 - Hardened system-error paths in `RAW_bcrypt_blowfish.Salt.generate` (no `try!` — entropy failures now propagate) and `RAW_argon2.ID.hash` (unknown C error codes fail loudly instead of force-unwrapping an optional enum case).
 
+- `RAW_hex` odd-length decode now throws `Error.invalidEncodingSize` (a lone trailing nibble previously force-unwrapped into a fatal crash); the non-throwing `Encoded(values:)` path drops the trailing nibble instead of crashing.
+
 - Migration for v21 macro-using consumers is a single mechanical edit: delete the redundant `typealias RAW_fixed_type = RAW_staticbuff_storetype`; everything else compiles with deprecation warnings + rename fix-its. Verified against pristine v21 bedrock (`da5b3d9`): clean build, 59 tests / 14 suites green after that one edit. Deliberately not bridged: `RAW_decodable_unbounded`, and concat types with stored state beyond the component set.
 
 # 21.0.0

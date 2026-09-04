@@ -26,5 +26,54 @@ extension rawdog_tests {
 				#expect(String(randomData) == encString)
 			}
 		}
+
+		@Test("RAW_hex :: invalid character throws")
+		func testInvalidCharacter() {
+			do {
+				_ = try decode("zz")
+				Issue.record("expected an error for an invalid character")
+			} catch let error as RAW_hex.Error {
+				if case .invalidHexEncodingCharacter = error {
+					// expected
+				} else {
+					Issue.record("wrong error case: \(error)")
+				}
+			} catch {
+				Issue.record("unexpected error type: \(error)")
+			}
+		}
+
+		@Test("RAW_hex :: odd encoded length throws")
+		func testOddLength() {
+			do {
+				_ = try decode("abc")
+				Issue.record("expected an error for an odd encoded length")
+			} catch let error as RAW_hex.Error {
+				if case .invalidEncodingSize(3) = error {
+					// expected
+				} else {
+					Issue.record("wrong error case: \(error)")
+				}
+			} catch {
+				Issue.record("unexpected error type: \(error)")
+			}
+		}
+
+		@Test("RAW_hex :: odd-value Encoded(values:) drops the trailing nibble instead of crashing")
+		func testOddValueArrayNoCrash() {
+			// the non-throwing `Encoded(values:)` path cannot throw
+			// `Error.invalidEncodingSize`; it must not force-unwrap into a crash.
+			let odd = Encoded(values: [.a, .b, .c])
+			let decoded = decode(odd)
+			#expect(decoded == [0xAB])
+		}
+
+		@Test("RAW_hex :: empty input and case folding")
+		func testEmptyAndCase() throws {
+			#expect(try decode("") == [])
+			#expect(try decode("AB") == [0xAB])
+			#expect(try decode("aB") == [0xAB])
+			#expect(try decode("0f") == [0x0F])
+		}
 	}
 }

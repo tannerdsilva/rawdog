@@ -118,6 +118,84 @@ extension rawdog_tests {
 				try hasher.update(buf.baseAddress!, count: buf.count)
 			}
 		}
+
+		@Test("typed finish() returns the accumulated state")
+		func testTypedFinish() throws {
+			var hasher = try TestHasher()
+			let data: [UInt8] = [1, 2, 3, 4, 5]
+			try data.withUnsafeBytes { buf in
+				try hasher.update(buf)
+			}
+			let output = try hasher.finish()
+			var expected: UInt32 = 0
+			for byte in data {
+				expected = expected &+ UInt32(byte)
+			}
+			#expect(output.RAW_native() == expected)
+		}
+
+		@Test("update with borrowing RAW_accessible")
+		func testUpdateAccessible() throws {
+			var hasher = try TestHasher()
+			let data: [UInt8] = [10, 20, 30]
+			try hasher.update(data)
+			let output = try hasher.finish()
+			#expect(output.RAW_native() == (10 &+ 20 &+ 30))
+		}
+
+		@Test("update with a mutable byte buffer")
+		func testUpdateMutableBuffer() throws {
+			var hasher = try TestHasher()
+			var data: [UInt8] = [1, 2, 3, 4]
+			try data.withUnsafeMutableBufferPointer { buf in
+				try hasher.update(buf)
+			}
+			let output = try hasher.finish()
+			#expect(output.RAW_native() == (1 &+ 2 &+ 3 &+ 4))
+		}
+
+		@Test("update overloads produce identical digests")
+		func testUpdateOverloadEquivalence() throws {
+			var data: [UInt8] = Array(0..<256).map { UInt8($0) }
+			var rawHasher = try TestHasher()
+			try data.withUnsafeBytes { try rawHasher.update($0) }
+			var typedHasher = try TestHasher()
+			try data.withUnsafeBufferPointer { try typedHasher.update($0) }
+			var ptrHasher = try TestHasher()
+			try data.withUnsafeBytes { try ptrHasher.update($0.baseAddress!, count: $0.count) }
+			var accessibleHasher = try TestHasher()
+			try accessibleHasher.update(data)
+			var mutableHasher = try TestHasher()
+			try data.withUnsafeMutableBufferPointer { try mutableHasher.update($0) }
+
+			var expected: UInt32 = 0
+			for byte in data {
+				expected = expected &+ UInt32(byte)
+			}
+			for hasher in [rawHasher, typedHasher, ptrHasher, accessibleHasher, mutableHasher] {
+				var copy = hasher
+				let output = try copy.finish()
+				#expect(output.RAW_native() == expected)
+			}
+		}
+
+		@Test("finish(into:) and typed finish() agree")
+		func testFinishAgreement() throws {
+			let data: [UInt8] = [5, 6, 7, 8]
+			var typedHasher = try TestHasher()
+			try typedHasher.update(data)
+			let typed = try typedHasher.finish()
+
+			var rawHasher = try TestHasher()
+			try rawHasher.update(data)
+			var rawBytes = [UInt8](repeating: 0, count: 4)
+			try rawBytes.withUnsafeMutableBytes { buf in
+				try rawHasher.finish(into: buf.baseAddress!)
+			}
+
+			let typedBytes: [UInt8] = typed.RAW_access_immutable(UnsafeRawBufferPointer.self) { Array($0) }
+			#expect(rawBytes == typedBytes)
+		}
 	}
 	
 	// MARK: - RAW_encoded_unicode
