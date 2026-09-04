@@ -67,19 +67,11 @@ public struct HMAC<H:RAW_hasher> {
 		try outerContext.finish(into:ptr)
 	}
 
+	/// finish the hmac and return the typed output value.
 	public mutating func finish() throws -> H.RAW_hasher_outputtype {
-		let size = MemoryLayout<H.RAW_hasher_outputtype.RAW_fixed_type>.size
-		let buffer = UnsafeMutableRawPointer.allocate(byteCount: size, alignment: 1)
-		defer { buffer.deallocate() }
-		try innerContext.finish(into: buffer)
-		var seekPtr = UnsafeRawPointer(buffer)
-		let innerResult = H.RAW_hasher_outputtype(RAW_staticbuff_seeking: &seekPtr)
-		try innerResult.RAW_access_immutable(UnsafeRawBufferPointer.self) {
-			try outerContext.update($0)
-		}
-		try outerContext.finish(into: buffer)
-		seekPtr = UnsafeRawPointer(buffer)
-		return H.RAW_hasher_outputtype(RAW_staticbuff_seeking: &seekPtr)
+		let innerResult = try innerContext.finish()
+		try outerContext.update(innerResult)
+		return try outerContext.finish()
 	}
 }
 

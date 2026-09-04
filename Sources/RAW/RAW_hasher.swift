@@ -13,12 +13,10 @@ public protocol RAW_hasher {
 
 	/// initialize a new instance of the hasher context.
 	init() throws
-	/// update the hasher with new data from an UnsafeRawBufferPointer.
+	/// update the hasher with new data from an UnsafeRawBufferPointer. this is the
+	/// single required update primitive; every other update variant is a default
+	/// implementation that funnels through this one.
 	mutating func update(_ :UnsafeRawBufferPointer) throws
-	/// update the hasher with new data from an UnsafeBufferPointer<UInt8>.
-	mutating func update(_ :UnsafeBufferPointer<UInt8>) throws
-	/// update the hasher with new data with the specified data and length arguments.
-	mutating func update(_ :UnsafeRawPointer, count:Int) throws
 	/// finish a hasher by outputting to a pointer.
 	mutating func finish(into _:UnsafeMutableRawPointer) throws
 }
@@ -33,6 +31,17 @@ extension RAW_hasher {
 	/// update the hasher from a raw pointer and count.
 	public mutating func update(_ ptr:UnsafeRawPointer, count:Int) throws {
 		try update(UnsafeRawBufferPointer(start:ptr, count:count))
+	}
+
+	/// finish the hashing process and return the typed output value.
+	/// the default implementation writes the digest into a temporary allocation and
+	/// loads it back as ``RAW_hasher_outputtype``.
+	public mutating func finish() throws -> RAW_hasher_outputtype {
+		return try withUnsafeTemporaryAllocation(byteCount:MemoryLayout<RAW_hasher_outputtype.RAW_fixed_type>.size, alignment:MemoryLayout<RAW_hasher_outputtype>.alignment) { buffer in
+			try finish(into: buffer.baseAddress!)
+			var seekPtr = UnsafeRawPointer(buffer.baseAddress!)
+			return RAW_hasher_outputtype(RAW_staticbuff_seeking: &seekPtr)
+		}
 	}
 }
 

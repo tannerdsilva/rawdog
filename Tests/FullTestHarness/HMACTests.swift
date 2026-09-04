@@ -18,10 +18,10 @@ extension rawdog_tests {
 			let key = [UInt8](repeating: 0x0B, count: 20)
 			let messages:[[UInt8]] = [[UInt8]("Hi There".utf8)]
 			#expect(key.dropLast(4).count == 16)
-			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher<RAW_md5.Hash>>(key:key.dropLast(4))
-			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher<RAW_sha1.Hash>>(key:key)
-			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher<RAW_sha256.Hash>>(key:key)
-			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher<RAW_sha512.Hash>>(key:key)
+			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher>(key:key.dropLast(4))
+			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher>(key:key)
+			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher>(key:key)
+			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher>(key:key)
 			for msg in messages {
 				try hmac5.update(message:msg)
 				try hmac1.update(message:msg)
@@ -50,10 +50,10 @@ extension rawdog_tests {
 		func testVector2() throws {
 			let key = [UInt8]("Jefe".utf8)
 			let messages:[[UInt8]] = [[UInt8]("what do ya want ".utf8), [UInt8]("for nothing?".utf8)]
-			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher<RAW_md5.Hash>>(key:key)
-			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher<RAW_sha1.Hash>>(key:key)
-			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher<RAW_sha256.Hash>>(key:key)
-			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher<RAW_sha512.Hash>>(key:key)
+			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher>(key:key)
+			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher>(key:key)
+			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher>(key:key)
+			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher>(key:key)
 			for msg in messages {
 				try hmac5.update(message:msg)
 				try hmac1.update(message:msg)
@@ -84,10 +84,10 @@ extension rawdog_tests {
 			let key = [UInt8](repeating: 0xAA, count: 20)
 			let messages:[[UInt8]] = [[UInt8](repeating: 0xDD, count: 50)]
 			#expect(key.dropLast(4).count == 16)
-			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher<RAW_md5.Hash>>(key:key.dropLast(4))
-			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher<RAW_sha1.Hash>>(key:key)
-			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher<RAW_sha256.Hash>>(key:key)
-			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher<RAW_sha512.Hash>>(key:key)
+			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher>(key:key.dropLast(4))
+			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher>(key:key)
+			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher>(key:key)
+			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher>(key:key)
 			for msg in messages {
 				try hmac5.update(message:msg)
 				try hmac1.update(message:msg)
@@ -117,10 +117,10 @@ extension rawdog_tests {
 		func testVector4() throws {
 			let key = try RAW_hex.decode("0102030405060708090a0b0c0d0e0f10111213141516171819")
 			let messages:[[UInt8]] = [[UInt8](repeating:0xCD, count: 50)]
-			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher<RAW_md5.Hash>>(key:key)
-			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher<RAW_sha1.Hash>>(key:key)
-			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher<RAW_sha256.Hash>>(key:key)
-			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher<RAW_sha512.Hash>>(key:key)
+			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher>(key:key)
+			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher>(key:key)
+			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher>(key:key)
+			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher>(key:key)
 			for msg in messages {
 				try hmac5.update(message:msg)
 				try hmac1.update(message:msg)
@@ -150,10 +150,10 @@ extension rawdog_tests {
 			let key = [UInt8](repeating: 0x0C, count: 20)
 			let messages:[[UInt8]] = [[UInt8]("Test With Truncation".utf8)]
 			#expect(key.dropLast(4).count == 16)
-			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher<RAW_md5.Hash>>(key:key.dropLast(4))
-			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher<RAW_sha1.Hash>>(key:key)
-			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher<RAW_sha256.Hash>>(key:key)
-			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher<RAW_sha512.Hash>>(key:key)
+			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher>(key:key.dropLast(4))
+			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher>(key:key)
+			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher>(key:key)
+			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher>(key:key)
 			for msg in messages {
 				try hmac5.update(message:msg)
 				try hmac1.update(message:msg)
@@ -182,10 +182,10 @@ extension rawdog_tests {
 		func testVector6() throws {
 			let key = try RAW_hex.decode("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 			let messages:[[UInt8]] = [[UInt8]("Test Using Larger Than Block-Size Key - Hash Key First".utf8)]
-			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher<RAW_md5.Hash>>(key:Array(key[0..<80]))
-			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher<RAW_sha1.Hash>>(key:Array(key[0..<80]))
-			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher<RAW_sha256.Hash>>(key:key)
-			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher<RAW_sha512.Hash>>(key:key)
+			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher>(key:Array(key[0..<80]))
+			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher>(key:Array(key[0..<80]))
+			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher>(key:key)
+			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher>(key:key)
 			for msg in messages {
 				try hmac5.update(message:msg)
 				try hmac1.update(message:msg)
@@ -215,10 +215,10 @@ extension rawdog_tests {
 			let key = try RAW_hex.decode("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 			let message256512 = try RAW_hex.decode("5468697320697320612074657374207573696e672061206c6172676572207468616e20626c6f636b2d73697a65206b657920616e642061206c6172676572207468616e20626c6f636b2d73697a6520646174612e20546865206b6579206e6565647320746f20626520686173686564206265666f7265206265696e6720757365642062792074686520484d414320616c676f726974686d2e")
 			let message51:[UInt8] = [UInt8]("Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data".utf8)
-			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher<RAW_md5.Hash>>(key:Array(key[0..<80]))
-			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher<RAW_sha1.Hash>>(key:Array(key[0..<80]))
-			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher<RAW_sha256.Hash>>(key:key)
-			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher<RAW_sha512.Hash>>(key:key)
+			var hmac5 = try RAW_hmac.HMAC<RAW_md5.Hasher>(key:Array(key[0..<80]))
+			var hmac1 = try RAW_hmac.HMAC<RAW_sha1.Hasher>(key:Array(key[0..<80]))
+			var hmac256 = try RAW_hmac.HMAC<RAW_sha256.Hasher>(key:key)
+			var hmac512 = try RAW_hmac.HMAC<RAW_sha512.Hasher>(key:key)
 			try hmac5.update(message:message51)
 			try hmac1.update(message:message51)
 			try hmac256.update(message:message256512)
