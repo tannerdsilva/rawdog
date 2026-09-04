@@ -165,7 +165,7 @@ let package = Package(
 		),
 		.target(
 			name:"__crawdog_xchachapoly",
-			dependencies:["RAW", "__crawdog_chachapoly", "__crawdog_hchacha20"],
+			dependencies:["__crawdog_chachapoly", "__crawdog_hchacha20"],
 			publicHeadersPath:"."
 		),
 		.target(

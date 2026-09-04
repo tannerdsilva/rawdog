@@ -10,6 +10,10 @@ in c, the following syntax is common and efficient `uint8_t[1024]`. in swift, tr
 
 I'm really happy with the structure and clarity of the code itself but documentation coverage is incomplete.
 
+## Result conventions
+
+rawdog draws one deliberate boundary on result types. algorithms with a fixed, compile-time output size (hashes, HMACs, chachapoly tags, curve keys) return typed `RAW_staticbuff` values — `SHA256.Hash`, `RAW_chachapoly.Tag`, and so on — so size mismatches are caught at compile time. algorithms whose output length is only known at runtime (hex/base64 decodes, bcrypt, argon2, HKDF expand) return `[UInt8]`. the two conventions never mix within one API: if the length is statically determined, the result is typed.
+
 ## Crypto
 
 rawdog distributes and builds its own source material (in c) for all cryptographic functions, including:
@@ -51,7 +55,7 @@ This project follows the tagging semantics outlined in [SemVer 2.0.0](https://se
 
 ### Requirements
 
-Given the critical use of macros in this suite, rawdog requires Swift language v5.9.0 or above to build and deploy successfully.
+Given the critical use of macros in this suite and the `swift-tools-version: 6.2` manifest, rawdog requires a Swift 6.2 toolchain or above to build and deploy successfully.
 
 ### License
 
