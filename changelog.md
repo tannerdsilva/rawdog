@@ -15,11 +15,11 @@
 - `@RAW_staticbuff(concat:)`:
 
 	- Default mode: the storage is auto-generated as a `_bytes` member holding the concatenated component tuple.
-	- v21 compatibility mode: exactly N stored instance properties typed as the N concat components (in order) are accepted as the payload — no `_bytes` member is generated, and all access/decode/encode/compare machinery resolves through protocol defaults. Any other stored properties still produce a diagnostic with fix-its.
+	- v21 compatibility mode: exactly N stored instance properties typed as the N concat components (in order) are accepted as the payload — no `_bytes` member is generated, and the access/decode/encode/compare machinery is generated with the modern members (v21 call forms resolve through the module's deprecated forwarding conveniences). Any other stored properties still produce a diagnostic with fix-its.
 
-- Access model: `RAW_accessible` is now the intersection of `RAW_accessible_immutable` and `RAW_accessible_mutable`, exposing `RAW_access_immutable(_:UnsafeRawBufferPointer.Type, _:)` and `RAW_access_mutable(_:UnsafeMutableRawBufferPointer.Type, _:)`. The v21 `RAW_access` / `RAW_access_mutating` names are retained as deprecated requirements with mutual defaults, so hand-written v21 conformances compile unchanged and drive the whole v22 accessor/encode surface through the witness table.
+- Access model: `RAW_accessible` is now the intersection of `RAW_accessible_immutable` and `RAW_accessible_mutable`, exposing `RAW_access_immutable(_:UnsafeRawBufferPointer.Type, _:)` and `RAW_access_mutable(_:UnsafeMutableRawBufferPointer.Type, _:)` as single requirements. The v21 `RAW_access` / `RAW_access_mutating` names are retained as deprecated forwarding conveniences, so v21 *call sites* compile unchanged; hand-written v21 *conformers* must implement the modern accessors (macro-generated types are unaffected). The library itself never calls the deprecated names — the package builds warning-free.
 
-- Decode model: `init?(RAW_decode _:UnsafeRawBufferPointer)` is the canonical decoder. The v21 `init?(RAW_decode:UnsafeRawPointer, count:size_t)` remains a deprecated requirement with a default — both conformance styles and both call forms work.
+- Decode model: `init?(RAW_decode _:UnsafeRawBufferPointer)` is the single canonical requirement. The v21 `init?(RAW_decode:UnsafeRawPointer, count:size_t)` remains as a deprecated forwarding convenience so v21 call sites keep compiling; hand-written v21 pointer+count *conformers* must implement the buffer form.
 
 - `RAW_staticbuff` now inherits `RAW_comparable_fixed`, providing `RAW_compare` plus `RAW_comparable_fixed_theoretical_min()` / `RAW_comparable_fixed_theoretical_max()` defaults over `MemoryLayout<RAW_fixed_type>`.
 
@@ -28,6 +28,18 @@
 - `size_t` migrated to `Int` throughout the API (`RAW_encode(count:)`, error payloads, and so on — behavior-neutral, as C `size_t` imports as `Int`).
 
 - `RAW_kdf` added as a published product; dead symbols dropped; ed25519 sign/verify buffers sized against the 64-byte signature contract.
+
+- `RAW_hasher` slimmed to two required primitives (`update(_:UnsafeRawBufferPointer)` and `finish(into:)`); the byte-buffer and pointer+count update variants remain as default implementations with unchanged signatures, and a new typed `finish() throws -> RAW_hasher_outputtype` default means hashers (and HMAC) can produce typed digests without buffer plumbing.
+
+- SHA1/SHA256/SHA512/MD5 `Hasher` structs are no longer generic — `SHA256.Hasher<SHA256.Hash>` is now `SHA256.Hasher` (the generic parameter was pinned to one type per module by its tuple constraint).
+
+- `RAW_blake2.Hasher`: the `RAW_blake2_func_type` / `RAW_blake2_out_type` typealiases are renamed to `funcType` / `outType`; the byte-array output mode unifies on the `outputLength:` label (the former `outputCount:` is gone); the `Hasher<H, UnsafeMutableRawPointer>` output specialization is removed.
+
+- The pure-C `__crawdog_xchachapoly` target no longer depends on the Swift `RAW` module (the dependency was unused); `Baes64_dec_impl.swift` is renamed to `Base64_dec_impl.swift`.
+
+- The `RAW_mnemonic` `.process(wordlist_EN.txt)` resource bundle was never read (the wordlist ships inline in `Word.swift`) and is removed.
+
+- Hardened system-error paths in `RAW_bcrypt_blowfish.Salt.generate` (no `try!` — entropy failures now propagate) and `RAW_argon2.ID.hash` (unknown C error codes fail loudly instead of force-unwrapping an optional enum case).
 
 - Migration for v21 macro-using consumers is a single mechanical edit: delete the redundant `typealias RAW_fixed_type = RAW_staticbuff_storetype`; everything else compiles with deprecation warnings + rename fix-its. Verified against pristine v21 bedrock (`da5b3d9`): clean build, 59 tests / 14 suites green after that one edit. Deliberately not bridged: `RAW_decodable_unbounded`, and concat types with stored state beyond the component set.
 

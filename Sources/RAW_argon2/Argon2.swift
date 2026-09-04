@@ -88,7 +88,10 @@ public struct ID {
 					tempBuffer, MemoryLayout<O>.size
 				)
 				guard res == __CRAWDOG_ARGON2_OK.rawValue else {
-					throw Error(rawValue:res)!
+					guard let err = Error(rawValue:res) else {
+						fatalError("unknown argon2 error code: \\(res)")
+					}
+					throw err
 				}
 			}
 		}
