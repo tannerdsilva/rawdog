@@ -10,17 +10,10 @@ access is **closure-scoped**: the receiver hands your closure an
 `UnsafeRawBufferPointer` view of its storage, and the pointer cannot escape that scope.
 this keeps rawdog memory-safe even while operating on raw bytes.
 
-the protocol carries two requirements which are wired together by mutual defaults, so a
-conformer implements whichever one it was written against:
-
-- ``RAW_access_immutable(_:_:)`` — the v22 raw-buffer accessor, passed an
-  `UnsafeRawBufferPointer`
-- ``RAW_access(_:)`` — the v21-compatible byte-buffer accessor, passed an
-  `UnsafeBufferPointer<UInt8>` (deprecated in v22)
-
-macro-generated types witness the v22 form; hand-written v21 code witnesses the v21
-form. either way, calling either method dispatches through the witness table to the
-conformer's concrete member.
+the protocol carries a single requirement — ``RAW_access_immutable(_:_:)`` — passed an
+`UnsafeRawBufferPointer`. the deprecated v21 name ``RAW_access(_:)`` is preserved as a
+deprecated forwarding convenience so v21 call sites keep compiling; it dispatches
+through the witness table to the conformer's `RAW_access_immutable(_:_:)` member.
 
 ## requirements
 
@@ -29,11 +22,6 @@ public protocol RAW_accessible_immutable {
     borrowing func RAW_access_immutable<R, E>(
         _: UnsafeRawBufferPointer.Type,
         _ body: (UnsafeRawBufferPointer) throws(E) -> R
-    ) throws(E) -> R where E: Swift.Error
-
-    @available(*, deprecated, message: "use RAW_access_immutable(UnsafeRawBufferPointer.self, _:) instead")
-    borrowing func RAW_access<R, E>(
-        _ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R
     ) throws(E) -> R where E: Swift.Error
 }
 ```

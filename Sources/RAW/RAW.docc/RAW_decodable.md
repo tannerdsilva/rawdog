@@ -12,23 +12,13 @@ fails entirely. there is no partial consumption.
 
 ## requirements
 
-the protocol carries two requirements wired together by mutual defaults, so a
-conformer implements whichever one it was written against:
-
-- `init?(RAW_decode:)` — the v22 buffer initializer, taking an
-  `UnsafeRawBufferPointer`
-- `init?(RAW_decode:count:)` — the v21-compatible pointer + count initializer
-  (deprecated in v22)
-
-macro-generated types witness the v22 form; hand-written v21 code witnesses the v21
-form. either way, construction dispatches through the witness table to the
-conformer's concrete initializer.
+the protocol carries a single requirement — `init?(RAW_decode:)` — taking an
+`UnsafeRawBufferPointer`. the deprecated v21 pointer + count name is preserved as a
+deprecated forwarding convenience so v21 call sites keep compiling; it dispatches
+through the witness table to the conformer's buffer initializer.
 
 ```swift
 public protocol RAW_decodable {
-    @available(*, deprecated, message: "use init?(RAW_decode:) with an UnsafeRawBufferPointer")
-    init?(RAW_decode: UnsafeRawPointer, count: Int)
-
     init?(RAW_decode: UnsafeRawBufferPointer)
 }
 ```

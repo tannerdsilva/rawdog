@@ -138,9 +138,11 @@ extension RAW_staticbuff_macro.ConcatMacro: MemberMacro, ExtensionMacro {
 		if matchesV21Pattern {
 			// v21 compatibility mode: the user's stored properties ARE the payload — no
 			// `_bytes` member is generated. `RAW_fixed_type` is the concatenated component
-			// tuple (via #RAW_fixed_type(concat:)); RAW_access / RAW_access_mutating witness
-			// the v21 access requirements, so RAW_access_immutable / RAW_access_mutable /
-			// RAW_encode / RAW_compare all resolve through the RAW module's protocol defaults.
+			// tuple (via #RAW_fixed_type(concat:)). the access requirements are witnessed
+			// with the modern RAW_access_immutable / RAW_access_mutable members; the
+			// deprecated v21 RAW_access / RAW_access_mutating names — when called at v21
+			// call sites on this type — resolve to the RAW module's deprecated forwarding
+			// defaults and dispatch back through these witnesses.
 			let buildAllConcatTypesString = concatTypes.map { $0.trimmedDescription }.joined(separator: ", ")
 			return [
 				DeclSyntax(stringLiteral: "#RAW_fixed_type(concat:\(buildAllConcatTypesString))"),
@@ -182,18 +184,16 @@ extension RAW_staticbuff_macro.ConcatMacro: MemberMacro, ExtensionMacro {
 				}
 				"""),
 				DeclSyntax(stringLiteral: """
-				public borrowing func RAW_access<R, E>(_ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				public borrowing func RAW_access_immutable<R, E>(_:UnsafeRawBufferPointer.Type, _ body:(UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 				    return try withUnsafePointer(to: self) { (buff:UnsafePointer<Self>) throws(E) -> R in
-				        let asBuffer = UnsafeBufferPointer<UInt8>(start: UnsafeRawPointer(buff).assumingMemoryBound(to: UInt8.self), count: MemoryLayout<RAW_fixed_type>.size)
-				        return try body(asBuffer)
+				        return try body(UnsafeRawBufferPointer(start: UnsafeRawPointer(buff), count: MemoryLayout<RAW_fixed_type>.size))
 				    }
 				}
 				"""),
 				DeclSyntax(stringLiteral: """
-				public mutating func RAW_access_mutating<R, E>(_ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+				public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawBufferPointer.Type, _ body:(UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 				    return try withUnsafeMutablePointer(to: &self) { (buff:UnsafeMutablePointer<Self>) throws(E) -> R in
-				        let asBuffer = UnsafeMutableBufferPointer<UInt8>(start: UnsafeMutableRawPointer(buff).assumingMemoryBound(to: UInt8.self), count: MemoryLayout<RAW_fixed_type>.size)
-				        return try body(asBuffer)
+				        return try body(UnsafeMutableRawBufferPointer(start: UnsafeMutableRawPointer(buff), count: MemoryLayout<RAW_fixed_type>.size))
 				    }
 				}
 				"""),

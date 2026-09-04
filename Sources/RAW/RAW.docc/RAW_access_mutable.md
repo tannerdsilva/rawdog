@@ -10,16 +10,11 @@ like its immutable counterpart, access is closure-scoped: the receiver's storage
 handed to the closure as an `UnsafeMutableRawBufferPointer` that cannot escape.
 
 the protocol refines ``RAW_accessible_immutable``, so any conforming type supports both
-reading and writing. it carries two requirements wired together by mutual defaults:
-
-- ``RAW_access_mutable(_:_:)`` — the v22 raw-buffer mutable accessor, passed an
-  `UnsafeMutableRawBufferPointer`
-- ``RAW_access_mutating(_:)`` — the v21-compatible byte-buffer accessor, passed an
-  `UnsafeMutableBufferPointer<UInt8>` (deprecated in v22)
-
-macro-generated types witness the v22 form; hand-written v21 code witnesses the v21
-form. either way, calling either method dispatches through the witness table to the
-conformer's concrete member.
+reading and writing. it carries a single requirement — ``RAW_access_mutable(_:_:)`` —
+passed an `UnsafeMutableRawBufferPointer`. the deprecated v21 name
+``RAW_access_mutating(_:)`` is preserved as a deprecated forwarding convenience so v21
+call sites keep compiling; it dispatches through the witness table to the conformer's
+`RAW_access_mutable(_:_:)` member.
 
 ## requirements
 
@@ -28,11 +23,6 @@ public protocol RAW_accessible_mutable: RAW_accessible_immutable {
     mutating func RAW_access_mutable<R, E>(
         _: UnsafeMutableRawBufferPointer.Type,
         _ body: (UnsafeMutableRawBufferPointer) throws(E) -> R
-    ) throws(E) -> R where E: Swift.Error
-
-    @available(*, deprecated, message: "use RAW_access_mutable(UnsafeMutableRawBufferPointer.self, _:) instead")
-    mutating func RAW_access_mutating<R, E>(
-        _ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R
     ) throws(E) -> R where E: Swift.Error
 }
 ```

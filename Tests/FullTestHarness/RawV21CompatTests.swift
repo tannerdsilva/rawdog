@@ -85,8 +85,10 @@ extension rawdog_tests {
 
 	// MARK: v21 hand-written protocol conformances
 
-	/// a v21-style RAW_decodable conformer: hand-written pointer + count initializer
-	/// (the v22 buffer form is defaulted via the witness table).
+	/// a v21-style RAW_decodable conformer, written against the v22 single-requirement
+	/// surface: the hand-written buffer initializer. the deprecated v21
+	/// `init(RAW_decode:count:)` call form still resolves through the module's
+	/// deprecated forwarding convenience and dispatches back into this initializer.
 	struct V21Decodable:RAW_decodable, Equatable {
 		var storage:UInt32
 
@@ -94,23 +96,23 @@ extension rawdog_tests {
 			self.storage = storage
 		}
 
-		init?(RAW_decode ptr:UnsafeRawPointer, count:Int) {
-			guard count == MemoryLayout<UInt32>.size else {
+		init?(RAW_decode buff:UnsafeRawBufferPointer) {
+			guard buff.count == MemoryLayout<UInt32>.size else {
 				return nil
 			}
-			self.storage = ptr.loadUnaligned(as:UInt32.self)
+			self.storage = buff.loadUnaligned(fromByteOffset: 0, as: UInt32.self)
 		}
 	}
 
-	@Test("v21 hand-written two-arg RAW_decode witness + buffer default round-trip")
+	@Test("v21 pointer+count call form forwards to the buffer initializer")
 	func testV21Decodable() {
 		let value = V21Decodable(storage: 0xDEADBEEF)
-		// v21 call form (deprecated requirement)
+		// v21 call form (deprecated convenience → buffer initializer)
 		let v21Decoded = withUnsafePointer(to:value.storage) { (ptr:UnsafePointer<UInt32>) -> V21Decodable? in
 			return V21Decodable(RAW_decode: UnsafeRawPointer(ptr), count: MemoryLayout<UInt32>.size)
 		}
 		#expect(v21Decoded == value)
-		// v22 call form (default → v21 witness)
+		// v22 call form (the single requirement)
 		let v22Decoded = withUnsafeBytes(of:value.storage) { (buf:UnsafeRawBufferPointer) -> V21Decodable? in
 			return V21Decodable(RAW_decode: buf)
 		}
@@ -122,49 +124,46 @@ extension rawdog_tests {
 		#expect(wrong == nil)
 	}
 
-	/// a v21-style RAW_accessible conformer: hand-written RAW_access / RAW_access_mutating
-	/// bodies (the v22 RAW_access_immutable / RAW_access_mutable / RAW_encode forms are
-	/// defaulted via the witness table).
+	/// a v21-style RAW_accessible conformer, written against the v22 single-requirement
+	/// surface: hand-written RAW_access_immutable / RAW_access_mutable buffer bodies.
+	/// the deprecated v21 RAW_access / RAW_access_mutating call forms still resolve
+	/// through the module's deprecated forwarding conveniences.
 	struct V21Accessible:RAW_accessible, RAW_encodable {
 		var bytes:(UInt8, UInt8, UInt8, UInt8)
 
-		@available(*, deprecated)
-		public borrowing func RAW_access<R, E>(_ body:(UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		public borrowing func RAW_access_immutable<R, E>(_:UnsafeRawBufferPointer.Type, _ body:(UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 			return try withUnsafePointer(to:bytes) { (ptr:UnsafePointer<(UInt8, UInt8, UInt8, UInt8)>) throws(E) -> R in
-				let bytePtr = UnsafeRawPointer(ptr).assumingMemoryBound(to:UInt8.self)
-				return try body(UnsafeBufferPointer<UInt8>(start:bytePtr, count:MemoryLayout<UInt8>.size * 4))
+				return try body(UnsafeRawBufferPointer(start: UnsafeRawPointer(ptr), count: MemoryLayout<UInt8>.size * 4))
 			}
 		}
 
-		@available(*, deprecated)
-		public mutating func RAW_access_mutating<R, E>(_ body:(UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E:Swift.Error {
+		public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawBufferPointer.Type, _ body:(UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E:Swift.Error {
 			return try withUnsafeMutablePointer(to:&bytes) { (ptr:UnsafeMutablePointer<(UInt8, UInt8, UInt8, UInt8)>) throws(E) -> R in
-				let bytePtr = UnsafeMutableRawPointer(ptr).assumingMemoryBound(to:UInt8.self)
-				return try body(UnsafeMutableBufferPointer<UInt8>(start:bytePtr, count:MemoryLayout<UInt8>.size * 4))
+				return try body(UnsafeMutableRawBufferPointer(start: UnsafeMutableRawPointer(ptr), count: MemoryLayout<UInt8>.size * 4))
 			}
 		}
 	}
 
 	@available(*, deprecated) // the v21 access members under test are deprecated by design
-	@Test("v21 hand-written RAW_access/RAW_access_mutating witness the v22 accessor defaults")
+	@Test("v21 RAW_access / RAW_access_mutating call forms forward through the v22 witnesses")
 	func testV21Accessible() {
 		var value = V21Accessible(bytes: (0xDE, 0xAD, 0xBE, 0xEF))
-		// v21 call form
+		// v21 call form (deprecated convenience → v22 witness)
 		let first = value.RAW_access { (buf:UnsafeBufferPointer<UInt8>) -> UInt8 in
 			return buf[0]
 		}
 		#expect(first == 0xDE)
-		// v22 call form, defaulted through the v21 witness
+		// v22 call form (the single requirement)
 		let viaRaw = value.RAW_access_immutable(UnsafeRawBufferPointer.self) { (raw:UnsafeRawBufferPointer) -> UInt8 in
 			return raw.load(as:UInt8.self)
 		}
 		#expect(viaRaw == 0xDE)
-		// mutable v21 form
+		// mutable v21 form (deprecated convenience → v22 witness)
 		value.RAW_access_mutating { (buf:UnsafeMutableBufferPointer<UInt8>) in
 			buf[3] = 0x42
 		}
 		#expect(value.bytes.3 == 0x42)
-		// v22 mutable default
+		// v22 mutable requirement
 		value.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { (raw:UnsafeMutableRawBufferPointer) in
 			raw.storeBytes(of:0x77, toByteOffset:3, as:UInt8.self)
 		}
@@ -209,12 +208,12 @@ extension rawdog_tests {
 			firstByte = buf[0]
 		}
 		#expect(firstByte == 0x11)
-		// v22 accessor defaulted through the v21 witness
+		// v22 accessor (the macro-generated modern witness)
 		let viaImmutable:UInt8 = combo.RAW_access_immutable(UnsafeRawBufferPointer.self) { raw in
 			raw.load(as:UInt8.self)
 		}
 		#expect(viaImmutable == 0x11)
-		// v22 mutable default through the v21 mutable witness
+		// v22 mutable accessor (the macro-generated modern witness)
 		combo.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { raw in
 			raw.storeBytes(of:0x99, toByteOffset:0, as:UInt8.self)
 		}

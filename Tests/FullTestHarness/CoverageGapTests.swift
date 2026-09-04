@@ -95,7 +95,7 @@ extension rawdog_tests {
 				try hasher.update(buf.baseAddress!, count: buf.count)
 			}
 			
-			var output = TestHashOutput(RAW_staticbuff: TestHashOutput.RAW_staticbuff_zeroed())
+			var output = [UInt8](repeating: 0, count: 4).withUnsafeBytes { TestHashOutput(RAW_decode: $0)! }
 			try output.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { buf in
 				try hasher.finish(into: buf.baseAddress!)
 			}

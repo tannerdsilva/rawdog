@@ -280,17 +280,15 @@ let expectedDiagnostic = DiagnosticSpec(id:MessageID(domain:"RAW_macros", id:"st
 				    self = bytes.load(as: Self.self)
 				}
 
-				public borrowing func RAW_access<R, E>(_ body: (UnsafeBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E: Swift.Error {
+				public borrowing func RAW_access_immutable<R, E>(_: UnsafeRawBufferPointer.Type, _ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E: Swift.Error {
 				    return try withUnsafePointer(to: self) { (buff: UnsafePointer<Self>) throws(E) -> R in
-				        let asBuffer = UnsafeBufferPointer<UInt8>(start: UnsafeRawPointer(buff).assumingMemoryBound(to: UInt8.self), count: MemoryLayout<RAW_fixed_type>.size)
-				        return try body(asBuffer)
+				        return try body(UnsafeRawBufferPointer(start: UnsafeRawPointer(buff), count: MemoryLayout<RAW_fixed_type>.size))
 				    }
 				}
 
-				public mutating func RAW_access_mutating<R, E>(_ body: (UnsafeMutableBufferPointer<UInt8>) throws(E) -> R) throws(E) -> R where E: Swift.Error {
+				public mutating func RAW_access_mutable<R, E>(_: UnsafeMutableRawBufferPointer.Type, _ body: (UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E: Swift.Error {
 				    return try withUnsafeMutablePointer(to: &self) { (buff: UnsafeMutablePointer<Self>) throws(E) -> R in
-				        let asBuffer = UnsafeMutableBufferPointer<UInt8>(start: UnsafeMutableRawPointer(buff).assumingMemoryBound(to: UInt8.self), count: MemoryLayout<RAW_fixed_type>.size)
-				        return try body(asBuffer)
+				        return try body(UnsafeMutableRawBufferPointer(start: UnsafeMutableRawPointer(buff), count: MemoryLayout<RAW_fixed_type>.size))
 				    }
 				}
 			}
