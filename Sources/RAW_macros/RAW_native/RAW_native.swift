@@ -59,7 +59,26 @@ public struct RAW_staticbuff_fixedwidthinteger_type_macro:MemberMacro, Extension
 		}
 		"""
 		
+		// numeric compare over the native value, translated through the configured
+		// endianness. this is the v21 behavior restored verbatim: fixed-width
+		// integers force their own ordering, so big- and little-endian storage
+		// both order numerically (the memcmp default would compare physical bytes).
+		let compareFunction = """
+		public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+			let lhs = \(typeName)(\(endianText): lhs_data.\(loadFuncName)(as: \(typeName).self))
+			let rhs = \(typeName)(\(endianText): rhs_data.\(loadFuncName)(as: \(typeName).self))
+			if lhs < rhs {
+				return -1
+			} else if lhs > rhs {
+				return 1
+			} else {
+				return 0
+			}
+		}
+		"""
+		
 		return [
+			DeclSyntax(stringLiteral: compareFunction),
 			DeclSyntax(stringLiteral: nativeGetter),
 			DeclSyntax(stringLiteral: nativeInit)
 		]

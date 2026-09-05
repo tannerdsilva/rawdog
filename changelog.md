@@ -43,6 +43,8 @@
 
 - `RAW_hex` odd-length decode now throws `Error.invalidEncodingSize` (a lone trailing nibble previously force-unwrapped into a fatal crash); the non-throwing `Encoded(values:)` path drops the trailing nibble instead of crashing.
 
+- `RAW_comparable` behavior restored to exact v21 parity: the fixed-width integer and binary-floating-point macros generate a numeric `RAW_compare` (endian/bit-pattern aware — little-endian fixed-width ints now order numerically instead of byte-wise), and `@RAW_staticbuff(concat:)` — in both the v22 default mode and the v21 compatibility mode — generates the v21-style sequential per-component compare that delegates to each component's own `RAW_compare`. both concat modes are override-aware: a user-declared `RAW_compare` on the annotated type replaces the generated one.
+
 - Migration for v21 macro-using consumers is a single mechanical edit: delete the redundant `typealias RAW_fixed_type = RAW_staticbuff_storetype`; everything else compiles with deprecation warnings + rename fix-its. Verified against pristine v21 bedrock (`da5b3d9`): clean build, 59 tests / 14 suites green after that one edit. Deliberately not bridged: `RAW_decodable_unbounded`, and concat types with stored state beyond the component set.
 
 # 21.0.0

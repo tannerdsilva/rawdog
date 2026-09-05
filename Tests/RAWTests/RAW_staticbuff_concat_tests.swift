@@ -16,68 +16,67 @@ struct RAW_staticbuff_concat_tests {
 			""",
 			expandedSource:
 			"""
-
 			struct AB:RAW_staticbuff, RAW_decodable {
-
+			
 				#RAW_fixed_type(concat: A.self, B.self)
-
+			
 				var _bytes: RAW_fixed_type
-
+			
 				public init?(RAW_decode bytes: UnsafeRawBufferPointer) {
 				    guard bytes.count == MemoryLayout<RAW_fixed_type>.size else {
 				    	return nil
 				    }
 				    self = bytes.load(as: Self.self)
 				}
-
+			
 				public borrowing func RAW_access_immutable<R, E>(_: UnsafeRawBufferPointer.Type, _ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E: Swift.Error {
 				    return try withUnsafePointer(to: _bytes) { (ptr: UnsafePointer<RAW_fixed_type>) throws(E) -> R in
 				        return try body(UnsafeRawBufferPointer(start: ptr, count: MemoryLayout<RAW_fixed_type>.size))
 				    }
 				}
-
+			
 				public mutating func RAW_access_mutable<R, E>(_: UnsafeMutableRawBufferPointer.Type, _ body: (UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E: Swift.Error {
 				    return try withUnsafeMutablePointer(to: &_bytes) { (ptr: UnsafeMutablePointer<RAW_fixed_type>) throws(E) -> R in
 				        return try body(UnsafeMutableRawBufferPointer(start: ptr, count: MemoryLayout<RAW_fixed_type>.size))
 				    }
 				}
-
+			
 				public init(RAW_staticbuff storetype: consuming RAW_fixed_type) {
 					_bytes = storetype
 				}
-
+			
 				@available(*, deprecated, message: "access the stored RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public consuming func RAW_staticbuff() -> RAW_fixed_type {
 					return _bytes
 				}
-
+			
 				@available(*, deprecated, message: "construct a zeroed instance from a zeroed RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public static func RAW_staticbuff_zeroed() -> RAW_fixed_type {
 					(A.RAW_staticbuff_zeroed(), B.RAW_staticbuff_zeroed())
 				}
-
+			
 				@available(*, deprecated, message: "use init(RAW_staticbuff storetype:) instead")
 				public init(RAW_staticbuff ptr: UnsafeRawPointer) {
 					self = ptr.load(as: Self.self)
 				}
-
-				public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_count: Int, rhs_data: UnsafeRawPointer, rhs_count: Int) -> Int32 {
-					var lhs_var = lhs_data;
-					var rhs_var = rhs_data
-					let b0 = A.RAW_compare(lhs_data: lhs_data, lhs_count: MemoryLayout<A>.size, rhs_data: rhs_data, rhs_count: MemoryLayout<A>.size)
-					if b0 != 0 {
+			
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+					var lhs_seeker = lhs_data
+					var rhs_seeker = rhs_data
+									let b0 = A.RAW_compare(lhs_data: lhs_seeker, rhs_data: rhs_seeker)
+									if b0 != 0 {
 						return b0
 					}
-					lhs_var = lhs_var.advanced(by: MemoryLayout<A>.size)
-					rhs_var = rhs_var.advanced(by: MemoryLayout<A>.size)
-					let b1 = B.RAW_compare(lhs_data: lhs_var, lhs_count: MemoryLayout<B>.size, rhs_data: rhs_var, rhs_count: MemoryLayout<B>.size)
-					if b1 != 0 {
+									lhs_seeker = lhs_seeker.advanced(by: MemoryLayout<A>.size)
+									rhs_seeker = rhs_seeker.advanced(by: MemoryLayout<A>.size)
+									let b1 = B.RAW_compare(lhs_data: lhs_seeker, rhs_data: rhs_seeker)
+									if b1 != 0 {
 						return b1
 					}
 					return 0
 				}
 			}
-
+			
 			extension AB: RAW_staticbuff, RAW_accessible, RAW_decodable, RAW_encodable, RAW_comparable {
 			}
 			""",
@@ -141,74 +140,73 @@ let expectedDiagnostic = DiagnosticSpec(id:MessageID(domain:"RAW_macros", id:"st
 			""",
 			expandedSource:
 			"""
-
 			struct ABC:RAW_staticbuff, RAW_decodable {
-
+			
 				#RAW_fixed_type(concat: A.self, B.self, C.self)
-
+			
 				var _bytes: RAW_fixed_type
-
+			
 				public init?(RAW_decode bytes: UnsafeRawBufferPointer) {
 				    guard bytes.count == MemoryLayout<RAW_fixed_type>.size else {
 				    	return nil
 				    }
 				    self = bytes.load(as: Self.self)
 				}
-
+			
 				public borrowing func RAW_access_immutable<R, E>(_: UnsafeRawBufferPointer.Type, _ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E: Swift.Error {
 				    return try withUnsafePointer(to: _bytes) { (ptr: UnsafePointer<RAW_fixed_type>) throws(E) -> R in
 				        return try body(UnsafeRawBufferPointer(start: ptr, count: MemoryLayout<RAW_fixed_type>.size))
 				    }
 				}
-
+			
 				public mutating func RAW_access_mutable<R, E>(_: UnsafeMutableRawBufferPointer.Type, _ body: (UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E: Swift.Error {
 				    return try withUnsafeMutablePointer(to: &_bytes) { (ptr: UnsafeMutablePointer<RAW_fixed_type>) throws(E) -> R in
 				        return try body(UnsafeMutableRawBufferPointer(start: ptr, count: MemoryLayout<RAW_fixed_type>.size))
 				    }
 				}
-
+			
 				public init(RAW_staticbuff storetype: consuming RAW_fixed_type) {
 					_bytes = storetype
 				}
-
+			
 				@available(*, deprecated, message: "access the stored RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public consuming func RAW_staticbuff() -> RAW_fixed_type {
 					return _bytes
 				}
-
+			
 				@available(*, deprecated, message: "construct a zeroed instance from a zeroed RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public static func RAW_staticbuff_zeroed() -> RAW_fixed_type {
 					(A.RAW_staticbuff_zeroed(), B.RAW_staticbuff_zeroed(), C.RAW_staticbuff_zeroed())
 				}
-
+			
 				@available(*, deprecated, message: "use init(RAW_staticbuff storetype:) instead")
 				public init(RAW_staticbuff ptr: UnsafeRawPointer) {
 					self = ptr.load(as: Self.self)
 				}
-
-				public static func RAW_compare(lhs_data: UnsafeRawPointer, lhs_count: Int, rhs_data: UnsafeRawPointer, rhs_count: Int) -> Int32 {
-					var lhs_var = lhs_data;
-					var rhs_var = rhs_data
-					let b0 = A.RAW_compare(lhs_data: lhs_data, lhs_count: MemoryLayout<A>.size, rhs_data: rhs_data, rhs_count: MemoryLayout<A>.size)
-					if b0 != 0 {
+			
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+					var lhs_seeker = lhs_data
+					var rhs_seeker = rhs_data
+									let b0 = A.RAW_compare(lhs_data: lhs_seeker, rhs_data: rhs_seeker)
+									if b0 != 0 {
 						return b0
 					}
-					lhs_var = lhs_var.advanced(by: MemoryLayout<A>.size)
-					rhs_var = rhs_var.advanced(by: MemoryLayout<A>.size)
-					let b1 = B.RAW_compare(lhs_data: lhs_var, lhs_count: MemoryLayout<B>.size, rhs_data: rhs_var, rhs_count: MemoryLayout<B>.size)
-					if b1 != 0 {
+									lhs_seeker = lhs_seeker.advanced(by: MemoryLayout<A>.size)
+									rhs_seeker = rhs_seeker.advanced(by: MemoryLayout<A>.size)
+									let b1 = B.RAW_compare(lhs_data: lhs_seeker, rhs_data: rhs_seeker)
+									if b1 != 0 {
 						return b1
 					}
-					lhs_var = lhs_var.advanced(by: MemoryLayout<B>.size)
-					rhs_var = rhs_var.advanced(by: MemoryLayout<B>.size)
-					let b2 = C.RAW_compare(lhs_data: lhs_var, lhs_count: MemoryLayout<C>.size, rhs_data: rhs_var, rhs_count: MemoryLayout<C>.size)
-					if b2 != 0 {
+									lhs_seeker = lhs_seeker.advanced(by: MemoryLayout<B>.size)
+									rhs_seeker = rhs_seeker.advanced(by: MemoryLayout<B>.size)
+									let b2 = C.RAW_compare(lhs_data: lhs_seeker, rhs_data: rhs_seeker)
+									if b2 != 0 {
 						return b2
 					}
 					return 0
 				}
 			}
-
+			
 			extension ABC: RAW_staticbuff, RAW_accessible, RAW_decodable, RAW_encodable, RAW_comparable {
 			}
 			""",
@@ -239,13 +237,12 @@ let expectedDiagnostic = DiagnosticSpec(id:MessageID(domain:"RAW_macros", id:"st
 			""",
 			expandedSource:
 			"""
-
 			struct AB:RAW_staticbuff, RAW_decodable {
 				var first:A
 				var second:B
-
+			
 				#RAW_fixed_type(concat: A.self, B.self)
-
+			
 				public init(RAW_staticbuff storetype: consuming RAW_fixed_type) {
 					#if DEBUG
 					assert(MemoryLayout<Self>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -254,7 +251,7 @@ let expectedDiagnostic = DiagnosticSpec(id:MessageID(domain:"RAW_macros", id:"st
 						return UnsafeRawPointer(ptr).load(as: Self.self)
 					}
 				}
-
+			
 				@available(*, deprecated, message: "access the stored RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public consuming func RAW_staticbuff() -> RAW_fixed_type {
 					var copy = self
@@ -262,37 +259,53 @@ let expectedDiagnostic = DiagnosticSpec(id:MessageID(domain:"RAW_macros", id:"st
 						return UnsafeRawPointer(ptr).load(as: RAW_fixed_type.self)
 					}
 				}
-
+			
 				@available(*, deprecated, message: "construct a zeroed instance from a zeroed RAW_fixed_type via init(RAW_staticbuff:) instead")
 				public static func RAW_staticbuff_zeroed() -> RAW_fixed_type {
 					(A.RAW_staticbuff_zeroed(), B.RAW_staticbuff_zeroed())
 				}
-
+			
 				@available(*, deprecated, message: "use init(RAW_staticbuff storetype:) instead")
 				public init(RAW_staticbuff ptr: UnsafeRawPointer) {
 					self = ptr.load(as: Self.self)
 				}
-
+			
 				public init?(RAW_decode bytes: UnsafeRawBufferPointer) {
 				    guard bytes.count == MemoryLayout<RAW_fixed_type>.size else {
 				    	return nil
 				    }
 				    self = bytes.load(as: Self.self)
 				}
-
+			
 				public borrowing func RAW_access_immutable<R, E>(_: UnsafeRawBufferPointer.Type, _ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R where E: Swift.Error {
 				    return try withUnsafePointer(to: self) { (buff: UnsafePointer<Self>) throws(E) -> R in
 				        return try body(UnsafeRawBufferPointer(start: UnsafeRawPointer(buff), count: MemoryLayout<RAW_fixed_type>.size))
 				    }
 				}
-
+			
 				public mutating func RAW_access_mutable<R, E>(_: UnsafeMutableRawBufferPointer.Type, _ body: (UnsafeMutableRawBufferPointer) throws(E) -> R) throws(E) -> R where E: Swift.Error {
 				    return try withUnsafeMutablePointer(to: &self) { (buff: UnsafeMutablePointer<Self>) throws(E) -> R in
 				        return try body(UnsafeMutableRawBufferPointer(start: UnsafeMutableRawPointer(buff), count: MemoryLayout<RAW_fixed_type>.size))
 				    }
 				}
+			
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+					var lhs_seeker = lhs_data
+					var rhs_seeker = rhs_data
+									let b0 = A.RAW_compare(lhs_data: lhs_seeker, rhs_data: rhs_seeker)
+									if b0 != 0 {
+						return b0
+					}
+									lhs_seeker = lhs_seeker.advanced(by: MemoryLayout<A>.size)
+									rhs_seeker = rhs_seeker.advanced(by: MemoryLayout<A>.size)
+									let b1 = B.RAW_compare(lhs_data: lhs_seeker, rhs_data: rhs_seeker)
+									if b1 != 0 {
+						return b1
+					}
+					return 0
+				}
 			}
-
+			
 			extension AB: RAW_staticbuff, RAW_accessible, RAW_decodable, RAW_encodable, RAW_comparable {
 			}
 			""",

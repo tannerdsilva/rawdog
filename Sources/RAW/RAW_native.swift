@@ -24,7 +24,7 @@ public protocol RAW_native {
 /// @RAW_staticbuff_fixedwidthinteger_type<UInt32>(bigEndian:true)
 /// struct MyUInt32:RAW_staticbuff {}
 /// ```
-@attached(member, names: named(RAW_native()), named(init(RAW_native:)))
+@attached(member, names: named(RAW_native()), named(init(RAW_native:)), named(RAW_compare(lhs_data:rhs_data:)))
 @attached(extension, conformances: RAW_encoded_fixedwidthinteger)
 public macro RAW_staticbuff_fixedwidthinteger_type<T:FixedWidthInteger>(bigEndian:Bool) = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_fixedwidthinteger_type_macro")
 
@@ -37,7 +37,7 @@ public macro RAW_staticbuff_fixedwidthinteger_type<T:FixedWidthInteger>(bigEndia
 /// @RAW_staticbuff_binaryfloatingpoint_type<Float>()
 /// struct MyFloat:RAW_staticbuff {}
 /// ```
-@attached(member, names: named(RAW_native()), named(init(RAW_native:)))
+@attached(member, names: named(RAW_native()), named(init(RAW_native:)), named(RAW_compare(lhs_data:rhs_data:)))
 @attached(extension, conformances: RAW_encoded_binaryfloatingpoint)
 public macro RAW_staticbuff_binaryfloatingpoint_type<T:BinaryFloatingPoint>() = #externalMacro(module:"RAW_macros", type:"RAW_staticbuff_binaryfloatingpoint_type_macro")
 

@@ -27,9 +27,20 @@ struct RAW_staticbuff_binaryfloatingpoint_type_tests {
 			""",
 			expandedSource:
 			"""
-
 			struct Test {
-
+			
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+					let lhs = Float(bitPattern: lhs_data.loadUnaligned(as: UInt32.self))
+					let rhs = Float(bitPattern: rhs_data.loadUnaligned(as: UInt32.self))
+					if lhs < rhs {
+						return -1
+					} else if lhs > rhs {
+						return 1
+					} else {
+						return 0
+					}
+				}
+			
 				public func RAW_native() -> Float {
 					#if DEBUG
 					assert(MemoryLayout<Self>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -39,7 +50,7 @@ struct RAW_staticbuff_binaryfloatingpoint_type_tests {
 						return Float(bitPattern: UnsafeRawPointer(selfPtr).loadUnaligned(as: UInt32.self))
 					}
 				}
-
+			
 				public init(RAW_native native: Float) {
 					#if DEBUG
 					assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -50,7 +61,7 @@ struct RAW_staticbuff_binaryfloatingpoint_type_tests {
 					})
 				}
 			}
-
+			
 			extension Test: RAW_encoded_binaryfloatingpoint {
 			}
 			""",
@@ -69,9 +80,20 @@ struct RAW_staticbuff_binaryfloatingpoint_type_tests {
 			""",
 			expandedSource:
 			"""
-
 			struct Test {
-
+			
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+					let lhs = Double(bitPattern: lhs_data.loadUnaligned(as: UInt64.self))
+					let rhs = Double(bitPattern: rhs_data.loadUnaligned(as: UInt64.self))
+					if lhs < rhs {
+						return -1
+					} else if lhs > rhs {
+						return 1
+					} else {
+						return 0
+					}
+				}
+			
 				public func RAW_native() -> Double {
 					#if DEBUG
 					assert(MemoryLayout<Self>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -81,7 +103,7 @@ struct RAW_staticbuff_binaryfloatingpoint_type_tests {
 						return Double(bitPattern: UnsafeRawPointer(selfPtr).loadUnaligned(as: UInt64.self))
 					}
 				}
-
+			
 				public init(RAW_native native: Double) {
 					#if DEBUG
 					assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -92,7 +114,7 @@ struct RAW_staticbuff_binaryfloatingpoint_type_tests {
 					})
 				}
 			}
-
+			
 			extension Test: RAW_encoded_binaryfloatingpoint {
 			}
 			""",
@@ -111,9 +133,20 @@ struct RAW_staticbuff_binaryfloatingpoint_type_tests {
 			""",
 			expandedSource:
 			"""
-
 			struct Test {
-
+			
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+					let lhs = Float16(bitPattern: lhs_data.loadUnaligned(as: UInt16.self))
+					let rhs = Float16(bitPattern: rhs_data.loadUnaligned(as: UInt16.self))
+					if lhs < rhs {
+						return -1
+					} else if lhs > rhs {
+						return 1
+					} else {
+						return 0
+					}
+				}
+			
 				public func RAW_native() -> Float16 {
 					#if DEBUG
 					assert(MemoryLayout<Self>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -123,7 +156,7 @@ struct RAW_staticbuff_binaryfloatingpoint_type_tests {
 						return Float16(bitPattern: UnsafeRawPointer(selfPtr).loadUnaligned(as: UInt16.self))
 					}
 				}
-
+			
 				public init(RAW_native native: Float16) {
 					#if DEBUG
 					assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -134,7 +167,7 @@ struct RAW_staticbuff_binaryfloatingpoint_type_tests {
 					})
 				}
 			}
-
+			
 			extension Test: RAW_encoded_binaryfloatingpoint {
 			}
 			""",

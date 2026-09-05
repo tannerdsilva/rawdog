@@ -72,7 +72,25 @@ internal struct RAW_staticbuff_binaryfloatingpoint_type_macro:MemberMacro, Exten
 		}
 		"""
 		
+		// numeric compare over the native value, via its bit pattern. this is the
+		// v21 behavior restored verbatim: binary-floating-point types force their
+		// own ordering, comparing decoded values instead of the memcmp default.
+		let compareFunction = """
+		public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+			let lhs = \(typeName)(\(nativeTranslatorName): lhs_data.\(loadFuncName)(as: \(bitPatternType).self))
+			let rhs = \(typeName)(\(nativeTranslatorName): rhs_data.\(loadFuncName)(as: \(bitPatternType).self))
+			if lhs < rhs {
+				return -1
+			} else if lhs > rhs {
+				return 1
+			} else {
+				return 0
+			}
+		}
+		"""
+		
 		return [
+			DeclSyntax(stringLiteral: compareFunction),
 			DeclSyntax(stringLiteral: nativeGetter),
 			DeclSyntax(stringLiteral: nativeInit)
 		]

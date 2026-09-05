@@ -27,9 +27,20 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 			""",
 			expandedSource:
 			"""
-
 			struct Test {
-
+			
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+					let lhs = UInt32(bigEndian: lhs_data.loadUnaligned(as: UInt32.self))
+					let rhs = UInt32(bigEndian: rhs_data.loadUnaligned(as: UInt32.self))
+					if lhs < rhs {
+						return -1
+					} else if lhs > rhs {
+						return 1
+					} else {
+						return 0
+					}
+				}
+			
 				public func RAW_native() -> UInt32 {
 					#if DEBUG
 					assert(MemoryLayout<Self>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -39,7 +50,7 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 						return UInt32(bigEndian: UnsafeRawPointer(selfPtr).loadUnaligned(as: UInt32.self))
 					}
 				}
-
+			
 				public init(RAW_native native: UInt32) {
 					#if DEBUG
 					assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -50,7 +61,7 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 					})
 				}
 			}
-
+			
 			extension Test: RAW_encoded_fixedwidthinteger {
 			}
 			""",
@@ -69,9 +80,20 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 			""",
 			expandedSource:
 			"""
-
 			struct Test {
-
+			
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+					let lhs = UInt32(littleEndian: lhs_data.loadUnaligned(as: UInt32.self))
+					let rhs = UInt32(littleEndian: rhs_data.loadUnaligned(as: UInt32.self))
+					if lhs < rhs {
+						return -1
+					} else if lhs > rhs {
+						return 1
+					} else {
+						return 0
+					}
+				}
+			
 				public func RAW_native() -> UInt32 {
 					#if DEBUG
 					assert(MemoryLayout<Self>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -81,7 +103,7 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 						return UInt32(littleEndian: UnsafeRawPointer(selfPtr).loadUnaligned(as: UInt32.self))
 					}
 				}
-
+			
 				public init(RAW_native native: UInt32) {
 					#if DEBUG
 					assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -92,7 +114,7 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 					})
 				}
 			}
-
+			
 			extension Test: RAW_encoded_fixedwidthinteger {
 			}
 			""",
@@ -111,9 +133,20 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 			""",
 			expandedSource:
 			"""
-
 			struct Test {
-
+			
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+					let lhs = UInt8(bigEndian: lhs_data.load(as: UInt8.self))
+					let rhs = UInt8(bigEndian: rhs_data.load(as: UInt8.self))
+					if lhs < rhs {
+						return -1
+					} else if lhs > rhs {
+						return 1
+					} else {
+						return 0
+					}
+				}
+			
 				public func RAW_native() -> UInt8 {
 					#if DEBUG
 					assert(MemoryLayout<Self>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -123,7 +156,7 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 						return UInt8(bigEndian: UnsafeRawPointer(selfPtr).load(as: UInt8.self))
 					}
 				}
-
+			
 				public init(RAW_native native: UInt8) {
 					#if DEBUG
 					assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -134,7 +167,7 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 					})
 				}
 			}
-
+			
 			extension Test: RAW_encoded_fixedwidthinteger {
 			}
 			""",
@@ -153,9 +186,20 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 			""",
 			expandedSource:
 			"""
-
 			struct Test {
-
+			
+				public static func RAW_compare(lhs_data: UnsafeRawPointer, rhs_data: UnsafeRawPointer) -> Int32 {
+					let lhs = UInt64(bigEndian: lhs_data.loadUnaligned(as: UInt64.self))
+					let rhs = UInt64(bigEndian: rhs_data.loadUnaligned(as: UInt64.self))
+					if lhs < rhs {
+						return -1
+					} else if lhs > rhs {
+						return 1
+					} else {
+						return 0
+					}
+				}
+			
 				public func RAW_native() -> UInt64 {
 					#if DEBUG
 					assert(MemoryLayout<Self>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -165,7 +209,7 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 						return UInt64(bigEndian: UnsafeRawPointer(selfPtr).loadUnaligned(as: UInt64.self))
 					}
 				}
-
+			
 				public init(RAW_native native: UInt64) {
 					#if DEBUG
 					assert(MemoryLayout<RAW_native_type>.size == MemoryLayout<RAW_fixed_type>.size, "static buffer type size mismatch. this is a misuse of the macro")
@@ -176,7 +220,7 @@ struct RAW_staticbuff_fixedwidthinteger_type_tests {
 					})
 				}
 			}
-
+			
 			extension Test: RAW_encoded_fixedwidthinteger {
 			}
 			""",

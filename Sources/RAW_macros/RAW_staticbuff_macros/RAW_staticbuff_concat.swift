@@ -107,6 +107,41 @@ extension RAW_staticbuff_macro.ConcatMacro: MemberMacro, ExtensionMacro {
 			return baseExpr.trimmedDescription
 		}
 
+		// a user-declared `RAW_compare` on the annotated type replaces the generated
+		// one. this mirrors v21, where the concat macro detected a user RAW_compare
+		// and skipped generation so the user's preferred sort implementation stands.
+		var isCompareOverridden = false
+		for member in declaration.memberBlock.members {
+			guard let funcDecl = member.decl.as(FunctionDeclSyntax.self), funcDecl.name.text == "RAW_compare" else {
+				continue
+			}
+			if funcDecl.modifiers.contains(where: { $0.name.tokenKind == .keyword(.static) }) {
+				isCompareOverridden = true
+				break
+			}
+		}
+
+		// v21-style sequential compare: each component is compared with its own
+		// RAW_compare, one at a time, advancing the seeker pointers, and
+		// short-circuiting on the first difference. generated for both concat modes
+		// so v21 and v22 concat types order identically.
+		var rawCompareCode = ""
+		for (i, baseType) in concatTypesBases.enumerated() {
+			if i > 0 {
+				rawCompareCode += "\n\t\t\t\t\tlhs_seeker = lhs_seeker.advanced(by: MemoryLayout<\(concatTypesBases[i-1])>.size)\n\t\t\t\t\trhs_seeker = rhs_seeker.advanced(by: MemoryLayout<\(concatTypesBases[i-1])>.size)"
+			}
+			rawCompareCode += "\n\t\t\t\t\tlet b\(i) = \(baseType).RAW_compare(lhs_data: lhs_seeker, rhs_data: rhs_seeker)\n\t\t\t\t\tif b\(i) != 0 { return b\(i) }"
+		}
+		let rawCompareFunction =
+			"""
+			public static func RAW_compare(lhs_data:UnsafeRawPointer, rhs_data:UnsafeRawPointer) -> Int32 {
+				var lhs_seeker = lhs_data
+				var rhs_seeker = rhs_data\(rawCompareCode)
+				return 0
+			}
+			"""
+		let rawCompareDecl = DeclSyntax(stringLiteral: rawCompareFunction)
+
 		// scan the user's stored instance properties. static and computed members are
 		// exempt and ignored. exactly the concat components (in order) select the v21
 		// compatibility mode; any other stored properties are diagnosed below.
@@ -144,7 +179,7 @@ extension RAW_staticbuff_macro.ConcatMacro: MemberMacro, ExtensionMacro {
 			// call sites on this type — resolve to the RAW module's deprecated forwarding
 			// defaults and dispatch back through these witnesses.
 			let buildAllConcatTypesString = concatTypes.map { $0.trimmedDescription }.joined(separator: ", ")
-			return [
+			var v21Decls = [
 				DeclSyntax(stringLiteral: "#RAW_fixed_type(concat:\(buildAllConcatTypesString))"),
 				DeclSyntax(stringLiteral: """
 				public init(RAW_staticbuff storetype: consuming RAW_fixed_type) {
@@ -198,10 +233,13 @@ extension RAW_staticbuff_macro.ConcatMacro: MemberMacro, ExtensionMacro {
 				}
 				"""),
 			]
+			if !isCompareOverridden {
+				v21Decls.append(rawCompareDecl)
+			}
+			return v21Decls
 		}
-
-		if storedProps.isEmpty == false {
-			// stored properties present but NOT the v21 component pattern.
+		
+		if storedProps.isEmpty == false {			// stored properties present but NOT the v21 component pattern.
 			func makeStatic(_ varDecl: VariableDeclSyntax) -> VariableDeclSyntax {
 				let staticModifier = DeclModifierSyntax(
 					leadingTrivia: .newline,
@@ -283,31 +321,7 @@ extension RAW_staticbuff_macro.ConcatMacro: MemberMacro, ExtensionMacro {
 			}
 			"""
 		
-		// Override compare function
-		var rawCompareCode = ""
-		for (i, baseType) in concatTypesBases.enumerated() {
-			if i == 0 {
-				rawCompareCode += "let b\(i) = \(baseType).RAW_compare(lhs_data: lhs_data, lhs_count: MemoryLayout<\(baseType)>.size, rhs_data: rhs_data, rhs_count: MemoryLayout<\(baseType)>.size)\n"
-			} else {
-				rawCompareCode +=
-					"""
-					lhs_var = lhs_var.advanced(by: MemoryLayout<\(concatTypesBases[i-1])>.size)
-					rhs_var = rhs_var.advanced(by: MemoryLayout<\(concatTypesBases[i-1])>.size)\n
-					"""
-				rawCompareCode += "let b\(i) = \(baseType).RAW_compare(lhs_data: lhs_var, lhs_count: MemoryLayout<\(baseType)>.size, rhs_data: rhs_var, rhs_count: MemoryLayout<\(baseType)>.size)\n"
-			}
-			rawCompareCode += "if b\(i) != 0 { return b\(i) }"
-		}
-		let rawCompareFunction =
-			"""
-			public static func RAW_compare(lhs_data:UnsafeRawPointer, lhs_count:Int, rhs_data:UnsafeRawPointer, rhs_count:Int) -> Int32 {
-				var lhs_var = lhs_data; var rhs_var = rhs_data
-				\(rawCompareCode)
-				return 0
-			}
-			"""
-		
-		return [
+		var v22Decls = [
 			DeclSyntax(stringLiteral: "#RAW_fixed_type(concat:\(buildAllConcatTypesString))"),
 			DeclSyntax(stringLiteral: "var \(rawStaticBuffArg):RAW_fixed_type"),
 			DeclSyntax(stringLiteral: """
@@ -334,8 +348,11 @@ public mutating func RAW_access_mutable<R, E>(_:UnsafeMutableRawBufferPointer.Ty
 			DeclSyntax(stringLiteral: getterFunction),
 			DeclSyntax(stringLiteral: zeroFunction),
 			DeclSyntax(stringLiteral: pointerInitializer),
-			DeclSyntax(stringLiteral: rawCompareFunction),
 		]
+		if !isCompareOverridden {
+			v22Decls.append(rawCompareDecl)
+		}
+		return v22Decls
 	}
 	
 	public static func expansion(
