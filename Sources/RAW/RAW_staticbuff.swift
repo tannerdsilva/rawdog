@@ -1,9 +1,10 @@
 /// a protocol for types backed by statically sized, fixed-layout storage.
-/// `RAW_staticbuff` composes ``RAW_fixed``, ``RAW_comparable_fixed``, and `Sendable`,
+/// `RAW_staticbuff` composes ``RAW_fixed``, ``RAW_comparable_fixed``, ``RAW_accessible``,
+/// and `Sendable`,
 /// and is the primary conformance that the `@RAW_staticbuff` macros attach to a type.
 /// conforming types can be initialized from a forward-seeking pointer, compared by raw
 /// byte representation, and (with the access conveniences) read and written in place.
-public protocol RAW_staticbuff:RAW_fixed, RAW_comparable_fixed, Sendable {}
+public protocol RAW_staticbuff:RAW_fixed, RAW_comparable_fixed, RAW_accessible, Sendable {}
 
 // MARK: - Seeking initializer
 extension RAW_staticbuff {

@@ -8,6 +8,7 @@ at compile time, and it inherits the whole rawdog stack:
 
 - ``RAW_fixed`` — compile-time size via the `RAW_fixed_type` associated type
 - ``RAW_comparable_fixed`` — fixed-size raw comparison
+- ``RAW_accessible`` — immutable and mutable raw-buffer access
 - `Sendable` — rawdog storage types are value types with no shared mutable state
 
 the most common way to adopt `RAW_staticbuff` is the `@RAW_staticbuff(bytes:)` macro:
