@@ -15,7 +15,7 @@ public enum Error:Swift.Error {
 @RAW_staticbuff(bytes:256)
 public struct Salt:Sendable {
 	public static func generate(passes:UInt = 12) throws -> Self {
-		let newSaltBuffer = __crawdog_crypt_gensalt_ra("$2b$", passes, try! generateSecureRandomBytes(count:MemoryLayout<Salt>.size), Int32(MemoryLayout<Salt>.size))
+		let newSaltBuffer = __crawdog_crypt_gensalt_ra("$2b$", passes, try generateSecureRandomBytes(count:MemoryLayout<Salt>.size), Int32(MemoryLayout<Salt>.size))
 		guard newSaltBuffer != nil else {
 			let getErrno = __craw_get_system_errno()
 			switch getErrno {
@@ -36,13 +36,13 @@ public struct Salt:Sendable {
 		defer {
 			free(newSaltBuffer!)
 		}
-		return Salt(RAW_staticbuff:newSaltBuffer!)
+		return Salt(RAW_staticbuff:UnsafeRawPointer(newSaltBuffer!).loadUnaligned(as:Salt.RAW_fixed_type.self))
 	}
 }
 
 public func hash(phrase:borrowing String, salt:borrowing Salt) throws -> [UInt8] {
 	var count:Int32 = 0
-	return try salt.RAW_access { saltBuffer in
+	return try salt.RAW_access_immutable(UnsafeRawBufferPointer.self) { saltBuffer in
 		var dataBuffer:UnsafeMutableRawPointer? = nil
 		let newHashBuffer = __crawdog_crypt_ra(phrase, saltBuffer.baseAddress, &dataBuffer, &count)
 		guard newHashBuffer != nil else {
@@ -65,6 +65,6 @@ public func hash(phrase:borrowing String, salt:borrowing Salt) throws -> [UInt8]
 		defer {
 			free(newHashBuffer!)
 		}
-		return [UInt8](RAW_decode:dataBuffer!, count:Int(count))
+		return [UInt8](UnsafeRawBufferPointer(start:dataBuffer!, count:Int(count)))
 	}
 }

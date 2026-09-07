@@ -7,14 +7,15 @@ public struct HMAC<H:RAW_hasher> {
 		innerContext = inner
 		outerContext = outer
 	}
-	private static func initiate(key:UnsafeRawPointer, count:size_t) throws -> Self {
+	private static func initiate(key:UnsafeRawPointer, count:Int) throws -> Self {
 		var innerContext = try H.init()
 		var outerContext = try H.init()
 		var tmp:UInt8 = 0;
-		var keyScratch = H.RAW_hasher_outputtype(RAW_decode:key)!
-		try keyScratch.RAW_access_mutating { keyScratchPtr in
+		var keyVar = key
+		var keyScratch = H.RAW_hasher_outputtype(RAW_staticbuff_seeking:&keyVar)
+		try keyScratch.RAW_access_mutable { keyScratchPtr in
 			let useKeyPtr:UnsafePointer<UInt8>
-			let useKeyCount:size_t
+			let useKeyCount:Int
 			if (count > H.RAW_hasher_blocksize) {
 				var keyContext = try H.init()
 				try keyContext.update(key, count:count)
@@ -44,18 +45,18 @@ public struct HMAC<H:RAW_hasher> {
 		return Self(inner:innerContext, outer:outerContext)
 	}
 
-	public init(key:UnsafeRawPointer, count:size_t) throws {
+	public init(key:UnsafeRawPointer, count:Int) throws {
 		self = try Self.initiate(key:key, count:count)
 	}
 	
 	public init<K>(key:borrowing K) throws where K:RAW_accessible {
-		self = try key.RAW_access { keyBuffer in
+		self = try key.RAW_access_immutable(UnsafeRawBufferPointer.self) { keyBuffer in
 			return try Self.initiate(key:keyBuffer.baseAddress!, count:keyBuffer.count)
 		}
 	}
 
 	public init<K>(key:UnsafePointer<K>) throws where K:RAW_accessible {
-		self = try key.pointee.RAW_access { keyBuffer in
+		self = try key.pointee.RAW_access_immutable(UnsafeRawBufferPointer.self) { keyBuffer in
 			return try Self.initiate(key:keyBuffer.baseAddress!, count:keyBuffer.count)
 		}
 	}
@@ -66,14 +67,11 @@ public struct HMAC<H:RAW_hasher> {
 		try outerContext.finish(into:ptr)
 	}
 
+	/// finish the hmac and return the typed output value.
 	public mutating func finish() throws -> H.RAW_hasher_outputtype {
-		var innerResult:H.RAW_hasher_outputtype? = nil
-		try innerContext.finish(into:&innerResult)
-		try innerResult!.RAW_access {
-			try outerContext.update($0)
-		}
-		try outerContext.finish(into:&innerResult)
-		return innerResult!
+		let innerResult = try innerContext.finish()
+		try outerContext.update(innerResult)
+		return try outerContext.finish()
 	}
 }
 
@@ -87,7 +85,7 @@ extension HMAC {
 		try innerContext.update(inputData)
 	}
 		
-	public mutating func update(message data:UnsafeRawPointer, count:size_t) throws {
+	public mutating func update(message data:UnsafeRawPointer, count:Int) throws {
 		try innerContext.update(data, count:count)
 	}
 }

@@ -10,13 +10,13 @@ public struct rawdog_tests {
 	@RAW_staticbuff(bytes:64)
 	internal struct My64:Sendable {}
 	@Test("RAW_access :: validate equal pointers") func validateEqualPointersWithinAccesses() throws {
-		let key = My64(RAW_staticbuff:My64.RAW_staticbuff_zeroed())
-		let leftThing = key.RAW_access_staticbuff { buff in
+		let key = [UInt8](repeating: 0, count: 64).withUnsafeBytes { My64(RAW_decode: $0)! }
+		let leftThing = key.RAW_access_immutable(UnsafeRawBufferPointer.self) { buff in
 			return buff
 		}
-		let rightThing = key.RAW_access_staticbuff { buff in
+		let rightThing = key.RAW_access_immutable(UnsafeRawBufferPointer.self) { buff in
 			return buff
 		}
-		#expect(leftThing == rightThing)
+		#expect(leftThing.baseAddress == rightThing.baseAddress)
 	}
 }

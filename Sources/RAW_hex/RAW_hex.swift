@@ -22,12 +22,12 @@ public enum Error:Swift.Error {
 	/// - valid hex characters are `0-9`, `a-f`, and `A-F` in ascii form.
 	case invalidHexEncodingCharacter(Character)
 	/// thrown when a hex encoded string is not a valid size for the decoding algorithm. encoded strings must be an even number of characters, since they are represented with twice as many bytes.
-	case invalidEncodingSize(size_t)
+	case invalidEncodingSize(Int)
 }
 
 extension Array where Element == Value {
 	/// returns an array of random hex values. the length of the array is specified by the `length` parameter.
-	public static func random(count length:size_t) -> Self {
+	public static func random(count length:Int) -> Self {
 		return Self(unsafeUninitializedCapacity:length, initializingWith: { valueBuffer, valueCount in
 			valueCount = 0
 			var seekPointer = valueBuffer.baseAddress!
@@ -44,7 +44,7 @@ extension Array where Element == Value {
 }
 
 public func encode<A:RAW_accessible>(_ accessibleBytes:borrowing A) -> Encoded {
-	accessibleBytes.RAW_access { decodedBytesToEncode in
+	accessibleBytes.RAW_access_immutable(UnsafeRawBufferPointer.self) { decodedBytesToEncode in
 		return Encoded(decoded_bytes:[UInt8](decodedBytesToEncode))
 	}
 }
@@ -64,6 +64,9 @@ public func decode<S>(_ str:consuming S) throws -> [UInt8] where S:Sequence, S.E
 			throw Error.invalidHexEncodingCharacter(char)
 		}
 		buildValues.append(try Value(validate:char))
+	}
+	guard buildValues.count.isMultiple(of: 2) else {
+		throw Error.invalidEncodingSize(buildValues.count)
 	}
 	return [UInt8](_decode_main_values(buildValues))
 }

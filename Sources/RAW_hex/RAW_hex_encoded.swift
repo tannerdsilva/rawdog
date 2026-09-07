@@ -22,14 +22,14 @@ public struct Encoded {
 
 extension Encoded {
 	/// returns the byte count for this encoded value
-	public var count:size_t {
+	public var count:Int {
 		return Encode.length(decoded_data.count)
 	}
 }
 
 extension Encoded:RandomAccessCollection {
-	/// ``Encoded`` strides through memory using the size_t type.
-	public typealias Index = size_t
+	/// ``Encoded`` strides through memory using the Int type.
+	public typealias Index = Int
 	
 	/// ``Encoded`` values are represented as a collection of ``Character`` values.
 	public typealias Element = Value

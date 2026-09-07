@@ -21,13 +21,13 @@ public struct BlindingContext:~Copyable {
 	
 	/// generate the private and public key pair that will be used for signing.
 	///	- parameters:
-	///		- secretKey: the dh25519 private key that should be used to create the 
+	///		- secretKey: the dh25519 private key that should be used to create the
 	public borrowing func generateKeys(secretKey:MemoryGuarded<RAW_dh25519.PrivateKey>) throws -> (PublicKey, MemoryGuarded<PrivateKey>) {
-		var publicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
+		var publicKey = PublicKey.RAW_comparable_fixed_theoretical_min()
 		let privateKey = try MemoryGuarded<PrivateKey>.blank()
-		publicKey.RAW_access_mutating { publicKeyPtr in
-			privateKey.RAW_access_mutating { privateKeyPtr in
-				secretKey.RAW_access { skPtr in
+		publicKey.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { publicKeyPtr in
+			privateKey.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { privateKeyPtr in
+				secretKey.RAW_access_immutable(UnsafeRawBufferPointer.self) { skPtr in
 					__crawdog_ed25519_create_keypair(publicKeyPtr.baseAddress!, privateKeyPtr.baseAddress!, storage, skPtr.baseAddress!)
 				}
 			}
@@ -35,10 +35,15 @@ public struct BlindingContext:~Copyable {
 		return (publicKey, privateKey)
 	}
 	
-	/// 
-	public borrowing func sign(to signature:UnsafeMutablePointer<UInt8>, privateKey:MemoryGuarded<PrivateKey>, message:UnsafeBufferPointer<UInt8>) {
-		privateKey.RAW_access { privateKeyPtr in
-			__crawdog_ed25519_sign_message(signature, privateKeyPtr.baseAddress!, storage, message.baseAddress!, message.count)
+	/// generate a message signature.
+	///	- parameters:
+	///		- signature: the destination buffer that will receive the signature (must hold at least 64 bytes)
+	///		- privateKey: the ed25519 private key that should be used to sign
+	///		- message: the message content that will be signed
+	public borrowing func sign(to signature:UnsafeMutableBufferPointer<UInt8>, privateKey:MemoryGuarded<PrivateKey>, message:UnsafeBufferPointer<UInt8>) {
+		precondition(signature.count >= 64, "ed25519 signature output must hold at least 64 bytes")
+		privateKey.RAW_access_immutable(UnsafeRawBufferPointer.self) { privateKeyPtr in
+			__crawdog_ed25519_sign_message(signature.baseAddress!, privateKeyPtr.baseAddress!, storage, message.baseAddress!, message.count)
 		}
 	}
 	
@@ -56,18 +61,19 @@ public struct VerificationContext:~Copyable {
 	
 	/// initialize a verification context from a specified public key.
 	public init(publicKey:borrowing PublicKey) {
-		storage = publicKey.RAW_access { publicKeyPointer in
+		storage = publicKey.RAW_access_immutable(UnsafeRawBufferPointer.self) { publicKeyPointer in
 			return __crawdog_ed25519_verify_init(nil, publicKeyPointer.baseAddress!)
 		}
 	}
 	
 	/// verifies the specified signature with the specified message content.
 	///	- parameters:
-	///		- signature: an unsafe pointer to the bytes containing the signature data
-	///		- message: an unsafe buffer pointer to the bytes containing the signature data
+	///		- signature: the bytes containing the signature data (must be exactly 64 bytes)
+	///		- message: an unsafe buffer pointer to the bytes containing the message data
 	///	- returns: `true` is returned if the signature is valid.
-	public borrowing func verify(signature:UnsafePointer<UInt8>, message:UnsafeBufferPointer<UInt8>) -> Bool {
-		return (__crawdog_ed25519_verify_check(storage, signature, message.baseAddress!, message.count) == 1)
+	public borrowing func verify(signature:UnsafeBufferPointer<UInt8>, message:UnsafeBufferPointer<UInt8>) -> Bool {
+		precondition(signature.count == 64, "ed25519 signature input must be exactly 64 bytes")
+		return (__crawdog_ed25519_verify_check(storage, signature.baseAddress!, message.baseAddress!, message.count) == 1)
 	}
 	
 	deinit {
@@ -77,11 +83,11 @@ public struct VerificationContext:~Copyable {
 
 /// generate the private and public key pair that will be used for signing.
 public func generateKeys(secretKey:MemoryGuarded<RAW_dh25519.PrivateKey>) throws -> (PublicKey, MemoryGuarded<PrivateKey>) {
-	var publicKey = PublicKey(RAW_staticbuff:PublicKey.RAW_staticbuff_zeroed())
+	var publicKey = PublicKey.RAW_comparable_fixed_theoretical_min()
 	let privateKey = try MemoryGuarded<PrivateKey>.blank()
-	publicKey.RAW_access_mutating { publicKeyPtr in
-		privateKey.RAW_access_mutating { privateKeyPtr in
-			secretKey.RAW_access { skPtr in
+	publicKey.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { publicKeyPtr in
+		privateKey.RAW_access_mutable(UnsafeMutableRawBufferPointer.self) { privateKeyPtr in
+			secretKey.RAW_access_immutable(UnsafeRawBufferPointer.self) { skPtr in
 				__crawdog_ed25519_create_keypair(publicKeyPtr.baseAddress!, privateKeyPtr.baseAddress!, nil, skPtr.baseAddress!)
 			}
 		}
@@ -89,16 +95,18 @@ public func generateKeys(secretKey:MemoryGuarded<RAW_dh25519.PrivateKey>) throws
 	return (publicKey, privateKey)
 }
 
-/// 
-public func sign(to signature:UnsafeMutablePointer<UInt8>, privateKey:MemoryGuarded<PrivateKey>, message:UnsafeBufferPointer<UInt8>) {
-	privateKey.RAW_access { privateKeyPtr in
-		__crawdog_ed25519_sign_message(signature, privateKeyPtr.baseAddress!, nil, message.baseAddress!, message.count)
+/// generate a message signature.
+public func sign(to signature:UnsafeMutableBufferPointer<UInt8>, privateKey:MemoryGuarded<PrivateKey>, message:UnsafeBufferPointer<UInt8>) {
+	precondition(signature.count >= 64, "ed25519 signature output must hold at least 64 bytes")
+	privateKey.RAW_access_immutable(UnsafeRawBufferPointer.self) { privateKeyPtr in
+		__crawdog_ed25519_sign_message(signature.baseAddress!, privateKeyPtr.baseAddress!, nil, message.baseAddress!, message.count)
 	}
 }
 
-/// 
-public func verify(signature:UnsafePointer<UInt8>, publicKey:borrowing PublicKey, message:UnsafeBufferPointer<UInt8>) -> Bool {
-	return publicKey.RAW_access { publicKeyPtr in
-		return (0 != __crawdog_ed25519_verify_signature(signature, publicKeyPtr.baseAddress!, message.baseAddress!, message.count))
+/// verifies a message signature with a specified public key.
+public func verify(signature:UnsafeBufferPointer<UInt8>, publicKey:borrowing PublicKey, message:UnsafeBufferPointer<UInt8>) -> Bool {
+	precondition(signature.count == 64, "ed25519 signature input must be exactly 64 bytes")
+	return publicKey.RAW_access_immutable(UnsafeRawBufferPointer.self) { publicKeyPtr in
+		return (0 != __crawdog_ed25519_verify_signature(signature.baseAddress!, publicKeyPtr.baseAddress!, message.baseAddress!, message.count))
 	}
 }

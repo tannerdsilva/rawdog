@@ -1,32 +1,82 @@
+# 22.0.0
+
+- `RAW_fixed_type` is now the single canonical storage typealias, generated directly by the `@RAW_staticbuff` macro. The v21 `RAW_staticbuff_storetype` name is preserved as a deprecated alias on `extension RAW_fixed` (with a rename fix-it).
+
+- Native-type macros retain their v21 form (`@RAW_staticbuff_fixedwidthinteger_type<T>(bigEndian:)`, `@RAW_staticbuff_binaryfloatingpoint_type<T>()`) and now auto-inject the `RAW_encoded_fixedwidthinteger` / `RAW_encoded_binaryfloatingpoint` conformance. The freestanding `#`-form used briefly mid-rewrite has been removed.
+
+- `@RAW_staticbuff(bytes:)` generates its storage and member surface; the lower-level pieces are exposed as standalone macros for hand-written types:
+
+	- `#RAW_fixed_type(bytes:)` / `#RAW_fixed_type(concat:)` for the storage typealias.
+	- `#RAW_staticbuff_init`, `#RAW_staticbuff_access(_:storage:bodyReturnType:bodyThrowsType:body:)`, `#RAW_decode_decl`/`_impl`, `#RAW_encode_decl`/`_impl`, `#RAW_access_immutable_decl`/`_impl`, `#RAW_access_mutable_decl`/`_impl`.
+	- Stored instance properties are rejected by default (only `static` and computed properties are allowed).
+
+- `@RAW_staticbuff(concat:)`:
+
+	- Default mode: the storage is auto-generated as a `_bytes` member holding the concatenated component tuple.
+	- v21 compatibility mode: exactly N stored instance properties typed as the N concat components (in order) are accepted as the payload — no `_bytes` member is generated, and the access/decode/encode/compare machinery is generated with the modern members (v21 call forms resolve through the module's deprecated forwarding conveniences). Any other stored properties still produce a diagnostic with fix-its.
+
+- Access model: `RAW_accessible` is now the intersection of `RAW_accessible_immutable` and `RAW_accessible_mutable`, exposing `RAW_access_immutable(_:UnsafeRawBufferPointer.Type, _:)` and `RAW_access_mutable(_:UnsafeMutableRawBufferPointer.Type, _:)` as single requirements. The v21 `RAW_access` / `RAW_access_mutating` names are retained as deprecated forwarding conveniences, so v21 *call sites* compile unchanged; hand-written v21 *conformers* must implement the modern accessors (macro-generated types are unaffected). The library itself never calls the deprecated names — the package builds warning-free.
+
+- Decode model: `init?(RAW_decode _:UnsafeRawBufferPointer)` is the single canonical requirement. The v21 `init?(RAW_decode:UnsafeRawPointer, count:size_t)` remains as a deprecated forwarding convenience so v21 call sites keep compiling; hand-written v21 pointer+count *conformers* must implement the buffer form.
+
+- `RAW_staticbuff` now inherits `RAW_comparable_fixed`, providing `RAW_compare` plus `RAW_comparable_fixed_theoretical_min()` / `RAW_comparable_fixed_theoretical_max()` defaults over `MemoryLayout<RAW_fixed_type>`.
+
+- All access/decode members use typed throws (`throws(E)`).
+
+- `size_t` migrated to `Int` throughout the API (`RAW_encode(count:)`, error payloads, and so on — behavior-neutral, as C `size_t` imports as `Int`).
+
+- `RAW_kdf` added as a published product; dead symbols dropped; ed25519 sign/verify buffers sized against the 64-byte signature contract.
+
+- `RAW_hasher` slimmed to two required primitives (`update(_:UnsafeRawBufferPointer)` and `finish(into:)`); the byte-buffer and pointer+count update variants remain as default implementations with unchanged signatures, and a new typed `finish() throws -> RAW_hasher_outputtype` default means hashers (and HMAC) can produce typed digests without buffer plumbing.
+
+- SHA1/SHA256/SHA512/MD5 `Hasher` structs are no longer generic — `SHA256.Hasher<SHA256.Hash>` is now `SHA256.Hasher` (the generic parameter was pinned to one type per module by its tuple constraint).
+
+- `RAW_blake2.Hasher`: the `RAW_blake2_func_type` / `RAW_blake2_out_type` typealiases are renamed to `funcType` / `outType`; the byte-array output mode unifies on the `outputLength:` label (the former `outputCount:` is gone); the `Hasher<H, UnsafeMutableRawPointer>` output specialization is removed.
+
+- The pure-C `__crawdog_xchachapoly` target no longer depends on the Swift `RAW` module (the dependency was unused); `Baes64_dec_impl.swift` is renamed to `Base64_dec_impl.swift`.
+
+- The `RAW_mnemonic` `.process(wordlist_EN.txt)` resource bundle was never read (the wordlist ships inline in `Word.swift`) and is removed.
+
+- Hardened system-error paths in `RAW_bcrypt_blowfish.Salt.generate` (no `try!` — entropy failures now propagate) and `RAW_argon2.ID.hash` (unknown C error codes fail loudly instead of force-unwrapping an optional enum case).
+
+- `RAW_hex` odd-length decode now throws `Error.invalidEncodingSize` (a lone trailing nibble previously force-unwrapped into a fatal crash); the non-throwing `Encoded(values:)` path drops the trailing nibble instead of crashing.
+
+- `RAW_comparable` behavior restored to exact v21 parity: the fixed-width integer and binary-floating-point macros generate a numeric `RAW_compare` (endian/bit-pattern aware — little-endian fixed-width ints now order numerically instead of byte-wise), and `@RAW_staticbuff(concat:)` — in both the v22 default mode and the v21 compatibility mode — generates the v21-style sequential per-component compare that delegates to each component's own `RAW_compare`. both concat modes are override-aware: a user-declared `RAW_compare` on the annotated type replaces the generated one.
+
 # 21.0.0
 
-- Expanded public API surface of `curve25519` to support `ed25519` signatures.
+- Expanded the `curve25519` surface to full `ed25519` signatures, exposed through a new `RAW_ed25519` product:
 
-	- Instances of blinding contexts are supported natively in Swift through non-copyable structures.
-	
-	- Blinding contexts.
-	
-	- Reusable verification contexts.
-	
-- Ergonomic improvements to `RAW_base64`.
+	- `PrivateKey` (64-byte static buffer type).
+	- Non-copyable `BlindingContext` for hardened signing operations, backed by native C context storage.
+	- Reusable `VerificationContext` for verifying large volumes of messages.
+	- `generateKeys(secretKey:)` top-level helper, using `RAW_dh25519` keys.
 
-	- `Value` is now `CustomDebugStringConvertible`.
+- `RAW_mnemonic` complete rework around a new 2048-word English wordlist: a `Mnemonic` type with BIP39-style entropy ↔ words conversion (16–32 bytes of entropy, SHA-256 checksum, 12–24 words), plus typed errors.
+
+- `RAW_dh25519.PublicKey`: new `init(privateKey: MemoryGuarded<PrivateKey>)` (memory-guarded secret storage); the `UnsafePointer<PrivateKey>` variant is deprecated with a migration note.
+
+- `RAW_comparable_fixed` adds `RAW_comparable_fixed_theoretical_max()` / `RAW_comparable_fixed_theoretical_min()` requirements, defaulted for `RAW_staticbuff` types.
+
+- `RAW_base64` ergonomics: the `Error` type is extracted into its own file and is now `CustomDebugStringConvertible`; the `invalidEncodingLength` payload migrated from `size_t` to `Int`.
+
+- `RAW_ed25519` and `RAW_mnemonic` registered as `.library` products in the package manifest; test harness coverage expanded for both.
 
 ## 20.1.0
 
-- Added the ability to invert `RAW_staticbuff` values using native Swift syntax `~`.
+- Added the `~` prefix operator to invert the bits of a `RAW_staticbuff` value (all `RAW_staticbuff` types).
 
 # 20.0.0
 
-- Introduction of a new reference type `MemoryGuarded<GuardedStaticbuffType> where GuardedStaticbuffType:RAW_staticbuff`.
+- Introduction of a new reference type `MemoryGuarded<GuardedStaticbuffType> where GuardedStaticbuffType:RAW_staticbuff`
 
 	- Used to store secure secrets. Implements memory page locking and zeroing to ensure the enclosed secrets are copied as few times as possible.
 
 - `RAW_dh25519` target refactored to implement `MemoryGuarded` storage.
 
-- Added initializer variant to `RAW_chachapoly.Context`: `public init?(key:UnsafeBufferPointer<UInt8>)`.
+- Added initializer variant to `RAW_chachapoly.Context`: `public init?(key:UnsafeBufferPointer<UInt8>)`
 
-- Now requires Swift 6.2.
+- Now requires Swift 6.2
 
 ### 19.0.2
 

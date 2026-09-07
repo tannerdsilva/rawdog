@@ -1,4 +1,4 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 6.3
 import PackageDescription
 import CompilerPluginSupport
 
@@ -81,6 +81,9 @@ let package = Package(
 			name:"RAW_hmac",
 			targets:["RAW_hmac"]),
 		.library(
+			name:"RAW_kdf",
+			targets:["RAW_kdf"]),
+		.library(
 			name:"RAW_md5",
 			targets:["RAW_md5"]),
 		.library(
@@ -97,7 +100,7 @@ let package = Package(
 			targets:["RAW_sha512"])
 	],
 	dependencies: [
-		.package(url:"https://github.com/apple/swift-syntax.git", "602.0.0"..<"603.0.0"),
+		.package(url:"https://github.com/apple/swift-syntax.git", "603.0.0"..<"604.0.0"),
 		.package(url:"https://github.com/apple/swift-log.git", "1.0.0"..<"2.0.0")
 	],
 	targets: [
@@ -114,12 +117,11 @@ let package = Package(
 
 		// raw targets
 		.target(name:"RAW_xchachapoly", dependencies:["RAW", "__crawdog_hchacha20", "__crawdog_chachapoly", "RAW_chachapoly", "__crawdog_xchachapoly"]),
-		/*.target(name:"RAW_mnemonic", dependencies:["RAW", "RAW_blake2"]),*/
+		.target(name:"RAW_mnemonic", dependencies:["RAW", "RAW_sha256"]),
 		.target(name:"RAW_argon2", dependencies:["RAW", "__crawdog_argon2"]),
 		.target(name:"RAW_hmac", dependencies: ["RAW"]),
 		.target(name:"RAW_kdf", dependencies: ["RAW_hmac", "RAW"]),
 		.target(name:"RAW_md5", dependencies:["RAW", "__crawdog_md5"]),
-		.target(name:"RAW_mnemonic", dependencies:["RAW", "RAW_sha256"]),
 		.target(name:"RAW_sha1", dependencies:["RAW", "__crawdog_sha1"]),
 		.target(name:"RAW_sha256", dependencies:["RAW", "__crawdog_sha256"]),
 		.target(name:"RAW_sha512", dependencies:["RAW", "__crawdog_sha512"]),
@@ -163,7 +165,7 @@ let package = Package(
 		),
 		.target(
 			name:"__crawdog_xchachapoly",
-			dependencies:["RAW", "__crawdog_chachapoly", "__crawdog_hchacha20"],
+			dependencies:["__crawdog_chachapoly", "__crawdog_hchacha20"],
 			publicHeadersPath:"."
 		),
 		.target(
@@ -269,16 +271,7 @@ let package = Package(
 		),
 		
 		// tests for raw and c targets
-		.testTarget(
-			name:"FullTestHarness",
-			dependencies:[
-				"RAW_md5",
-				"RAW_kdf",
-				"__crawdog_hkdf-tests",
-				"__crawdog_xchachapoly",
-				"RAW_xchachapoly",
-				"__crawdog_hchacha20-tests",
-				"__crawdog_argon2-tests",
-				"__crawdog_argon2", "RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_sha512", "RAW_mnemonic", "RAW_ed25519"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")])
+		.testTarget(name:"FullTestHarness", dependencies:["RAW_md5", "RAW_kdf", "__crawdog_hkdf-tests", "__crawdog_xchachapoly", "RAW_xchachapoly", "__crawdog_hchacha20-tests", "__crawdog_argon2-tests", "__crawdog_argon2", "RAW", "RAW_base64", "RAW_macros", "RAW_blake2", "RAW_hex", "CRAW_base64", "RAW_chachapoly", "__crawdog_crypt_blowfish-tests", "__crawdog_chachapoly-tests", "__crawdog_hashing-tests", "__crawdog_curve25519-tests", "RAW_hmac", "RAW_sha1", "RAW_sha256", "RAW_sha512", "RAW_dh25519", "RAW_ed25519", "RAW_mnemonic"], resources:[.process("blake2-kat.json")], swiftSettings:[.define("ED25519_TEST"), .define("TEST")]),
+		.testTarget(name:"RAWTests", dependencies:["RAW", "RAW_macros", .product(name:"SwiftSyntaxMacrosGenericTestSupport", package:"swift-syntax"), .product(name:"SwiftSyntaxMacroExpansion", package:"swift-syntax")])
 	]
 )

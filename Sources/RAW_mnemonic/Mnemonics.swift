@@ -4,7 +4,7 @@ import RAW
 import RAW_sha256
 
 public struct Mnemonic {
-	enum Error:Swift.Error {
+	public enum Error:Swift.Error {
 		case unsupportedDataByteCount(Int)
 		case unsupportedWordCount(Int)
 		case unknownWord(String)
@@ -24,15 +24,9 @@ public struct Mnemonic {
 		}
 	}
 	
-	static public func checksumBitCount(bytes length: size_t) -> size_t {
+	static public func checksumBitCount(bytes length: Int) -> Int {
 		let checksumLength = (length * 8) / 32
 		return checksumLength
-	}
-	
-	static public func wordCountWithChecksum(bytes length: size_t) -> size_t {
-		let checksumLength = checksumBitCount(bytes:length)
-		let wordCount = ((length * 8) + checksumLength) / 11
-		return wordCount
 	}
 	
 	
@@ -42,8 +36,8 @@ public struct Mnemonic {
 		}
 	
 		var hashBytes = [UInt8](repeating: 0, count: 32)
-		var hasher = Hasher<Hash>()
-		hasher.update(data)
+		var hasher = Hasher()
+		try hasher.update(data)
 		try hasher.finish(into: &hashBytes)
 
 		let checksumBits:Int = checksumBitCount(bytes: data.count)
@@ -132,8 +126,10 @@ public struct Mnemonic {
 		}
 
 		// ---------- Verify checksum ----------
-		var hasher = Hasher<Hash>()
-		try hasher.update(entropy)
+		var hasher = Hasher()
+		entropy.withUnsafeBytes { entropyBuffer in
+			hasher.update(entropyBuffer)
+		}
 		var hash = [UInt8](repeating: 0, count: 32)
 		try hasher.finish(into: &hash)
 

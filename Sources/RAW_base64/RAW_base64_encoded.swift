@@ -16,7 +16,7 @@ public struct Encoded {
 	}
 
 	// count is stored as to not invoke the count property on the decoded_data array (constant lookup vs 0(n))
-	internal let decoded_count:size_t
+	internal let decoded_count:Int
 	internal let decoded_data:[UInt8] // data buffer for the decoded value
 
 	internal init(decoded_bytes decoded:borrowing [UInt8]) {
@@ -30,11 +30,11 @@ public struct Encoded {
 }
 
 extension Encoded {
-	public borrowing func decodedByteCount() -> size_t {
+	public borrowing func decodedByteCount() -> Int {
 		return decoded_count
 	}
 	
-	public borrowing func paddedEncodingByteCount() -> size_t {
+	public borrowing func paddedEncodingByteCount() -> Int {
 		switch padding() {
 		case .zero:
 			return Encode.unpadded_length(unencoded_byte_count:decoded_count)
@@ -45,7 +45,7 @@ extension Encoded {
 		}
 	}
 
-	public borrowing func unpaddedEncodedByteCount() -> size_t {
+	public borrowing func unpaddedEncodedByteCount() -> Int {
 		return Encode.unpadded_length(unencoded_byte_count:decoded_count)
 	}
 
@@ -87,11 +87,11 @@ extension Encoded:Sequence {
 			}
 			return Encode.chunk_parse_inline(decoded_bytes:&data, decoded_byte_count:data_count, encoded_index:position)
 		}
-		private let encoded_count:size_t
-		private let data_count:size_t
+		private let encoded_count:Int
+		private let data_count:Int
 		private var data:[UInt8]
-		private var position:size_t
-		fileprivate init(data:[UInt8], data_count:size_t) {
+		private var position:Int
+		fileprivate init(data:[UInt8], data_count:Int) {
 			#if DEBUG
 			assert(data_count == data.count, "data_count (\(data_count)) should be equal to data.count (\(data.count))")
 			#endif
@@ -108,8 +108,8 @@ extension Encoded:Sequence {
 
 extension Encoded.Padding {
 
-	/// initialize a tail from a size_t value.
-	internal init?(validate_length_value sizeValue:size_t) {
+	/// initialize a tail from a Int value.
+	internal init?(validate_length_value sizeValue:Int) {
 		switch sizeValue {
 		case 0:
 			self = .zero
@@ -122,7 +122,7 @@ extension Encoded.Padding {
 		}
 	}
 
-	internal init(validated_length_value sizeValue:size_t) {
+	internal init(validated_length_value sizeValue:Int) {
 		switch sizeValue {
 		case 0:
 			self = .zero
@@ -135,8 +135,8 @@ extension Encoded.Padding {
 		}
 	}
 
-	/// returns the size_t value of the padding
-	internal func asSize() -> size_t {
+	/// returns the Int value of the padding
+	internal func asSize() -> Int {
 		switch self {
 		case .zero:
 			return 0

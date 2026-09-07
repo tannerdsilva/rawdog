@@ -2,11 +2,34 @@
 // copyright (c) tanner silva 2024. all rights reserved.
 import RAW
 
+#if RAWDOG_BASE64_LOG
+import Logging
+internal func makeDefaultLogger() -> Logger {
+	var logger = Logger(label:"RAW_base64")
+	logger.logLevel = .trace
+	return logger
+}
+internal var logger = makeDefaultLogger()
+#endif
+
+/// error thrown by Base64 encoding/decoding functions
+public enum Error:Swift.Error {
+	/// thrown when the padding length is not valid for the given Base64 encoding.
+	case invalidPaddingLength
+	
+	/// the provided string could not be decoded.
+	case invalidEncodingLength(Int)
+
+	/// thrown when 
+	case invalidBase64EncodingCharacter(Character)
+}
+
 // encode functions
 /// encode a byte array to a base64 encoded string.
 public func encode<A:RAW_accessible>(_ accessible:borrowing A) -> Encoded {
-	accessible.RAW_access { encodeBytes in
-		return Encoded(decoded_bytes:encodeBytes)
+	accessible.RAW_access_immutable(UnsafeRawBufferPointer.self) { encodeBytes in
+		let typedPtr = UnsafeBufferPointer<UInt8>(start:encodeBytes.baseAddress?.assumingMemoryBound(to:UInt8.self), count:encodeBytes.count)
+		return Encoded(decoded_bytes:typedPtr)
 	}
 }
 public func encode(_ inputByte:UnsafeBufferPointer<UInt8>) -> Encoded {
@@ -34,7 +57,7 @@ public func decode(_ encoded:borrowing Encoded) -> [UInt8] {
 
 extension Array where Element == Value {
 	/// returns an array of random hex values. the length of the array is specified by the `length` parameter.
-	public static func random(length:size_t) -> Self {
+	public static func random(length:Int) -> Self {
 		return Self(unsafeUninitializedCapacity:length, initializingWith: { valueBuffer, valueCount in
 			valueCount = 0
 			var seekPointer = valueBuffer.baseAddress!

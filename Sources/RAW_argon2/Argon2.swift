@@ -77,8 +77,8 @@ public struct ID {
 		defer {
 			tempBuffer.deallocate()
 		}
-		try salt.RAW_access { (saltPtr:UnsafeBufferPointer<UInt8>) in
-			try password.RAW_access { (pwdPtr:UnsafeBufferPointer<UInt8>) in
+		try salt.RAW_access_immutable(UnsafeRawBufferPointer.self) { (saltPtr:UnsafeRawBufferPointer) in
+			try password.RAW_access_immutable(UnsafeRawBufferPointer.self) { (pwdPtr:UnsafeRawBufferPointer) in
 				let res = __crawdog_argon2id_hash_raw(
 					timeCost,
 					memoryCost,
@@ -88,10 +88,14 @@ public struct ID {
 					tempBuffer, MemoryLayout<O>.size
 				)
 				guard res == __CRAWDOG_ARGON2_OK.rawValue else {
-					throw Error(rawValue:res)!
+					guard let err = Error(rawValue:res) else {
+						fatalError("unknown argon2 error code: \\(res)")
+					}
+					throw err
 				}
 			}
 		}
-		return O(RAW_staticbuff:tempBuffer)
+		var seekPtr = UnsafeRawPointer(tempBuffer)
+		return O(RAW_staticbuff_seeking:&seekPtr)
 	}
 }

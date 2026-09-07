@@ -186,8 +186,46 @@ extension rawdog_tests {
 			let startBytes = [UInt8]()
 			let base64Encoded = RAW_base64.encode(startBytes)
 			#expect(String(base64Encoded) == "")
-			let base64Decoded = try RAW_base64.decode(base64Encoded)
+			let base64Decoded = RAW_base64.decode(base64Encoded)
 			#expect(base64Decoded == startBytes)
+		}
+
+		// error surface: invalid characters, malformed length, and padding structure.
+		@Test("RAW_base64 :: invalid character throws")
+		func testInvalidCharacter() {
+			do {
+				_ = try RAW_base64.decode("!!!!")
+				Issue.record("expected an error for invalid characters")
+			} catch let error as RAW_base64.Error {
+				if case .invalidBase64EncodingCharacter = error {
+					// expected
+				} else {
+					Issue.record("wrong error case: \(error)")
+				}
+			} catch {
+				Issue.record("unexpected error type: \(error)")
+			}
+		}
+
+		@Test("RAW_base64 :: invalid length throws")
+		func testInvalidLength() {
+			#expect(throws: RAW_base64.Error.self) {
+				_ = try RAW_base64.decode("A")
+			}
+		}
+
+		@Test("RAW_base64 :: malformed padding throws")
+		func testMalformedPadding() {
+			#expect(throws: RAW_base64.Error.self) {
+				_ = try RAW_base64.decode("QQ=Q")
+			}
+		}
+
+		@Test("RAW_base64 :: padded decode round trips")
+		func testPaddedDecode() throws {
+			#expect(try RAW_base64.decode("") == [])
+			#expect(try RAW_base64.decode("QQ==") == [0x41])
+			#expect(try RAW_base64.decode("QUI=") == [0x41, 0x42])
 		}
 	}
 }
