@@ -55,7 +55,7 @@ This project follows the tagging semantics outlined in [SemVer 2.0.0](https://se
 
 ### Requirements
 
-Given the critical use of macros in this suite and the `swift-tools-version: 6.2` manifest, rawdog requires a Swift 6.2 toolchain or above to build and deploy successfully.
+Given the critical use of macros in this suite and the `swift-tools-version: 6.3` manifest, rawdog requires a Swift 6.3 toolchain or above to build and deploy successfully.
 
 ### License
 
