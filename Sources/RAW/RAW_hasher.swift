@@ -1,7 +1,11 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2025. all rights reserved.
 
+#if os(Linux)
+import Glibc
+#elseif os(macOS)
 import Darwin
+#endif
 
 /// a protocol that represents a hashing algorithm.
 public protocol RAW_hasher {

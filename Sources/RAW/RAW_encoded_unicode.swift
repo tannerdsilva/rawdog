@@ -1,6 +1,11 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2024. all rights reserved.
+
+#if os(Linux)
+import Glibc
+#elseif os(macOS)
 import Darwin
+#endif
 
 /// this protocol exists to create a slightly cleaner relationship between the two string based RAW_convertible macros.
 public protocol RAW_encoded_unicode:RAW_decodable, RAW_encodable, RAW_accessible, RAW_comparable, Sequence<Character> {

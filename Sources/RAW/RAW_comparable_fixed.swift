@@ -1,7 +1,11 @@
 // LICENSE MIT
 // copyright (c) tanner silva 2025. all rights reserved.
 
+#if os(Linux)
+import Glibc
+#elseif os(macOS)
 import Darwin
+#endif
 
 /// a type that can be compared with another instance of the same type using a fixed-size comparison.
 public protocol RAW_comparable_fixed:RAW_comparable, RAW_fixed {

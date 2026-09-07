@@ -1,4 +1,8 @@
+#if os(Linux)
+import Glibc
+#elseif os(macOS)
 import Darwin
+#endif
 
 /// thin Swift wrapper over the C `memcpy` that forwards to the standard library.
 /// - parameters:
@@ -7,6 +11,9 @@ import Darwin
 ///   - count: the number of bytes to copy
 /// - returns: `dest`, unchanged, matching `memcpy` semantics
 public func RAW_memcpy(_ dest:UnsafeMutableRawPointer, _ src:UnsafeRawPointer?, _ count:Int) -> UnsafeMutableRawPointer {
+	guard let src else {
+		return dest
+	}
 	return memcpy(dest, src, count)
 }
 
